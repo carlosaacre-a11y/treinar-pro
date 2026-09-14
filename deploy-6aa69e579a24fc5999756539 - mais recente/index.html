@@ -1,0 +1,1607 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title id="pageTitle">Treinar Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              dark: {
+                950: "#09090b",
+                900: "#121214",
+                800: "#1a1a1e",
+                700: "#27272a",
+                600: "#3f3f46",
+              },
+              primary: {
+                400: "#34d399",
+                500: "#10b981",
+                600: "#059669",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #09090b;
+        color: #f4f4f5;
+      }
+      ::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #121214;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #3f3f46;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body class="bg-dark-950 min-h-screen flex flex-col justify-between">
+    <!-- TELA DE LOGIN -->
+    <div
+      id="loginScreen"
+      class="fixed inset-0 bg-dark-950 z-50 flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-dark-900 border border-dark-800 rounded-2xl p-8 max-w-md w-full shadow-2xl text-center"
+      >
+        <div
+          id="loginAppIconContainer"
+          class="w-16 h-16 bg-primary-500/10 text-primary-500 rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl shadow-inner border border-primary-500/20 overflow-hidden"
+        >
+          <i id="loginAppIcon" class="fa-solid fa-bolt-lightning"></i>
+        </div>
+        <h1 id="loginAppName" class="text-2xl font-bold text-white mb-1">
+          Treinar Pro
+        </h1>
+        <p class="text-zinc-400 text-xs mb-6">
+          Insira seu e-mail para entrar no sistema.
+        </p>
+        <form
+          id="loginForm"
+          onsubmit="handleLogin(event)"
+          class="space-y-4 text-left"
+        >
+          <div>
+            <label
+              class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2"
+              >E-mail de Acesso</label
+            >
+            <input
+              type="email"
+              id="loginEmail"
+              required
+              placeholder="seu.email@exemplo.com"
+              class="w-full bg-dark-800 border border-dark-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary-500 transition text-sm"
+            />
+          </div>
+          <button
+            type="submit"
+            class="w-full bg-primary-500 hover:bg-primary-600 text-dark-950 font-bold py-3 rounded-xl transition shadow-lg shadow-primary-500/20 text-sm"
+          >
+            Acessar Painel
+          </button>
+        </form>
+        <p
+          id="loginMessage"
+          class="mt-4 text-xs text-amber-400 hidden bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-xl"
+        ></p>
+      </div>
+    </div>
+
+    <!-- APLICATIVO PRINCIPAL -->
+    <div
+      id="mainApp"
+      class="hidden flex-1 flex flex-col max-w-md w-full mx-auto pb-24 shadow-2xl bg-dark-900 border-x border-dark-800"
+    >
+      <!-- CABEÇALHO -->
+      <header
+        class="p-4 bg-dark-800/80 backdrop-blur-md border-b border-dark-700 flex items-center justify-between sticky top-0 z-40"
+      >
+        <div class="flex items-center space-x-3 overflow-hidden">
+          <img
+            id="headerAvatar"
+            src=""
+            class="w-10 h-10 rounded-full object-cover border border-primary-500 shadow-sm shrink-0"
+          />
+          <div class="min-w-0 flex-1">
+            <h2
+              id="headerName"
+              class="text-xs font-bold text-white leading-tight break-words"
+            >
+              Carregando...
+            </h2>
+            <p
+              id="headerRole"
+              class="text-[10px] uppercase font-semibold text-primary-400 tracking-wider"
+            >
+              Aluno
+            </p>
+          </div>
+        </div>
+        <button
+          onclick="logout()"
+          class="text-zinc-400 hover:text-white text-xs bg-dark-700/60 px-3 py-1.5 rounded-lg border border-dark-600 transition flex items-center gap-1.5 shrink-0 ml-2"
+        >
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+        </button>
+      </header>
+
+      <!-- CONTEÚDO DAS ABAS -->
+      <main class="flex-1 p-4 overflow-y-auto">
+        <!-- ABA 1: TREINOS -->
+        <div id="tabWorkouts" class="tab-content space-y-4">
+          <!-- AVISO DE VENCIMENTO / DATA IMPORTANTE -->
+          <div id="dueDateAlertBanner" class="hidden bg-amber-500/10 border border-amber-500/40 rounded-2xl p-3.5 relative">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                  <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+                </div>
+                <div>
+                  <h4 id="dueDateAlertTitle" class="text-xs font-bold text-amber-300">Aviso Importante</h4>
+                  <p id="dueDateAlertText" class="text-[11px] text-zinc-300 mt-0.5">Prazo próximo ao vencimento.</p>
+                </div>
+              </div>
+              <button onclick="dismissDueDateAlert()" class="text-zinc-400 hover:text-white text-xs p-1">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- MURAL DE AVISOS DO PROFESSOR -->
+          <div id="teacherNoticeCard" class="hidden bg-dark-800 border border-primary-500/30 rounded-2xl p-4 space-y-2 relative shadow-md">
+            <div class="flex items-center justify-between border-b border-dark-700/60 pb-2">
+              <h4 class="text-xs font-bold text-primary-400 flex items-center gap-2">
+                <i class="fa-solid fa-bullhorn text-primary-500"></i> Mural do Professor
+              </h4>
+              <span id="teacherNoticeDate" class="text-[10px] text-zinc-500">Recado recente</span>
+            </div>
+            <p id="teacherNoticeText" class="text-xs text-zinc-200 whitespace-pre-wrap leading-relaxed"></p>
+          </div>
+
+          <div class="flex items-center justify-between mb-1">
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-dumbbell text-primary-500"></i> Fichas de
+              Treino
+            </h3>
+            <button
+              id="newWorkoutBtn"
+              onclick="openNewWorkoutModal()"
+              class="hidden bg-primary-500/10 text-primary-400 border border-primary-500/30 text-xs px-3 py-1.5 rounded-lg hover:bg-primary-500/20 transition font-medium flex items-center gap-1"
+            >
+              <i class="fa-solid fa-plus text-[10px]"></i> Nova Ficha
+            </button>
+          </div>
+          <!-- Seletor de Fichas -->
+          <div
+            id="workoutTabsList"
+            class="flex gap-2 overflow-x-auto pb-1"
+          ></div>
+          <!-- Ações da Ficha Atual -->
+          <div
+            class="flex items-center justify-between bg-dark-800 border border-dark-700 rounded-xl px-3 py-2.5"
+          >
+            <div class="flex items-center gap-2 min-w-0 flex-1">
+              <span
+                id="currentWorkoutTitle"
+                class="text-xs font-bold text-zinc-300 truncate"
+                >Exercícios</span
+              >
+              <button
+                id="editWorkoutNameBtn"
+                onclick="editCurrentWorkoutName()"
+                class="text-primary-400 hover:text-primary-300 text-xs hidden transition shrink-0"
+                title="Renomear Ficha"
+              >
+                <i class="fa-solid fa-pen"></i>
+              </button>
+            </div>
+            <button
+              id="addExerciseBtn"
+              onclick="openAddExerciseModal()"
+              class="hidden bg-primary-500 text-dark-950 font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm hover:bg-primary-600 transition items-center gap-1 shrink-0 ml-2"
+            >
+              <i class="fa-solid fa-plus text-[10px]"></i> Adicionar Exercício
+            </button>
+          </div>
+          <!-- Detalhes e Lista de Exercícios -->
+          <div id="workoutContainer" class="space-y-3"></div>
+        </div>
+
+        <!-- ABA 2: PERFIL -->
+        <div id="tabProfile" class="tab-content space-y-5 hidden">
+          <div
+            class="bg-dark-800 border border-dark-700 rounded-2xl p-5 text-center relative overflow-hidden"
+          >
+            <div
+              class="absolute inset-x-0 top-0 h-16 bg-gradient-to-r from-primary-500/20 to-emerald-500/0"
+            ></div>
+            <img
+              id="profileAvatar"
+              src=""
+              class="w-20 h-20 rounded-full object-cover mx-auto mb-3 border-2 border-primary-500 shadow-lg relative z-10"
+            />
+            <h3
+              id="profileName"
+              class="text-lg font-bold text-white relative z-10 break-words"
+            >
+              Nome
+            </h3>
+            <p
+              id="profileEmail"
+              class="text-xs text-zinc-400 mt-0.5 relative z-10"
+            >
+              email@exemplo.com
+            </p>
+          </div>
+          <div
+            class="bg-dark-800 border border-dark-700 rounded-2xl p-4 space-y-4"
+          >
+            <h4
+              class="text-xs font-bold uppercase tracking-wider text-zinc-400 border-b border-dark-700 pb-2"
+            >
+              Editar Dados Pessoais
+            </h4>
+            <div>
+              <label class="block text-xs font-medium text-zinc-400 mb-1"
+                >Nome Completo</label
+              >
+              <input
+                type="text"
+                id="editMyName"
+                class="w-full bg-dark-900 border border-dark-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-primary-500"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-zinc-400 mb-1"
+                >Alterar Foto de Perfil (Galeria)</label
+              >
+              <input
+                type="file"
+                id="editMyAvatarFile"
+                accept="image/*"
+                class="w-full bg-dark-900 border border-dark-700 rounded-xl px-3 py-2 text-xs text-zinc-300 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-primary-500 file:text-dark-950 hover:file:bg-primary-600 transition"
+              />
+            </div>
+            <button
+              onclick="saveMyProfile()"
+              class="w-full bg-primary-500 hover:bg-primary-600 text-dark-950 font-bold py-2.5 rounded-xl text-xs transition shadow-md"
+            >
+              Salvar Alterações
+            </button>
+          </div>
+        </div>
+
+        <!-- ABA 3: ADMINISTRADOR -->
+        <div id="tabAdmin" class="tab-content space-y-5 hidden">
+          <div
+            class="bg-dark-800 border border-primary-500/30 rounded-2xl p-4 space-y-3"
+          >
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-shield-halved text-primary-500"></i> Painel
+              do Administrador
+            </h3>
+            <p class="text-xs text-zinc-400">
+              Personalize o nome, o ícone, o rótulo de vencimento e gerencie os alunos.
+            </p>
+            <div class="border-t border-dark-700 pt-3 space-y-3">
+              <h4
+                class="text-[10px] font-bold uppercase tracking-wider text-primary-400"
+              >
+                Personalização do Aplicativo
+              </h4>
+              <div>
+                <label class="block text-[10px] text-zinc-400 mb-1"
+                  >Nome do Aplicativo</label
+                >
+                <input
+                  type="text"
+                  id="adminAppNameInput"
+                  class="w-full bg-dark-900 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary-500"
+                />
+              </div>
+              <div>
+                <label class="block text-[10px] text-zinc-400 mb-1"
+                  >Ícone do Sistema (Classe FontAwesome)</label
+                >
+                <input
+                  type="text"
+                  id="adminAppIconInput"
+                  class="w-full bg-dark-900 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary-500"
+                />
+              </div>
+              <div>
+                <label class="block text-[10px] text-zinc-400 mb-1"
+                  >Nome do Campo de Vencimento/Prazo (Ex: Mensalidade, Validade)</label
+                >
+                <input
+                  type="text"
+                  id="adminDueDateLabelInput"
+                  class="w-full bg-dark-900 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary-500"
+                  placeholder="Ex: Vencimento da Mensalidade"
+                />
+              </div>
+              <div>
+                <label class="block text-[10px] text-zinc-400 mb-1"
+                  >Ou Enviar Imagem de Ícone (Logo)</label
+                >
+                <input
+                  type="file"
+                  id="adminAppLogoFile"
+                  accept="image/*"
+                  class="w-full bg-dark-900 border border-dark-700 rounded-xl px-3 py-1.5 text-xs text-zinc-300 file:mr-3 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-primary-500 file:text-dark-950"
+                />
+              </div>
+              <button
+                onclick="saveAppSettings()"
+                class="w-full bg-dark-700 hover:bg-dark-600 text-white font-bold py-2 rounded-xl text-xs transition border border-dark-600"
+              >
+                Atualizar Identidade Visual
+              </button>
+            </div>
+          </div>
+
+          <!-- Solicitações Pendentes -->
+          <div id="pendingSection" class="hidden space-y-3">
+            <h4
+              class="text-[10px] font-bold uppercase tracking-wider text-amber-400"
+            >
+              Solicitações Pendentes
+            </h4>
+            <div id="pendingList" class="space-y-2"></div>
+          </div>
+
+          <!-- Lista de Alunos e Pesquisa -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h4
+                class="text-[10px] font-bold uppercase tracking-wider text-zinc-400"
+              >
+                Alunos Cadastrados
+              </h4>
+              <button
+                onclick="openAddNewStudentModal()"
+                class="text-xs bg-primary-500 hover:bg-primary-600 text-dark-950 font-bold px-3 py-1.5 rounded-lg shadow-sm transition"
+              >
+                + Novo Aluno
+              </button>
+            </div>
+            <div>
+              <div class="relative">
+                <span
+                  class="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-500 text-xs"
+                >
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+                <input
+                  type="text"
+                  id="adminSearchInput"
+                  oninput="renderAdminPanel()"
+                  placeholder="Pesquisar aluno por nome ou e-mail..."
+                  class="w-full bg-dark-800 border border-dark-700 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-primary-500"
+                />
+              </div>
+            </div>
+            <div id="adminStudentsList" class="space-y-2"></div>
+          </div>
+        </div>
+      </main>
+
+      <!-- BARRA DE NAVEGAÇÃO INFERIOR -->
+      <nav
+        id="bottomNav"
+        class="bg-dark-800/90 backdrop-blur-md border-t border-dark-700 p-2 flex justify-around items-center fixed bottom-0 max-w-md w-full z-40"
+      >
+        <button
+          onclick="switchTab('workouts')"
+          id="navWorkouts"
+          class="flex flex-col items-center text-primary-500 py-1 px-4 transition"
+        >
+          <i class="fa-solid fa-dumbbell text-base"></i>
+          <span class="text-[10px] mt-1 font-medium">Treinos</span>
+        </button>
+        <button
+          onclick="switchTab('profile')"
+          id="navProfile"
+          class="flex flex-col items-center text-zinc-400 py-1 px-4 transition hover:text-white"
+        >
+          <i class="fa-solid fa-user text-base"></i>
+          <span class="text-[10px] mt-1 font-medium">Perfil</span>
+        </button>
+        <button
+          onclick="switchTab('admin')"
+          id="navAdmin"
+          class="hidden relative flex flex-col items-center text-zinc-400 py-1 px-4 transition hover:text-white"
+        >
+          <span
+            id="adminBadge"
+            class="absolute top-0.5 right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-dark-800 hidden"
+          ></span>
+          <i class="fa-solid fa-toolbox text-base"></i>
+          <span class="text-[10px] mt-1 font-medium">Admin</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- MODAL ADICIONAR EXERCÍCIO -->
+    <div
+      id="exerciseModal"
+      class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-dark-900 border border-dark-800 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl"
+      >
+        <div
+          class="flex items-center justify-between border-b border-dark-800 pb-3"
+        >
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-circle-plus text-primary-500"></i> Adicionar
+            Exercício
+          </h3>
+          <button
+            onclick="closeExerciseModal()"
+            class="text-zinc-400 hover:text-white"
+          >
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label
+              class="block text-[10px] uppercase font-semibold text-zinc-400 mb-1"
+              >Instrução Especial (Acima do Nome)</label
+            >
+            <input
+              type="text"
+              id="exCustomLabelInput"
+              placeholder="Ex: Destaque / Dica (Deixe em branco para ocultar)"
+              class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary-500"
+            />
+          </div>
+          <div>
+            <label
+              class="block text-[10px] uppercase font-semibold text-zinc-400 mb-1"
+              >Nome do Exercício</label
+            >
+            <input
+              type="text"
+              id="exNameInput"
+              placeholder="Ex: Supino Reto"
+              class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary-500"
+            />
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label
+                class="block text-[10px] uppercase font-semibold text-zinc-400 mb-1"
+                >Séries / Reps</label
+              >
+              <input
+                type="text"
+                id="exSetsInput"
+                placeholder="Ex: 4x12"
+                class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary-500"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-[10px] uppercase font-semibold text-zinc-400 mb-1"
+                >Carga</label
+              >
+              <input
+                type="text"
+                id="exLoadInput"
+                placeholder="Ex: 40 Kg"
+                class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label
+              class="block text-[10px] uppercase font-semibold text-zinc-400 mb-1"
+              >Link do Vídeo</label
+            >
+            <input
+              type="url"
+              id="exVideoInput"
+              placeholder="https://youtube.com/..."
+              class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary-500"
+            />
+          </div>
+          <div>
+            <label
+              class="block text-[10px] uppercase font-semibold text-zinc-400 mb-1"
+              >Observações</label
+            >
+            <textarea
+              id="exObsInput"
+              placeholder="Ex: Controlar a descida em 2s"
+              rows="3"
+              class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary-500 resize-none"
+            ></textarea>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button
+            onclick="closeExerciseModal()"
+            class="bg-dark-800 text-zinc-300 px-4 py-2 rounded-xl text-xs font-bold"
+          >
+            Cancelar
+          </button>
+          <button
+            onclick="confirmAddExercise()"
+            class="bg-primary-500 hover:bg-primary-600 text-dark-950 px-4 py-2 rounded-xl text-xs font-bold shadow-md"
+          >
+            Adicionar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL DE GERENCIAMENTO DE ALUNO (ADMIN) -->
+    <div
+      id="studentModal"
+      class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-dark-900 border border-dark-800 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-5 shadow-2xl"
+      >
+        <div
+          class="flex items-center justify-between border-b border-dark-800 pb-3"
+        >
+          <h3 id="modalStudentTitle" class="text-base font-bold text-white">
+            Editar Aluno
+          </h3>
+          <button
+            onclick="closeStudentModal()"
+            class="text-zinc-400 hover:text-white"
+          >
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+        <div class="space-y-4">
+          <h4
+            class="text-[10px] font-bold text-primary-400 uppercase tracking-wider"
+          >
+            Dados do Aluno
+          </h4>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] text-zinc-400 mb-1">Nome</label>
+              <input
+                type="text"
+                id="mStudentName"
+                class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white"
+              />
+            </div>
+            <div>
+              <label class="block text-[10px] text-zinc-400 mb-1">E-mail</label>
+              <input
+                type="email"
+                id="mStudentEmail"
+                class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label id="modalDueDateLabel" class="block text-[10px] text-zinc-400 mb-1">Informação de Vencimento</label>
+              <input
+                type="text"
+                id="mStudentDueDate"
+                placeholder="Ex: Todo dia 10 / Pago"
+                class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white"
+              />
+            </div>
+            <div>
+              <label class="block text-[10px] text-zinc-400 mb-1">Nova Foto de Perfil (Avatar)</label>
+              <input
+                type="file"
+                id="mStudentAvatarFile"
+                accept="image/*"
+                class="w-full bg-dark-800 border border-dark-700 rounded-xl px-2 py-1 text-[10px] text-zinc-300 file:mr-1 file:py-0.5 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-bold file:bg-primary-500 file:text-dark-950"
+              />
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] text-zinc-400 mb-1">Mural de Avisos Exclusivo para este Aluno</label>
+            <textarea
+              id="mStudentNotice"
+              rows="2"
+              placeholder="Digite um recado específico para este aluno..."
+              class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white resize-none"
+            ></textarea>
+          </div>
+        </div>
+        <div class="space-y-3 border-t border-dark-800 pt-4">
+          <div class="flex items-center justify-between">
+            <h4
+              class="text-[10px] font-bold text-primary-400 uppercase tracking-wider"
+            >
+              Fichas de Treino do Aluno
+            </h4>
+            <button
+              onclick="adminAddWorkoutToStudent()"
+              class="text-xs bg-primary-500/10 text-primary-400 px-2.5 py-1 rounded-lg border border-primary-500/30 font-medium"
+            >
+              + Nova Ficha
+            </button>
+          </div>
+          <div
+            id="mStudentWorkoutsList"
+            class="space-y-2 max-h-48 overflow-y-auto pr-1"
+          ></div>
+        </div>
+        <div
+          class="flex justify-between items-center pt-3 border-t border-dark-800"
+        >
+          <button
+            onclick="deleteStudent()"
+            class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition"
+          >
+            Excluir Aluno
+          </button>
+          <button
+            onclick="saveStudentModal()"
+            class="bg-primary-500 hover:bg-primary-600 text-dark-950 px-4 py-2 rounded-xl text-xs font-bold transition shadow-md"
+          >
+            Salvar Alterações
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL DE EXERCÍCIOS DA FICHA (ADMIN) -->
+    <div
+      id="adminWorkoutExercisesModal"
+      class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-dark-900 border border-dark-800 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl"
+      >
+        <div
+          class="flex items-center justify-between border-b border-dark-800 pb-3"
+        >
+          <div class="min-w-0 flex-1 mr-2">
+            <h3
+              id="adminModalWorkoutTitle"
+              class="text-sm font-bold text-white truncate"
+            >
+              Gerenciar Ficha
+            </h3>
+          </div>
+          <button
+            onclick="closeAdminWorkoutExercisesModal()"
+            class="text-zinc-400 hover:text-white shrink-0"
+          >
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+        <div
+          class="flex items-center justify-between bg-dark-800 border border-dark-700 rounded-xl px-3 py-2"
+        >
+          <span class="text-xs font-bold text-zinc-300"
+            >Lista de Exercícios</span
+          >
+          <button
+            onclick="adminAddExerciseToWorkout()"
+            class="bg-primary-500 text-dark-950 font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm hover:bg-primary-600 transition flex items-center gap-1"
+          >
+            <i class="fa-solid fa-plus text-[10px]"></i> Adicionar Exercício
+          </button>
+        </div>
+        <div
+          id="adminWorkoutExercisesContainer"
+          class="space-y-3 max-h-[50vh] overflow-y-auto pr-1"
+        ></div>
+        <div class="flex justify-end pt-2 border-t border-dark-800">
+          <button
+            onclick="closeAdminWorkoutExercisesModal()"
+            class="bg-primary-500 hover:bg-primary-600 text-dark-950 px-4 py-2 rounded-xl text-xs font-bold transition"
+          >
+            Concluir / Salvar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+      // Configuração do Firebase
+      const firebaseConfig = {
+        apiKey: "AIzaSyA9OWfIsPOoeOTq3D7tL34_dB_PsRuGEDw",
+        authDomain: "treinarpro-2d49e.firebaseapp.com",
+        projectId: "treinarpro-2d49e",
+        storageBucket: "treinarpro-2d49e.firebasestorage.app",
+        messagingSenderId: "835305264170",
+        appId: "1:835305264170:web:5822b4b6d82913da1f1f53"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const dbCloud = firebase.firestore();
+
+      const ADMIN_EMAIL = "carlosaacre@gmail.com";
+      
+      let globalState = {
+        appName: "Treinar Pro",
+        appIcon: "fa-solid fa-bolt-lightning",
+        appLogoImg: "",
+        dueDateLabel: "Data de Vencimento da Mensalidade",
+        users: [
+          {
+            name: "Antonio",
+            email: ADMIN_EMAIL,
+            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+            status: "approved",
+            dueDate: "",
+            notice: "",
+            dismissedDueDate: false,
+            workouts: {
+              "Treino A": [
+                {
+                  customLabel: "",
+                  name: "Cadeira Extensora",
+                  sets: "4x12",
+                  load: "40 Kg",
+                  video: "",
+                  obs: "Controle na descida"
+                }
+              ]
+            }
+          }
+        ],
+        pending: []
+      };
+
+      let currentUser = null;
+      let activeWorkoutKey = null;
+      let editingStudentIndex = null;
+      let editingAdminWorkoutKey = null;
+
+      // Sincronizar com o Firestore ao iniciar
+      async function initSystem() {
+        try {
+          const docRef = dbCloud.collection("system").doc("main_data");
+          const docSnap = await docRef.get();
+          if (docSnap.exists) {
+            globalState = docSnap.data();
+            if (!globalState.dueDateLabel) {
+              globalState.dueDateLabel = "Data de Vencimento da Mensalidade";
+            }
+          } else {
+            await docRef.set(globalState);
+          }
+          applyAppSettings();
+          updateAdminBadge();
+
+          // Verifica se já estava logado antes na sessão do navegador
+          const savedEmail = localStorage.getItem("treinarPro_loggedEmail");
+          if (savedEmail) {
+            let foundUser = globalState.users.find(u => u.email.toLowerCase() === savedEmail.toLowerCase());
+            if (foundUser && (foundUser.status === "approved" || foundUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase())) {
+              currentUser = foundUser;
+              initApp();
+            }
+          }
+        } catch (e) {
+          console.error("Erro ao carregar dados do Firebase:", e);
+        }
+      }
+
+      async function saveDB() {
+        try {
+          if (currentUser) {
+            applyAppSettings();
+            if (document.getElementById("mainApp") && !document.getElementById("mainApp").classList.contains("hidden")) {
+              renderWorkouts();
+              const isAdmin = currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+              if (isAdmin && !document.getElementById("tabAdmin").classList.contains("hidden")) {
+                renderAdminPanel();
+              }
+            }
+          }
+          await dbCloud.collection("system").doc("main_data").set(globalState);
+          updateAdminBadge();
+        } catch (e) {
+          console.error("Erro ao salvar no Firebase:", e);
+        }
+      }
+
+      initSystem();
+
+      function updateAdminBadge() {
+        const badge = document.getElementById("adminBadge");
+        if (!badge) return;
+        const pendingUsers = globalState.users.filter((u) => u.status === "pending");
+        if (pendingUsers.length > 0) {
+          badge.classList.remove("hidden");
+        } else {
+          badge.classList.add("hidden");
+        }
+      }
+
+      function applyAppSettings() {
+        const name = globalState.appName || "Treinar Pro";
+        document.getElementById("pageTitle").textContent = name;
+        document.getElementById("loginAppName").textContent = name;
+        
+        const iconContainer = document.getElementById("loginAppIconContainer");
+        if (globalState.appLogoImg && globalState.appLogoImg.trim() !== "") {
+          iconContainer.innerHTML = `<img src="${globalState.appLogoImg}" class="w-full h-full object-cover">`;
+        } else {
+          iconContainer.innerHTML = `<i id="loginAppIcon" class="${globalState.appIcon || "fa-solid fa-bolt-lightning"}"></i>`;
+        }
+        
+        const dueDateLblInput = document.getElementById("adminDueDateLabelInput");
+        if (dueDateLblInput) {
+          dueDateLblInput.value = globalState.dueDateLabel || "Data de Vencimento da Mensalidade";
+        }
+        const modalDueDateLabel = document.getElementById("modalDueDateLabel");
+        if (modalDueDateLabel) {
+          modalDueDateLabel.textContent = globalState.dueDateLabel || "Informação de Vencimento";
+        }
+
+        updateAdminBadge();
+      }
+
+      async function handleLogin(e) {
+        e.preventDefault();
+        
+        try {
+          const docRef = dbCloud.collection("system").doc("main_data");
+          const docSnap = await docRef.get();
+          if (docSnap.exists) {
+            globalState = docSnap.data();
+            if (!globalState.dueDateLabel) globalState.dueDateLabel = "Data de Vencimento da Mensalidade";
+          }
+        } catch(err) {}
+
+        const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+        const msgEl = document.getElementById("loginMessage");
+        let user = globalState.users.find((u) => u.email.toLowerCase() === email);
+        
+        if (user) {
+          if (user.status === "approved" || email === ADMIN_EMAIL.toLowerCase()) {
+            user.status = "approved";
+            currentUser = user;
+            localStorage.setItem("treinarPro_loggedEmail", currentUser.email);
+            await saveDB();
+            initApp();
+          } else {
+            msgEl.textContent = "Seu acesso está pendente de aprovação pelo Administrador.";
+            msgEl.classList.remove("hidden");
+            return;
+          }
+        } else {
+          const newUser = {
+            name: email.split("@")[0],
+            email: email,
+            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+            status: email === ADMIN_EMAIL.toLowerCase() ? "approved" : "pending",
+            dueDate: "",
+            notice: "",
+            dismissedDueDate: false,
+            workouts: {
+              "Treino A": [
+                {
+                  customLabel: "",
+                  name: "Exercício Inicial",
+                  sets: "3x12",
+                  load: "10 Kg",
+                  video: "",
+                  obs: ""
+                }
+              ]
+            }
+          };
+          globalState.users.push(newUser);
+          if (newUser.status === "pending") {
+            globalState.pending.push(newUser);
+            await saveDB();
+            msgEl.textContent = "Solicitação enviada com sucesso! Aguarde aprovação.";
+            msgEl.classList.remove("hidden");
+          } else {
+            currentUser = newUser;
+            localStorage.setItem("treinarPro_loggedEmail", currentUser.email);
+            await saveDB();
+            initApp();
+          }
+        }
+      }
+
+      function initApp() {
+        document.getElementById("loginScreen").classList.add("hidden");
+        document.getElementById("mainApp").classList.remove("hidden");
+        applyAppSettings();
+        document.getElementById("headerAvatar").src = currentUser.avatar;
+        document.getElementById("headerName").textContent = currentUser.name;
+        const isAdmin = currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+        document.getElementById("headerRole").textContent = isAdmin ? "Administrador" : "Aluno";
+        const navAdminEl = document.getElementById("navAdmin");
+        const newWorkoutBtn = document.getElementById("newWorkoutBtn");
+        const addExerciseBtn = document.getElementById("addExerciseBtn");
+        if (isAdmin) {
+          navAdminEl.classList.remove("hidden");
+          newWorkoutBtn.classList.remove("hidden");
+          addExerciseBtn.classList.remove("hidden");
+          addExerciseBtn.classList.add("flex");
+          renderAdminPanel();
+        } else {
+          navAdminEl.classList.add("hidden");
+          newWorkoutBtn.classList.add("hidden");
+          addExerciseBtn.classList.add("hidden");
+          addExerciseBtn.classList.remove("flex");
+        }
+        document.getElementById("profileAvatar").src = currentUser.avatar;
+        document.getElementById("profileName").textContent = currentUser.name;
+        document.getElementById("profileEmail").textContent = currentUser.email;
+        document.getElementById("editMyName").value = currentUser.name;
+        document.getElementById("editMyAvatarFile").value = "";
+        renderWorkouts();
+        switchTab("workouts");
+      }
+
+      function logout() {
+        localStorage.removeItem("treinarPro_loggedEmail");
+        currentUser = null;
+        document.getElementById("mainApp").classList.add("hidden");
+        document.getElementById("loginScreen").classList.remove("hidden");
+        document.getElementById("loginEmail").value = "";
+        document.getElementById("loginMessage").classList.add("hidden");
+        applyAppSettings();
+      }
+
+      function switchTab(tab) {
+        const isAdmin = currentUser && currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+        if (tab === "admin" && !isAdmin) return;
+        ["workouts", "profile", "admin"].forEach((t) => {
+          const el = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+          if (el) el.classList.add("hidden");
+          const btn = document.getElementById(`nav${t.charAt(0).toUpperCase() + t.slice(1)}`);
+          if (btn) {
+            btn.className = "flex flex-col items-center text-zinc-400 py-1 px-4 transition hover:text-white";
+          }
+        });
+        const activeEl = document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+        if (activeEl) activeEl.classList.remove("hidden");
+        const activeBtn = document.getElementById(`nav${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+        if (activeBtn) {
+          activeBtn.className = "flex flex-col items-center text-primary-500 py-1 px-4 transition";
+        }
+      }
+
+      function checkDueDateAndNotice() {
+        const banner = document.getElementById("dueDateAlertBanner");
+        const alertTitle = document.getElementById("dueDateAlertTitle");
+        const alertText = document.getElementById("dueDateAlertText");
+        const labelName = globalState.dueDateLabel || "Informação de Vencimento";
+        
+        if (currentUser.dueDate && currentUser.dueDate.trim() !== "" && !currentUser.dismissedDueDate) {
+          alertTitle.textContent = `${labelName}`;
+          alertText.textContent = `Aviso/Prazo cadastrado: ${currentUser.dueDate}`;
+          banner.classList.remove("hidden");
+        } else {
+          banner.classList.add("hidden");
+        }
+
+        // Mural de Avisos
+        const noticeCard = document.getElementById("teacherNoticeCard");
+        const noticeText = document.getElementById("teacherNoticeText");
+        if (currentUser.notice && currentUser.notice.trim() !== "") {
+          noticeText.textContent = currentUser.notice;
+          noticeCard.classList.remove("hidden");
+        } else {
+          noticeCard.classList.add("hidden");
+        }
+      }
+
+      function dismissDueDateAlert() {
+        currentUser.dismissedDueDate = true;
+        saveDB();
+        document.getElementById("dueDateAlertBanner").classList.add("hidden");
+      }
+
+      function renderWorkouts() {
+        checkDueDateAndNotice();
+        const tabsContainer = document.getElementById("workoutTabsList");
+        tabsContainer.innerHTML = "";
+        
+        let keys = Object.keys(currentUser.workouts || {});
+        keys.sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
+
+        if (keys.length === 0) {
+          document.getElementById("workoutContainer").innerHTML =
+            '<p class="text-xs text-zinc-500 text-center py-8">Nenhuma ficha cadastrada.</p>';
+          document.getElementById("currentWorkoutTitle").textContent = "Sem Ficha";
+          document.getElementById("editWorkoutNameBtn").classList.add("hidden");
+          return;
+        }
+        if (!activeWorkoutKey || !currentUser.workouts[activeWorkoutKey]) {
+          activeWorkoutKey = keys[0];
+        }
+        keys.forEach((key) => {
+          const btn = document.createElement("button");
+          btn.className = `px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${activeWorkoutKey === key ? "bg-primary-500 text-dark-950 shadow-md shadow-primary-500/20" : "bg-dark-800 text-zinc-400 border border-dark-700 hover:text-white"}`;
+          btn.textContent = key;
+          btn.onclick = () => {
+            activeWorkoutKey = key;
+            renderWorkouts();
+          };
+          tabsContainer.appendChild(btn);
+        });
+        document.getElementById("currentWorkoutTitle").textContent = `Ficha: ${activeWorkoutKey}`;
+        const isAdmin = currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+        const editNameBtn = document.getElementById("editWorkoutNameBtn");
+        if (isAdmin) {
+          editNameBtn.classList.remove("hidden");
+        } else {
+          editNameBtn.classList.add("hidden");
+        }
+
+        const container = document.getElementById("workoutContainer");
+        container.innerHTML = "";
+        const exercises = currentUser.workouts[activeWorkoutKey] || [];
+        if (exercises.length === 0) {
+          container.innerHTML = '<p class="text-xs text-zinc-500 text-center py-6">Nenhum exercício nesta ficha.</p>';
+          return;
+        }
+
+        exercises.forEach((ex, idx) => {
+          const card = document.createElement("div");
+          card.className = "bg-dark-800 border border-dark-700/80 rounded-xl p-3.5 space-y-2.5 shadow-sm";
+          let videoBtnHtml = "";
+          if (ex.video && ex.video.trim() !== "") {
+            videoBtnHtml = `<a href="${ex.video}" target="_blank" class="bg-primary-500/10 hover:bg-primary-500/20 text-primary-400 border border-primary-500/30 text-[10px] font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1.5"><i class="fa-solid fa-play text-[9px]"></i> Veja o Vídeo</a>`;
+          }
+
+          const customLabelVal = ex.customLabel || "";
+
+          if (isAdmin) {
+            card.innerHTML = `
+              <div class="flex items-center justify-between">
+                ${videoBtnHtml}
+                <span class="text-[10px] font-bold text-zinc-500">Exercício #${idx + 1}</span>
+                <button onclick="removeExercise(${idx})" class="text-zinc-500 hover:text-red-400 text-xs transition"><i class="fa-solid fa-trash-can"></i></button>
+              </div>
+              <div>
+                <label class="text-[9px] text-primary-400 uppercase font-semibold">Instrução Especial (Acima do Nome)</label>
+                <input type="text" value="${customLabelVal}" placeholder="Ex: Super Série / Opcional" oninput="updateExercise(${idx}, 'customLabel', this.value)" class="w-full bg-dark-900 border border-dark-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-primary-500">
+              </div>
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase font-semibold">Exercício</label>
+                <input type="text" value="${ex.name}" oninput="updateExercise(${idx}, 'name', this.value)" class="w-full bg-dark-900 border border-dark-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-primary-500">
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-[9px] text-zinc-500 uppercase font-semibold">Séries / Reps</label>
+                  <input type="text" value="${ex.sets}" oninput="updateExercise(${idx}, 'sets', this.value)" class="w-full bg-dark-900 border border-dark-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                  <label class="text-[9px] text-zinc-500 uppercase font-semibold">Carga</label>
+                  <input type="text" value="${ex.load}" oninput="updateExercise(${idx}, 'load', this.value)" class="w-full bg-dark-900 border border-dark-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-primary-500">
+                </div>
+              </div>
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase font-semibold">Link do Vídeo</label>
+                <input type="url" value="${ex.video || ""}" placeholder="https://youtube.com/..." oninput="updateExercise(${idx}, 'video', this.value)" class="w-full bg-dark-900 border border-dark-700 rounded-lg px-2.5 py-1 text-xs text-zinc-300 focus:outline-none focus:border-primary-500">
+              </div>
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase font-semibold">Observações</label>
+                <textarea rows="3" placeholder="Nenhuma observação" oninput="updateExercise(${idx}, 'obs', this.value)" class="w-full bg-dark-900 border border-dark-700 rounded-lg px-2.5 py-1 text-xs text-zinc-300 focus:outline-none focus:border-primary-500 resize-none">${ex.obs || ""}</textarea>
+              </div>
+            `;
+          } else {
+            const customLabelHtml = customLabelVal && customLabelVal.trim() !== ""
+              ? `<span class="text-[10px] text-primary-400 uppercase font-bold tracking-wider block mb-0.5">${customLabelVal}</span>`
+              : "";
+
+            card.innerHTML = `
+              <div class="flex items-center justify-between">
+                ${videoBtnHtml}
+                <span class="text-[10px] font-bold text-zinc-500">Exercício #${idx + 1}</span>
+              </div>
+              <div>
+                ${customLabelHtml}
+                <span class="text-[9px] text-zinc-500 uppercase font-semibold block">Exercício</span>
+                <p class="text-xs font-bold text-white mt-0.5">${ex.name}</p>
+              </div>
+              <div class="grid grid-cols-2 gap-2 pt-1">
+                <div>
+                  <span class="text-[9px] text-zinc-500 uppercase font-semibold block">Séries / Reps</span>
+                  <p class="text-xs text-zinc-300 mt-0.5">${ex.sets || "-"}</p>
+                </div>
+                <div>
+                  <span class="text-[9px] text-zinc-500 uppercase font-semibold block">Carga</span>
+                  <p class="text-xs text-zinc-300 mt-0.5">${ex.load || "-"}</p>
+                </div>
+              </div>
+              ${ex.obs && ex.obs.trim() !== "" ? `
+                <div class="pt-1">
+                  <span class="text-[9px] text-zinc-500 uppercase font-semibold block">Observações</span>
+                  <p class="text-xs text-zinc-300 mt-0.5 bg-dark-900/50 p-2 rounded-lg border border-dark-700/50">${ex.obs}</p>
+                </div>` : ""}
+            `;
+          }
+          container.appendChild(card);
+        });
+      }
+
+      function updateExercise(idx, field, val) {
+        currentUser.workouts[activeWorkoutKey][idx][field] = val;
+        saveDB();
+        if (field === "video") {
+          renderWorkouts();
+        }
+      }
+
+      function editCurrentWorkoutName() {
+        const newName = prompt("Digite o novo nome para esta ficha:", activeWorkoutKey);
+        if (!newName || newName.trim() === "" || newName === activeWorkoutKey) return;
+        if (currentUser.workouts[newName]) {
+          alert("Já existe uma ficha com esse nome.");
+          return;
+        }
+        currentUser.workouts[newName] = currentUser.workouts[activeWorkoutKey];
+        delete currentUser.workouts[activeWorkoutKey];
+        activeWorkoutKey = newName;
+        saveDB();
+        renderWorkouts();
+      }
+
+      function openNewWorkoutModal() {
+        const name = prompt("Nome da nova ficha (Ex: Treino C, Pernas, Abdômen...):");
+        if (!name) return;
+        if (!currentUser.workouts[name]) {
+          currentUser.workouts[name] = [
+            {
+              customLabel: "",
+              name: "Novo Exercício",
+              sets: "3x12",
+              load: "10 Kg",
+              video: "",
+              obs: ""
+            }
+          ];
+          activeWorkoutKey = name;
+          saveDB();
+          renderWorkouts();
+        }
+      }
+
+      function openAddExerciseModal() {
+        if (!activeWorkoutKey) {
+          alert("Selecione ou crie uma ficha de treino primeiro!");
+          return;
+        }
+        document.getElementById("exCustomLabelInput").value = "";
+        document.getElementById("exNameInput").value = "";
+        document.getElementById("exSetsInput").value = "3x12";
+        document.getElementById("exLoadInput").value = "";
+        document.getElementById("exVideoInput").value = "";
+        document.getElementById("exObsInput").value = "";
+        document.getElementById("exerciseModal").classList.remove("hidden");
+      }
+
+      function closeExerciseModal() {
+        document.getElementById("exerciseModal").classList.add("hidden");
+      }
+
+      function confirmAddExercise() {
+        const customLabel = document.getElementById("exCustomLabelInput").value.trim();
+        const name = document.getElementById("exNameInput").value.trim();
+        const sets = document.getElementById("exSetsInput").value.trim();
+        const load = document.getElementById("exLoadInput").value.trim();
+        const video = document.getElementById("exVideoInput").value.trim();
+        const obs = document.getElementById("exObsInput").value.trim();
+        if (!name) {
+          alert("Informe o nome do exercício.");
+          return;
+        }
+        currentUser.workouts[activeWorkoutKey].push({
+          customLabel,
+          name,
+          sets,
+          load,
+          video,
+          obs
+        });
+        saveDB();
+        closeExerciseModal();
+        renderWorkouts();
+      }
+
+      function removeExercise(idx) {
+        if (confirm("Deseja remover este exercício?")) {
+          currentUser.workouts[activeWorkoutKey].splice(idx, 1);
+          saveDB();
+          renderWorkouts();
+        }
+      }
+
+      function saveMyProfile() {
+        const newName = document.getElementById("editMyName").value.trim();
+        if (newName) {
+          currentUser.name = newName;
+          document.getElementById("headerName").textContent = newName;
+          document.getElementById("profileName").textContent = newName;
+        }
+        const fileInput = document.getElementById("editMyAvatarFile");
+        if (fileInput.files && fileInput.files[0]) {
+          const reader = new FileReader();
+          reader.onload = async function (e) {
+            currentUser.avatar = e.target.result;
+            document.getElementById("headerAvatar").src = currentUser.avatar;
+            document.getElementById("profileAvatar").src = currentUser.avatar;
+            await saveDB();
+            alert("Perfil e foto atualizados com sucesso!");
+          };
+          reader.readAsDataURL(fileInput.files[0]);
+        } else {
+          saveDB();
+          alert("Perfil atualizado com sucesso!");
+        }
+      }
+
+      function renderAdminPanel() {
+        if (!currentUser || currentUser.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) return;
+        document.getElementById("adminAppNameInput").value = globalState.appName || "Treinar Pro";
+        document.getElementById("adminAppIconInput").value = globalState.appIcon || "fa-solid fa-bolt-lightning";
+        document.getElementById("adminDueDateLabelInput").value = globalState.dueDateLabel || "Data de Vencimento da Mensalidade";
+
+        const pendingSec = document.getElementById("pendingSection");
+        const pendingList = document.getElementById("pendingList");
+        pendingList.innerHTML = "";
+        const pendingUsers = globalState.users.filter((u) => u.status === "pending");
+        updateAdminBadge();
+        if (pendingUsers.length > 0) {
+          pendingSec.classList.remove("hidden");
+          pendingUsers.forEach((u) => {
+            const div = document.createElement("div");
+            div.className = "flex items-center justify-between bg-dark-800 border border-amber-500/30 rounded-xl p-3";
+            div.innerHTML = `
+              <div class="text-xs">
+                <p class="font-bold text-white">${u.name}</p>
+                <p class="text-zinc-400">${u.email}</p>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="approveUser('${u.email}')" class="bg-primary-500 text-dark-950 px-3 py-1 rounded-lg text-xs font-bold">Aceitar</button>
+                <button onclick="rejectUser('${u.email}')" class="bg-red-500/10 text-red-400 px-3 py-1 rounded-lg text-xs font-bold">Recusar</button>
+              </div>
+            `;
+            pendingList.appendChild(div);
+          });
+        } else {
+          pendingSec.classList.add("hidden");
+        }
+
+        const searchTerm = (document.getElementById("adminSearchInput").value || "").toLowerCase();
+        const studentsList = document.getElementById("adminStudentsList");
+        studentsList.innerHTML = "";
+        const filteredUsers = globalState.users.filter(
+          (u) => u.name.toLowerCase().includes(searchTerm) || u.email.toLowerCase().includes(searchTerm)
+        );
+        const sortedUsers = [...filteredUsers].sort((a, b) => a.name.localeCompare(b.name));
+        if (sortedUsers.length === 0) {
+          studentsList.innerHTML = '<p class="text-xs text-zinc-500 text-center py-4">Nenhum aluno encontrado.</p>';
+          return;
+        }
+        sortedUsers.forEach((user) => {
+          const div = document.createElement("div");
+          div.className = "flex items-center justify-between bg-dark-800 border border-dark-700 rounded-xl p-3 hover:border-primary-500/50 transition cursor-pointer";
+          div.onclick = () => openStudentModal(user.email);
+          div.innerHTML = `
+            <div class="flex items-center gap-3">
+              <img src="${user.avatar}" class="w-9 h-9 rounded-full object-cover border border-dark-600">
+              <div>
+                <p class="text-xs font-bold text-white">${user.name} ${user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? '<span class="text-primary-400 font-normal">(Admin)</span>' : ""}</p>
+                <p class="text-[10px] text-zinc-400">${user.email}</p>
+              </div>
+            </div>
+            <span class="text-xs text-primary-400"><i class="fa-solid fa-pen-to-square"></i></span>
+          `;
+          studentsList.appendChild(div);
+        });
+      }
+
+      function saveAppSettings() {
+        const newName = document.getElementById("adminAppNameInput").value.trim();
+        const newIcon = document.getElementById("adminAppIconInput").value.trim();
+        const newDueDateLabel = document.getElementById("adminDueDateLabelInput").value.trim();
+
+        if (newName) globalState.appName = newName;
+        if (newIcon) globalState.appIcon = newIcon;
+        if (newDueDateLabel) globalState.dueDateLabel = newDueDateLabel;
+
+        const logoFile = document.getElementById("adminAppLogoFile");
+        if (logoFile.files && logoFile.files[0]) {
+          const reader = new FileReader();
+          reader.onload = async function (e) {
+            globalState.appLogoImg = e.target.result;
+            await saveDB();
+            applyAppSettings();
+            alert("Identidade visual e configurações atualizadas com sucesso!");
+          };
+          reader.readAsDataURL(logoFile.files[0]);
+        } else {
+          saveDB();
+          applyAppSettings();
+          alert("Identidade visual e configurações atualizadas com sucesso!");
+        }
+      }
+
+      async function approveUser(email) {
+        let u = globalState.users.find((x) => x.email === email);
+        if (u) {
+          u.status = "approved";
+          globalState.pending = globalState.pending.filter((x) => x.email !== email);
+          await saveDB();
+          renderAdminPanel();
+        }
+      }
+
+      async function rejectUser(email) {
+        globalState.users = globalState.users.filter((x) => x.email !== email);
+        globalState.pending = globalState.pending.filter((x) => x.email !== email);
+        await saveDB();
+        renderAdminPanel();
+      }
+
+      function openAddNewStudentModal() {
+        const name = prompt("Nome do novo aluno:");
+        if (!name) return;
+        const email = prompt("E-mail do novo aluno:");
+        if (!email) return;
+        globalState.users.push({
+          name: name,
+          email: email.trim().toLowerCase(),
+          avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+          status: "approved",
+          dueDate: "",
+          notice: "",
+          dismissedDueDate: false,
+          workouts: {
+            "Treino A": [
+              {
+                customLabel: "",
+                name: "Exercício 1",
+                sets: "3x12",
+                load: "10 Kg",
+                video: "",
+                obs: ""
+              }
+            ]
+          }
+        });
+        saveDB();
+        renderAdminPanel();
+      }
+
+      function openStudentModal(email) {
+        editingStudentIndex = globalState.users.findIndex((u) => u.email === email);
+        const user = globalState.users[editingStudentIndex];
+        document.getElementById("modalStudentTitle").textContent = `Gerenciar: ${user.name}`;
+        document.getElementById("mStudentName").value = user.name;
+        document.getElementById("mStudentEmail").value = user.email;
+        document.getElementById("mStudentDueDate").value = user.dueDate || "";
+        document.getElementById("mStudentNotice").value = user.notice || "";
+        document.getElementById("mStudentAvatarFile").value = "";
+        
+        // Atualiza dinamicamente o texto do rótulo no modal do aluno
+        document.getElementById("modalDueDateLabel").textContent = globalState.dueDateLabel || "Informação de Vencimento";
+
+        renderStudentWorkoutsInModal();
+        document.getElementById("studentModal").classList.remove("hidden");
+      }
+
+      function renderStudentWorkoutsInModal() {
+        const user = globalState.users[editingStudentIndex];
+        const container = document.getElementById("mStudentWorkoutsList");
+        container.innerHTML = "";
+        
+        let wKeys = Object.keys(user.workouts || {});
+        wKeys.sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
+
+        wKeys.forEach((wKey) => {
+          const box = document.createElement("div");
+          box.className = "bg-dark-950 border border-dark-800 rounded-xl p-3 flex justify-between items-center text-xs";
+          box.innerHTML = `
+            <div class="flex items-center gap-2 min-w-0 flex-1 mr-2">
+              <span class="font-bold text-primary-400 truncate">Ficha: ${wKey}</span>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button onclick="openAdminWorkoutExercises('${wKey}')" class="bg-primary-500/10 hover:bg-primary-500/20 text-primary-400 border border-primary-500/30 px-2 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1">
+                <i class="fa-solid fa-dumbbell"></i> Exercícios
+              </button>
+              <button onclick="adminRemoveWorkout('${wKey}')" class="text-red-400 hover:text-red-300 text-[10px] font-semibold p-1">Remover</button>
+            </div>
+          `;
+          container.appendChild(box);
+        });
+      }
+
+      function adminAddWorkoutToStudent() {
+        const wName = prompt("Nome da ficha (Ex: Treino C, Funcional...):");
+        if (!wName) return;
+        const user = globalState.users[editingStudentIndex];
+        if (!user.workouts[wName]) {
+          user.workouts[wName] = [
+            {
+              customLabel: "",
+              name: "Exercício",
+              sets: "3x12",
+              load: "10 Kg",
+              video: "",
+              obs: ""
+            }
+          ];
+          saveDB();
+          renderStudentWorkoutsInModal();
+        }
+      }
+
+      function adminRemoveWorkout(wKey) {
+        const user = globalState.users[editingStudentIndex];
+        delete user.workouts[wKey];
+        saveDB();
+        renderStudentWorkoutsInModal();
+      }
+
+      function openAdminWorkoutExercises(wKey) {
+        editingAdminWorkoutKey = wKey;
+        const user = globalState.users[editingStudentIndex];
+        document.getElementById("adminModalWorkoutTitle").textContent = `Ficha: ${wKey} (${user.name})`;
+        renderAdminWorkoutExercisesList();
+        document.getElementById("adminWorkoutExercisesModal").classList.remove("hidden");
+      }
+
+      function closeAdminWorkoutExercisesModal() {
+        document.getElementById("adminWorkoutExercisesModal").classList.add("hidden");
+        renderStudentWorkoutsInModal();
+      }
+
+      function renderAdminWorkoutExercisesList() {
+        const user = globalState.users[editingStudentIndex];
+        const container = document.getElementById("adminWorkoutExercisesContainer");
+        container.innerHTML = "";
+        const exercises = user.workouts[editingAdminWorkoutKey] || [];
+        if (exercises.length === 0) {
+          container.innerHTML = '<p class="text-xs text-zinc-500 text-center py-4">Nenhum exercício nesta ficha.</p>';
+          return;
+        }
+        exercises.forEach((ex, idx) => {
+          const card = document.createElement("div");
+          card.className = "bg-dark-950 border border-dark-800 rounded-xl p-3.5 space-y-2.5";
+          const customLabelVal = ex.customLabel || "";
+          card.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold text-primary-400">Exercício #${idx + 1}</span>
+              <button onclick="adminRemoveExerciseFromWorkout(${idx})" class="text-zinc-500 hover:text-red-400 text-xs transition"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+            <div>
+              <label class="text-[9px] text-primary-400 uppercase font-semibold">Instrução Especial (Acima do Nome)</label>
+              <input type="text" value="${customLabelVal}" placeholder="Ex: Super Série / Opcional" oninput="updateAdminExercise(${idx}, 'customLabel', this.value)" class="w-full bg-dark-900 border border-dark-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-primary-500">
+            </div>
+            <div>
+              <label class="text-[9px] text-zinc-500 uppercase font-semibold">Nome</label>
+              <input type="text" value="${ex.name}" oninput="updateAdminExercise(${idx}, 'name', this.value)" class="w-full bg-dark-900 border border-dark-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-primary-500">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase font-semibold">Séries / Reps</label>
+                <input type="text" value="${ex.sets}" oninput="updateAdminExercise(${idx}, 'sets', this.value)" class="w-full bg-dark-900 border border-dark-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-primary-500">
+              </div>
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase font-semibold">Carga</label>
+                <input type="text" value="${ex.load}" oninput="updateAdminExercise(${idx}, 'load', this.value)" class="w-full bg-dark-900 border border-dark-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-primary-500">
+              </div>
+            </div>
+            <div>
+              <label class="text-[9px] text-zinc-500 uppercase font-semibold">Link do Vídeo</label>
+              <input type="url" value="${ex.video || ""}" placeholder="https://youtube.com/..." oninput="updateAdminExercise(${idx}, 'video', this.value)" class="w-full bg-dark-900 border border-dark-700 rounded-lg px-2.5 py-1 text-xs text-zinc-300 focus:outline-none focus:border-primary-500">
+            </div>
+            <div>
+              <label class="text-[9px] text-zinc-500 uppercase font-semibold">Observações</label>
+              <textarea rows="2" placeholder="Observações" oninput="updateAdminExercise(${idx}, 'obs', this.value)" class="w-full bg-dark-900 border border-dark-700 rounded-lg px-2.5 py-1 text-xs text-zinc-300 focus:outline-none focus:border-primary-500 resize-none">${ex.obs || ""}</textarea>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      }
+
+      function updateAdminExercise(idx, field, val) {
+        const user = globalState.users[editingStudentIndex];
+        user.workouts[editingAdminWorkoutKey][idx][field] = val;
+        saveDB();
+      }
+
+      function adminAddExerciseToWorkout() {
+        const user = globalState.users[editingStudentIndex];
+        user.workouts[editingAdminWorkoutKey].push({
+          customLabel: "",
+          name: "Novo Exercício",
+          sets: "3x12",
+          load: "",
+          video: "",
+          obs: ""
+        });
+        saveDB();
+        renderAdminWorkoutExercisesList();
+      }
+
+      function adminRemoveExerciseFromWorkout(idx) {
+        const user = globalState.users[editingStudentIndex];
+        user.workouts[editingAdminWorkoutKey].splice(idx, 1);
+        saveDB();
+        renderAdminWorkoutExercisesList();
+      }
+
+      function saveStudentModal() {
+        const user = globalState.users[editingStudentIndex];
+        const newDueDate = document.getElementById("mStudentDueDate").value;
+        const newNotice = document.getElementById("mStudentNotice").value;
+        
+        if (user.dueDate !== newDueDate) {
+          user.dismissedDueDate = false;
+        }
+
+        user.name = document.getElementById("mStudentName").value;
+        user.email = document.getElementById("mStudentEmail").value;
+        user.dueDate = newDueDate;
+        user.notice = newNotice;
+
+        const avatarFileInput = document.getElementById("mStudentAvatarFile");
+        if (avatarFileInput.files && avatarFileInput.files[0]) {
+          const reader = new FileReader();
+          reader.onload = async function (e) {
+            user.avatar = e.target.result;
+            await saveDB();
+            closeStudentModal();
+            renderAdminPanel();
+            alert("Dados e foto do aluno salvos com sucesso!");
+          };
+          reader.readAsDataURL(avatarFileInput.files[0]);
+        } else {
+          saveDB();
+          closeStudentModal();
+          renderAdminPanel();
+          alert("Dados do aluno salvos com sucesso!");
+        }
+      }
+
+      function deleteStudent() {
+        if (confirm("Tem certeza que deseja excluir este aluno?")) {
+          globalState.users.splice(editingStudentIndex, 1);
+          saveDB();
+          closeStudentModal();
+          renderAdminPanel();
+        }
+      }
+
+      function closeStudentModal() {
+        document.getElementById("studentModal").classList.add("hidden");
+      }
+    </script>
+  </body>
+</html>
