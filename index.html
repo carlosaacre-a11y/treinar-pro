@@ -726,161 +726,8 @@
     </div>
 
     <!-- SCRIPTS -->
-    <script>async function initSystem() {
-  try {
-    const response = await fetch(
-      "https://treinarpro-api.carlosaacre.workers.dev/api/state"
-    );
-
-    if (!response.ok) {
-      throw new Error("Não foi possível carregar os dados da nuvem.");
-    }
-
-    const data = await response.json();
-
-    if (data.ok && data.state) {
-      globalState = data.state;
-
-      if (!globalState.dueDateLabel) {
-        globalState.dueDateLabel =
-          "Data de Vencimento da Mensalidade";
-      }
-    }
-
-    applyAppSettings();
-    updateAdminBadge();
-
-    const savedEmail = localStorage.getItem(
-      "treinarPro_loggedEmail"
-    );
-
-    if (savedEmail) {
-      const foundUser = globalState.users.find(
-        (u) =>
-          u.email.toLowerCase() === savedEmail.toLowerCase()
-      );
-
-      if (
-        foundUser &&
-        (foundUser.status === "approved" ||
-          foundUser.email.toLowerCase() ===
-            ADMIN_EMAIL.toLowerCase())
-      ) {
-        currentUser = foundUser;
-        initApp();
-      }
-    }
-  } catch (e) {
-    console.error(
-      "Erro ao carregar dados da nuvem:",
-      e
-    );
-  }
-}async function initSystem() {
-  try {
-    const response = await fetch(
-      "https://treinarpro-api.carlosaacre.workers.dev/api/state"
-    );
-
-    if (!response.ok) {
-      throw new Error("Não foi possível carregar os dados da nuvem.");
-    }
-
-    const data = await response.json();
-
-    if (data.ok && data.state) {
-      globalState = data.state;
-
-      if (!globalState.dueDateLabel) {
-        globalState.dueDateLabel =
-          "Data de Vencimento da Mensalidade";
-      }
-    }
-
-    applyAppSettings();
-    updateAdminBadge();
-
-    const savedEmail = localStorage.getItem(
-      "treinarPro_loggedEmail"
-    );
-
-    if (savedEmail) {
-      const foundUser = globalState.users.find(
-        (u) =>
-          u.email.toLowerCase() === savedEmail.toLowerCase()
-      );
-
-      if (
-        foundUser &&
-        (foundUser.status === "approved" ||
-          foundUser.email.toLowerCase() ===
-            ADMIN_EMAIL.toLowerCase())
-      ) {
-        currentUser = foundUser;
-        initApp();
-      }
-    }
-  } catch (e) {
-    console.error(
-      "Erro ao carregar dados da nuvem:",
-      e
-    );
-  }
-}async function initSystem() {
-  try {
-    const response = await fetch(
-      "https://treinarpro-api.carlosaacre.workers.dev/api/state"
-    );
-
-    if (!response.ok) {
-      throw new Error("Não foi possível carregar os dados da nuvem.");
-    }
-
-    const data = await response.json();
-
-    if (data.ok && data.state) {
-      globalState = data.state;
-
-      if (!globalState.dueDateLabel) {
-        globalState.dueDateLabel =
-          "Data de Vencimento da Mensalidade";
-      }
-    }
-
-    applyAppSettings();
-    updateAdminBadge();
-
-    const savedEmail = localStorage.getItem(
-      "treinarPro_loggedEmail"
-    );
-
-    if (savedEmail) {
-      const foundUser = globalState.users.find(
-        (u) =>
-          u.email.toLowerCase() === savedEmail.toLowerCase()
-      );
-
-      if (
-        foundUser &&
-        (foundUser.status === "approved" ||
-          foundUser.email.toLowerCase() ===
-            ADMIN_EMAIL.toLowerCase())
-      ) {
-        currentUser = foundUser;
-        initApp();
-      }
-    }
-  } catch (e) {
-    console.error(
-      "Erro ao carregar dados da nuvem:",
-      e
-    );
-  }
-}
-      
-      const API_URL =
-  "https://treinarpro-api.carlosaacre.workers.dev";
-
+    <script>
+      const API_URL = "https://treinarpro-api.carlosaacre.workers.dev";
       const ADMIN_EMAIL = "carlosaacre@gmail.com";
       
       let globalState = {
@@ -919,141 +766,88 @@
       let editingStudentIndex = null;
       let editingAdminWorkoutKey = null;
 
-      // Sincronizar com o Firestore ao iniciar
       async function initSystem() {
-  try {
-    const response = await fetch(
-      "https://treinarpro-api.carlosaacre.workers.dev/api/state"
-    );
+        try {
+          const response = await fetch(API_URL + "/api/state");
 
-    if (!response.ok) {
-      throw new Error("Não foi possível carregar os dados da nuvem.");
-    }
+          if (!response.ok) {
+            throw new Error("Não foi possível carregar os dados da nuvem.");
+          }
 
-    const data = await response.json();
+          const data = await response.json();
 
-    if (data.ok && data.state) {
-      globalState = data.state;
+          if (data.ok && data.state) {
+            globalState = data.state;
 
-      if (!globalState.dueDateLabel) {
-        globalState.dueDateLabel =
-          "Data de Vencimento da Mensalidade";
+            if (!globalState.dueDateLabel) {
+              globalState.dueDateLabel = "Data de Vencimento da Mensalidade";
+            }
+          }
+
+          applyAppSettings();
+          updateAdminBadge();
+
+          const savedEmail = localStorage.getItem("treinarPro_loggedEmail");
+
+          if (savedEmail) {
+            const foundUser = globalState.users.find(
+              (u) => u.email.toLowerCase() === savedEmail.toLowerCase()
+            );
+
+            if (
+              foundUser &&
+              (foundUser.status === "approved" ||
+                foundUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase())
+            ) {
+              currentUser = foundUser;
+              initApp();
+            }
+          }
+        } catch (e) {
+          console.error("Erro ao carregar dados da nuvem:", e);
+        }
       }
-    }
-
-    applyAppSettings();
-    updateAdminBadge();
-
-    const savedEmail = localStorage.getItem(
-      "treinarPro_loggedEmail"
-    );
-
-    if (savedEmail) {
-      const foundUser = globalState.users.find(
-        (u) =>
-          u.email.toLowerCase() === savedEmail.toLowerCase()
-      );
-
-      if (
-        foundUser &&
-        (foundUser.status === "approved" ||
-          foundUser.email.toLowerCase() ===
-            ADMIN_EMAIL.toLowerCase())
-      ) {
-        currentUser = foundUser;
-        initApp();
-      }
-    }
-  } catch (e) {
-    console.error(
-      "Erro ao carregar dados da nuvem:",
-      e
-    );
-  }
-}
 
       initSystem();
-async function saveDB() {
-  try {
-    const response = await fetch(
-      API_URL + "/api/state",
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(globalState)
-      }
-    );
 
-    if (!response.ok) {
-      throw new Error("Erro ao salvar na nuvem.");
-    }
-
-    const data = await response.json();
-
-    if (data.ok && data.state) {
-      globalState = data.state;
-
-      if (currentUser) {
-        const updatedUser = globalState.users.find(
-          (u) =>
-            (u.email || "").toLowerCase() ===
-            (currentUser.email || "").toLowerCase()
-        );
-
-        if (updatedUser) {
-          currentUser = updatedUser;
-        }
-      }
-    }
-
-    updateAdminBadge();
-  } catch (error) {
-    console.error("Erro ao salvar na nuvem:", error);
-  }
-}
       async function saveDB() {
-  try {
-    const response = await fetch(
-      API_URL + "/api/state",
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(globalState)
-      }
-    );
+        try {
+          const response = await fetch(API_URL + "/api/state", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(globalState)
+          });
 
-    if (!response.ok) {
-      throw new Error("Erro ao salvar na nuvem.");
-    }
+          if (!response.ok) {
+            throw new Error("Erro ao salvar na nuvem.");
+          }
 
-    const data = await response.json();
+          const data = await response.json();
 
-    if (data.ok && data.state) {
-      globalState = data.state;
+          if (data.ok && data.state) {
+            globalState = data.state;
 
-      if (currentUser) {
-        const updatedUser = globalState.users.find(
-          (u) =>
-            (u.email || "").toLowerCase() ===
-            (currentUser.email || "").toLowerCase()
-        );
+            if (currentUser) {
+              const updatedUser = globalState.users.find(
+                (u) =>
+                  (u.email || "").toLowerCase() ===
+                  (currentUser.email || "").toLowerCase()
+              );
 
-        if (updatedUser) {
-          currentUser = updatedUser;
+              if (updatedUser) {
+                currentUser = updatedUser;
+              }
+            }
+          }
+
+          updateAdminBadge();
+        } catch (error) {
+          console.error("Erro ao salvar na nuvem:", error);
         }
       }
-    }
 
-    updateAdminBadge();
-
-  } catch (error) {
-    console.error("Erro ao salvar na nuvem:", error);
-  }
-}
       function updateAdminBadge() {
         const badge = document.getElementById("adminBadge");
         if (!badge) return;
@@ -1093,28 +887,22 @@ async function saveDB() {
         e.preventDefault();
         
         try {
-  const response = await fetch(
-    API_URL + "/api/state"
-  );
+          const response = await fetch(API_URL + "/api/state");
 
-  if (response.ok) {
-    const data = await response.json();
+          if (response.ok) {
+            const data = await response.json();
 
-    if (data.ok && data.state) {
-      globalState = data.state;
+            if (data.ok && data.state) {
+              globalState = data.state;
 
-      if (!globalState.dueDateLabel) {
-        globalState.dueDateLabel =
-          "Data de Vencimento da Mensalidade";
-      }
-    }
-  }
-} catch (err) {
-  console.error(
-    "Erro ao carregar dados da nuvem:",
-    err
-  );
-}
+              if (!globalState.dueDateLabel) {
+                globalState.dueDateLabel = "Data de Vencimento da Mensalidade";
+              }
+            }
+          }
+        } catch (err) {
+          console.error("Erro ao carregar dados da nuvem:", err);
+        }
         
         const email = document.getElementById("loginEmail").value.trim().toLowerCase();
         const msgEl = document.getElementById("loginMessage");
@@ -1244,7 +1032,6 @@ async function saveDB() {
           banner.classList.add("hidden");
         }
 
-        // Mural de Avisos
         const noticeCard = document.getElementById("teacherNoticeCard");
         const noticeText = document.getElementById("teacherNoticeText");
         if (currentUser.notice && currentUser.notice.trim() !== "") {
@@ -1646,7 +1433,6 @@ async function saveDB() {
         document.getElementById("mStudentNotice").value = user.notice || "";
         document.getElementById("mStudentAvatarFile").value = "";
         
-        // Atualiza dinamicamente o texto do rótulo no modal do aluno
         document.getElementById("modalDueDateLabel").textContent = globalState.dueDateLabel || "Informação de Vencimento";
 
         renderStudentWorkoutsInModal();
@@ -1843,4 +1629,3 @@ async function saveDB() {
     </script>
   </body>
 </html>
-.
