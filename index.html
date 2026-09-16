@@ -880,41 +880,50 @@
       async function handleLogin(event) {
     if (event) event.preventDefault();
     
-    // Pega o valor diretamente pelo ID correto que está no seu HTML
     const emailInput = document.getElementById("loginEmail");
     const typedEmail = emailInput ? emailInput.value.toLowerCase().trim() : "";
 
+    if (!typedEmail) {
+        alert("Por favor, digite seu e-mail.");
+        return;
+    }
+
     try {
         const response = await fetch(API_URL + "/api/state");
-
-        if (response.ok) {
-            const data = await response.json();
-
-            if (data.ok && data.state) {
-                globalState = data.state;
-                
-                if (typedEmail) {
-                    // Verifica se é o seu e-mail de Administrador ou de um aluno
-                    if (typedEmail === "antonio@email.com" || typedEmail.includes("admin")) {
-                        currentUser = { email: typedEmail, isAdmin: true, workouts: globalState.adminWorkouts || {} };
-                    } else if (globalState.users && Array.isArray(globalState.users)) {
-                        const found = globalState.users.find(u => (u.email || "").toLowerCase().trim() === typedEmail);
-                        if (found) {
-                            currentUser = found;
-                        } else {
-                            alert("E-mail não encontrado nos registros.");
-                            return;
-                        }
-                    }
+        if (!response.ok) throw new Error("Erro na rede");
+        
+        const data = await response.json();
+        if (data.ok && data.state) {
+            globalState = data.state;
+            
+            // Define o usuário baseado no e-mail digitado
+            if (typedEmail === "antonio@email.com" || typedEmail.includes("admin")) {
+                currentUser = { 
+                    email: typedEmail, 
+                    isAdmin: true, 
+                    workouts: globalState.adminWorkouts || {} 
+                };
+            } else if (globalState.users && Array.isArray(globalState.users)) {
+                const found = globalState.users.find(u => (u.email || "").toLowerCase().trim() === typedEmail);
+                if (found) {
+                    currentUser = found;
+                } else {
+                    alert("E-mail não cadastrado.");
+                    return;
                 }
-                
-                // Salva a sessão localmente e inicializa o painel
-                localStorage.setItem("currentUser", JSON.stringify(currentUser));
-                if (typeof initSystem === 'function') initSystem();
+            }
+
+            localStorage.setItem("currentUser", JSON.stringify(currentUser));
+            
+            // Recarrega o estado visual da tela de login para o painel
+            if (typeof initSystem === 'function') {
+                initSystem();
+            } else {
+                location.reload();
             }
         }
     } catch (err) {
-        console.error("Erro ao fazer login:", err);
+        console.error("Erro no login:", err);
         alert("Erro ao conectar com a nuvem.");
     }
 }
