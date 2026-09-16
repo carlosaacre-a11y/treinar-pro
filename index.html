@@ -877,12 +877,12 @@
         updateAdminBadge();
       }
 
-      async function handlelogin(e) {
-    e.preventDefault();
+      async function handleLogin(event) {
+    if (event) event.preventDefault();
     
-    // Pega o valor digitado no primeiro input de texto ou email da tela de login
-    const inputField = document.querySelector('input[type="email"]') || document.querySelector('input[type="text"]');
-    const typedEmail = inputField ? inputField.value.toLowerCase().trim() : "";
+    // Pega o valor diretamente pelo ID correto que está no seu HTML
+    const emailInput = document.getElementById("loginEmail");
+    const typedEmail = emailInput ? emailInput.value.toLowerCase().trim() : "";
 
     try {
         const response = await fetch(API_URL + "/api/state");
@@ -893,26 +893,29 @@
             if (data.ok && data.state) {
                 globalState = data.state;
                 
-                // Se o campo não estiver vazio, busca o usuário
                 if (typedEmail) {
-                    // Verifica se é o Admin principal ou aluno
-                    if (typedEmail.includes("admin") || typedEmail === "antonio@email.com") {
+                    // Verifica se é o seu e-mail de Administrador ou de um aluno
+                    if (typedEmail === "antonio@email.com" || typedEmail.includes("admin")) {
                         currentUser = { email: typedEmail, isAdmin: true, workouts: globalState.adminWorkouts || {} };
                     } else if (globalState.users && Array.isArray(globalState.users)) {
                         const found = globalState.users.find(u => (u.email || "").toLowerCase().trim() === typedEmail);
                         if (found) {
                             currentUser = found;
+                        } else {
+                            alert("E-mail não encontrado nos registros.");
+                            return;
                         }
                     }
                 }
                 
-                // Salva a sessão e atualiza a tela
+                // Salva a sessão localmente e inicializa o painel
                 localStorage.setItem("currentUser", JSON.stringify(currentUser));
                 if (typeof initSystem === 'function') initSystem();
             }
         }
     } catch (err) {
         console.error("Erro ao fazer login:", err);
+        alert("Erro ao conectar com a nuvem.");
     }
 }
                 
