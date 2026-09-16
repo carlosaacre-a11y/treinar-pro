@@ -957,7 +957,6 @@ if (newUser.status === "pending") {
       "Solicitação enviada com sucesso! Aguarde aprovação.";
     msgEl.classList.remove("hidden");
   } catch (error) {
-    // Se não conseguiu salvar, desfaz a inclusão local
     globalState.users = globalState.users.filter(
       (u) => u.email !== newUser.email
     );
@@ -971,13 +970,28 @@ if (newUser.status === "pending") {
     msgEl.textContent =
       "Não foi possível enviar sua solicitação. Tente novamente.";
     msgEl.classList.remove("hidden");
-  } else {
-            currentUser = newUser;
-            localStorage.setItem("treinarPro_loggedEmail", currentUser.email);
-            await saveDB();
-            initApp();
-          }
-        }
+  }
+} else {
+  currentUser = newUser;
+  localStorage.setItem(
+    "treinarPro_loggedEmail",
+    currentUser.email
+  );
+
+  try {
+    await saveDB();
+    initApp();
+  } catch (error) {
+    console.error("Falha ao salvar novo administrador:", error);
+
+    localStorage.removeItem("treinarPro_loggedEmail");
+    currentUser = null;
+
+    msgEl.textContent =
+      "Não foi possível entrar. Tente novamente.";
+    msgEl.classList.remove("hidden");
+  }
+}        }
       }
 
       function initApp() {
