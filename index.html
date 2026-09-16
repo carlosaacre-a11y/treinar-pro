@@ -962,6 +962,31 @@ async function saveDB() {
 
   return saveQueue;
 }
+      function openExerciseImportModal() {
+  const modal = document.getElementById("exerciseImportModal");
+  const textArea = document.getElementById("exerciseImportText");
+  const preview = document.getElementById("exerciseImportPreview");
+  const previewContent = document.getElementById("exerciseImportPreviewContent");
+  const message = document.getElementById("exerciseImportMessage");
+
+  if (!modal) return;
+
+  textArea.value = "";
+  preview.classList.add("hidden");
+  previewContent.innerHTML = "";
+  message.classList.add("hidden");
+  message.textContent = "";
+
+  modal.classList.remove("hidden");
+}
+
+function closeExerciseImportModal() {
+  const modal = document.getElementById("exerciseImportModal");
+
+  if (modal) {
+    modal.classList.add("hidden");
+  }
+}
       function analyzeExerciseImport() {
   const textArea = document.getElementById("exerciseImportText");
   const preview = document.getElementById("exerciseImportPreview");
