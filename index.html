@@ -1218,6 +1218,50 @@ async function saveDB() {
 
   previewContent.innerHTML = html;
 }
+      function confirmExerciseImport() {
+  const exercises = window.pendingExerciseImport || [];
+
+  if (!exercises.length) {
+    alert("Nenhum exercício foi preparado para importação.");
+    return;
+  }
+
+  const user = globalState.users[editingStudentIndex];
+
+  if (!user) {
+    alert("Aluno não encontrado.");
+    return;
+  }
+
+  if (!editingAdminWorkoutKey) {
+    alert("Ficha de treino não selecionada.");
+    return;
+  }
+
+  if (!user.workouts[editingAdminWorkoutKey]) {
+    user.workouts[editingAdminWorkoutKey] = [];
+  }
+
+  user.workouts[editingAdminWorkoutKey].push(...exercises);
+
+  window.pendingExerciseImport = [];
+
+  closeExerciseImportModal();
+
+  renderAdminWorkoutExercisesList();
+
+  alert(
+    `${exercises.length} exercícios foram adicionados à ficha.`
+  );
+
+  saveDB().catch((error) => {
+    console.error("Falha ao salvar exercícios importados:", error);
+
+    alert(
+      "Os exercícios foram adicionados na tela, mas não foi possível salvar na nuvem agora. Tente novamente quando o acesso ao banco estiver disponível."
+    );
+  });
+}
       function updateAdminBadge() {
         const badge = document.getElementById("adminBadge");
         if (!badge) return;
