@@ -730,7 +730,112 @@
         </div>
       </div>
     </div>
+<!-- MODAL DE IMPORTAÇÃO DE EXERCÍCIOS -->
+    <div
+      id="exerciseImportModal"
+      class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-dark-900 border border-dark-800 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl"
+      >
+        <div
+          class="flex items-center justify-between border-b border-dark-800 pb-3"
+        >
+          <div>
+            <h3 class="text-sm font-bold text-white">
+              Importar Exercícios
+            </h3>
+            <p class="text-[10px] text-zinc-500 mt-1">
+              Cole abaixo o treino completo para analisar os exercícios.
+            </p>
+          </div>
 
+          <button
+            onclick="closeExerciseImportModal()"
+            class="text-zinc-400 hover:text-white shrink-0"
+          >
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <div class="bg-dark-800 border border-dark-700 rounded-xl p-3">
+          <p class="text-[10px] text-zinc-400 leading-relaxed">
+            Você poderá colar vários exercícios de uma vez. O sistema vai
+            identificar cada exercício e separar nome, séries, carga,
+            observações e outras informações.
+          </p>
+        </div>
+
+        <div>
+          <label
+            class="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-2"
+          >
+            Treino para importar
+          </label>
+
+          <textarea
+            id="exerciseImportText"
+            rows="12"
+            placeholder="Cole aqui o treino completo...
+
+Exemplo:
+
+1. Aquecimento
+Cadeira extensora
+Séries: 3
+Repetições: 12
+Carga: 20 kg
+Observações: Movimento controlado
+
+2. Série válida
+Leg press
+Séries: 4
+Repetições: 10
+Carga: 80 kg
+Observações: Descer lentamente"
+            class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3.5 py-3 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-primary-500 resize-y min-h-[220px]"
+          ></textarea>
+        </div>
+
+        <div
+          id="exerciseImportPreview"
+          class="hidden bg-dark-800 border border-primary-500/20 rounded-xl p-3"
+        >
+          <h4 class="text-xs font-bold text-primary-400 mb-2">
+            Prévia da importação
+          </h4>
+
+          <div
+            id="exerciseImportPreviewContent"
+            class="space-y-2 text-xs text-zinc-300"
+          ></div>
+        </div>
+
+        <div
+          id="exerciseImportMessage"
+          class="hidden text-xs rounded-xl p-3"
+        ></div>
+
+        <div
+          class="flex justify-end gap-2 pt-2 border-t border-dark-800"
+        >
+          <button
+            onclick="closeExerciseImportModal()"
+            class="bg-dark-700 hover:bg-dark-600 text-zinc-300 px-4 py-2 rounded-xl text-xs font-bold transition"
+          >
+            Cancelar
+          </button>
+
+          <button
+            onclick="analyzeExerciseImport()"
+            class="bg-primary-500 hover:bg-primary-600 text-dark-950 px-4 py-2 rounded-xl text-xs font-bold transition shadow-md flex items-center gap-1.5"
+          >
+            <i class="fa-solid fa-magnifying-glass"></i>
+            Analisar Exercícios
+          </button>
+        </div>
+      </div>
+    </div>
     <!-- SCRIPTS -->
     <script>
       const API_URL = "https://treinarpro-api.carlosaacre.workers.dev";
