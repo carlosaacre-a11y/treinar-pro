@@ -905,7 +905,7 @@ async function saveDB() {
             user.status = "approved";
             currentUser = user;
             localStorage.setItem("treinarPro_loggedEmail", currentUser.email);
-            await saveDB();
+           
             initApp();
           } else {
             msgEl.textContent = "Seu acesso está pendente de aprovação pelo Administrador.";
