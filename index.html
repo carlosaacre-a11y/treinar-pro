@@ -877,33 +877,43 @@
         updateAdminBadge();
       }
 
-      async function handleLogin(e) {
-        e.preventDefault();
-        
-        try {
-          const response = await fetch(API_URL + "/api/state");
+      async function handlelogin(e) {
+    e.preventDefault();
+    
+    // Pega o e-mail que foi digitado no input da tela de login antes de baixar da nuvem
+    const emailInput = document.getElementById("loginEmail") || document.getElementById("email");
+    const typedEmail = emailInput ? emailInput.value.toLowerCase().trim() : "";
 
-          if (response.ok) {
+    try {
+        const response = await fetch(API_URL + "/api/state");
+
+        if (response.ok) {
             const data = await response.json();
 
             if (data.ok && data.state) {
-      globalState = data.state;
-      
-      // Se houver um usuário logado, valida de forma flexível
-      if (currentUser && currentUser.email) {
-        const emailLower = currentUser.email.toLowerCase().trim();
-        // Verifica se é o seu e-mail de admin ou se está na lista de usuários
-        if (globalState.users && Array.isArray(globalState.users)) {
-          const found = globalState.users.find(u => (u.email || "").toLowerCase().trim() === emailLower);
-          if (found) {
-            currentUser = found;
-          }
+                globalState = data.state;
+                
+                // Se digitou o e-mail do Admin (coloque o seu e-mail de admin aqui)
+                if (typedEmail === "antonio@email.com" || typedEmail.includes("admin")) {
+                    currentUser = { email: typedEmail, isAdmin: true, workouts: globalState.adminWorkouts || {} };
+                } else if (globalState.users && Array.isArray(globalState.users)) {
+                    // Se for aluno, procura na lista da nuvem
+                    const found = globalState.users.find(u => (u.email || "").toLowerCase().trim() === typedEmail);
+                    if (found) {
+                        currentUser = found;
+                    }
+                }
+                
+                // Salva a sessão e atualiza a tela
+                localStorage.setItem("currentUser", JSON.stringify(currentUser));
+                initSystem(); // ou a função que renderiza o painel principal
+            }
         }
-      }
+    } catch (err) {
+        console.error("Erro ao fazer login:", err);
+        alert("Erro ao conectar com a nuvem.");
     }
-        } catch (err) {
-          console.error("Erro ao carregar dados da nuvem:", err);
-        }
+}
         
         const email = document.getElementById("loginEmail").value.trim().toLowerCase();
         const msgEl = document.getElementById("loginMessage");
