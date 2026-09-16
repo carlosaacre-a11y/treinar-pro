@@ -880,9 +880,9 @@
       async function handlelogin(e) {
     e.preventDefault();
     
-    // Pega o e-mail que foi digitado no input da tela de login antes de baixar da nuvem
-    const emailInput = document.getElementById("loginEmail") || document.getElementById("email");
-    const typedEmail = emailInput ? emailInput.value.toLowerCase().trim() : "";
+    // Pega o valor digitado no primeiro input de texto ou email da tela de login
+    const inputField = document.querySelector('input[type="email"]') || document.querySelector('input[type="text"]');
+    const typedEmail = inputField ? inputField.value.toLowerCase().trim() : "";
 
     try {
         const response = await fetch(API_URL + "/api/state");
@@ -893,16 +893,28 @@
             if (data.ok && data.state) {
                 globalState = data.state;
                 
-                // Se digitou o e-mail do Admin (coloque o seu e-mail de admin aqui)
-                if (typedEmail === "antonio@email.com" || typedEmail.includes("admin")) {
-                    currentUser = { email: typedEmail, isAdmin: true, workouts: globalState.adminWorkouts || {} };
-                } else if (globalState.users && Array.isArray(globalState.users)) {
-                    // Se for aluno, procura na lista da nuvem
-                    const found = globalState.users.find(u => (u.email || "").toLowerCase().trim() === typedEmail);
-                    if (found) {
-                        currentUser = found;
+                // Se o campo não estiver vazio, busca o usuário
+                if (typedEmail) {
+                    // Verifica se é o Admin principal ou aluno
+                    if (typedEmail.includes("admin") || typedEmail === "antonio@email.com") {
+                        currentUser = { email: typedEmail, isAdmin: true, workouts: globalState.adminWorkouts || {} };
+                    } else if (globalState.users && Array.isArray(globalState.users)) {
+                        const found = globalState.users.find(u => (u.email || "").toLowerCase().trim() === typedEmail);
+                        if (found) {
+                            currentUser = found;
+                        }
                     }
                 }
+                
+                // Salva a sessão e atualiza a tela
+                localStorage.setItem("currentUser", JSON.stringify(currentUser));
+                if (typeof initSystem === 'function') initSystem();
+            }
+        }
+    } catch (err) {
+        console.error("Erro ao fazer login:", err);
+    }
+}
                 
                 // Salva a sessão e atualiza a tela
                 localStorage.setItem("currentUser", JSON.stringify(currentUser));
