@@ -810,44 +810,36 @@
 
       initSystem();
 
-      async function saveDB() {
-        try {
-          const response = await fetch(API_URL + "/api/state", {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify(globalState)
-          });
+      let saveQueue = Promise.resolve();
 
-          if (!response.ok) {
-            throw new Error("Erro ao salvar na nuvem.");
-          }
+async function saveDB() {
+  const stateToSave = JSON.parse(JSON.stringify(globalState));
 
-          const data = await response.json();
+  saveQueue = saveQueue
+    .catch(() => {})
+    .then(async () => {
+      const response = await fetch(API_URL + "/api/state", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(stateToSave)
+      });
 
-          if (data.ok && data.state) {
-            globalState = data.state;
-
-            if (currentUser) {
-              const updatedUser = globalState.users.find(
-                (u) =>
-                  (u.email || "").toLowerCase() ===
-                  (currentUser.email || "").toLowerCase()
-              );
-
-              if (updatedUser) {
-                currentUser = updatedUser;
-              }
-            }
-          }
-
-          updateAdminBadge();
-        } catch (error) {
-          console.error("Erro ao salvar na nuvem:", error);
-        }
+      if (!response.ok) {
+        throw new Error("Erro ao salvar na nuvem.");
       }
 
+      await response.json();
+
+      updateAdminBadge();
+    })
+    .catch((error) => {
+      console.error("Erro ao salvar na nuvem:", error);
+    });
+
+  return saveQueue;
+}
       function updateAdminBadge() {
         const badge = document.getElementById("adminBadge");
         if (!badge) return;
