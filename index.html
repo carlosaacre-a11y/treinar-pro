@@ -946,12 +946,32 @@ async function saveDB() {
             }
           };
           globalState.users.push(newUser);
-          if (newUser.status === "pending") {
-            globalState.pending.push(newUser);
-            await saveDB();
-            msgEl.textContent = "Solicitação enviada com sucesso! Aguarde aprovação.";
-            msgEl.classList.remove("hidden");
-          } else {
+
+if (newUser.status === "pending") {
+  globalState.pending.push(newUser);
+
+  try {
+    await saveDB();
+
+    msgEl.textContent =
+      "Solicitação enviada com sucesso! Aguarde aprovação.";
+    msgEl.classList.remove("hidden");
+  } catch (error) {
+    // Se não conseguiu salvar, desfaz a inclusão local
+    globalState.users = globalState.users.filter(
+      (u) => u.email !== newUser.email
+    );
+
+    globalState.pending = globalState.pending.filter(
+      (email) => email !== newUser.email
+    );
+
+    console.error("Falha ao enviar solicitação:", error);
+
+    msgEl.textContent =
+      "Não foi possível enviar sua solicitação. Tente novamente.";
+    msgEl.classList.remove("hidden");
+  } else {
             currentUser = newUser;
             localStorage.setItem("treinarPro_loggedEmail", currentUser.email);
             await saveDB();
