@@ -1177,21 +1177,20 @@
   currentUser.workouts[activeWorkoutKey][idx][field] = val;
   saveDB();
 }
-      }
 
-      function editCurrentWorkoutName() {
-        const newName = prompt("Digite o novo nome para esta ficha:", activeWorkoutKey);
-        if (!newName || newName.trim() === "" || newName === activeWorkoutKey) return;
-        if (currentUser.workouts[newName]) {
-          alert("Já existe uma ficha com esse nome.");
-          return;
-        }
-        currentUser.workouts[newName] = currentUser.workouts[activeWorkoutKey];
-        delete currentUser.workouts[activeWorkoutKey];
-        activeWorkoutKey = newName;
-        saveDB();
-        renderWorkouts();
-      }
+function editCurrentWorkoutName() {
+  const newName = prompt("Digite o novo nome para esta ficha:", activeWorkoutKey);
+  if (!newName || newName.trim() === "" || newName === activeWorkoutKey) return;
+  if (currentUser.workouts[newName]) {
+    alert("Já existe uma ficha com esse nome.");
+    return;
+  }
+  currentUser.workouts[newName] = currentUser.workouts[activeWorkoutKey];
+  delete currentUser.workouts[activeWorkoutKey];
+  activeWorkoutKey = newName;
+  saveDB();
+  renderWorkouts();
+}
 
       function openNewWorkoutModal() {
         const name = prompt("Nome da nova ficha (Ex: Treino C, Pernas, Abdômen...):");
