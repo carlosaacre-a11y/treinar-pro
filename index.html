@@ -521,7 +521,12 @@
               class="block text-[10px] uppercase font-semibold text-zinc-400 mb-1"
               >Link do Vídeo</label
             >
-           <input type="url" value="${ex.video || ""}" placeholder="https://youtube.com/..." oninput="updateVideoField(${idx}, this.value)" onblur="saveDB()" class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-primary-500">video = this.value; }" onblur="saveDB()" class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-primary-500">
+            <input
+              type="url"
+              id="exVideoInput"
+              placeholder="https://youtube.com/..."
+              class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary-500"
+            />
           </div>
           <div>
             <label
@@ -825,16 +830,17 @@
             globalState = data.state;
 
             if (currentUser) {
-     // Se for aluno, acha na lista. Se for admin, mantém o currentUser atual sem apagar
-     if (globalState.users && Array.isArray(globalState.users)) {
-       const updatedUser = globalState.users.find(
-         (u) => (u.email || "").toLowerCase() === (currentUser.email || "").toLowerCase()
-       );
-       if (updatedUser) {
-         currentUser = updatedUser;
-       }
-     }
-   }
+              const updatedUser = globalState.users.find(
+                (u) =>
+                  (u.email || "").toLowerCase() ===
+                  (currentUser.email || "").toLowerCase()
+              );
+
+              if (updatedUser) {
+                currentUser = updatedUser;
+              }
+            }
+          }
 
           updateAdminBadge();
         } catch (error) {
@@ -877,67 +883,26 @@
         updateAdminBadge();
       }
 
-      async function handleLogin(event) {
-    if (event) event.preventDefault();
-    
-    const emailInput = document.getElementById("loginEmail");
-    const typedEmail = emailInput ? emailInput.value.toLowerCase().trim() : "";
-
-    if (!typedEmail) {
-        alert("Por favor, digite seu e-mail.");
-        return;
-    }
-
-    try {
-        const response = await fetch(API_URL + "/api/state");
-        if (!response.ok) throw new Error("Erro na rede");
+      async function handleLogin(e) {
+        e.preventDefault();
         
-        const data = await response.json();
-        if (data.ok && data.state) {
-            globalState = data.state;
-            
-            // Define o usuário baseado no e-mail digitado
-            if (typedEmail === "antonio@email.com" || typedEmail.includes("admin")) {
-                currentUser = { 
-                    email: typedEmail, 
-                    isAdmin: true, 
-                    workouts: globalState.adminWorkouts || {} 
-                };
-            } else if (globalState.users && Array.isArray(globalState.users)) {
-                const found = globalState.users.find(u => (u.email || "").toLowerCase().trim() === typedEmail);
-                if (found) {
-                    currentUser = found;
-                } else {
-                    alert("E-mail não cadastrado.");
-                    return;
-                }
-            }
+        try {
+          const response = await fetch(API_URL + "/api/state");
 
-            localStorage.setItem("currentUser", JSON.stringify(currentUser));
-            
-            // Recarrega o estado visual da tela de login para o painel
-            if (typeof initSystem === 'function') {
-                initSystem();
-            } else {
-                location.reload();
+          if (response.ok) {
+            const data = await response.json();
+
+            if (data.ok && data.state) {
+              globalState = data.state;
+
+              if (!globalState.dueDateLabel) {
+                globalState.dueDateLabel = "Data de Vencimento da Mensalidade";
+              }
             }
+          }
+        } catch (err) {
+          console.error("Erro ao carregar dados da nuvem:", err);
         }
-    } catch (err) {
-        console.error("Erro no login:", err);
-        alert("Erro ao conectar com a nuvem.");
-    }
-}
-                
-                // Salva a sessão e atualiza a tela
-                localStorage.setItem("currentUser", JSON.stringify(currentUser));
-                initSystem(); // ou a função que renderiza o painel principal
-            }
-        }
-    } catch (err) {
-        console.error("Erro ao fazer login:", err);
-        alert("Erro ao conectar com a nuvem.");
-    }
-}
         
         const email = document.getElementById("loginEmail").value.trim().toLowerCase();
         const msgEl = document.getElementById("loginMessage");
@@ -1208,28 +1173,27 @@
         });
       }
 
-      function updateVideoField(idx, val) {
-  if (typeof editingStudentIndex !== 'undefined' && editingStudentIndex !== null) {
-    globalState.users[editingStudentIndex].workouts[editingAdminWorkoutKey][idx].video = val;
-  } else {
-    currentUser.workouts[activeWorkoutKey][idx].video = val;
-  }
-  saveDB();
-}
+      function updateExercise(idx, field, val) {
+        currentUser.workouts[activeWorkoutKey][idx][field] = val;
+        saveDB();
+        if (field === "video") {
+          renderWorkouts();
+        }
+      }
 
-function editCurrentWorkoutName() {
-  const newName = prompt("Digite o novo nome para esta ficha:", activeWorkoutKey);
-  if (!newName || newName.trim() === "" || newName === activeWorkoutKey) return;
-  if (currentUser.workouts[newName]) {
-    alert("Já existe uma ficha com esse nome.");
-    return;
-  }
-  currentUser.workouts[newName] = currentUser.workouts[activeWorkoutKey];
-  delete currentUser.workouts[activeWorkoutKey];
-  activeWorkoutKey = newName;
-  saveDB();
-  renderWorkouts();
-}
+      function editCurrentWorkoutName() {
+        const newName = prompt("Digite o novo nome para esta ficha:", activeWorkoutKey);
+        if (!newName || newName.trim() === "" || newName === activeWorkoutKey) return;
+        if (currentUser.workouts[newName]) {
+          alert("Já existe uma ficha com esse nome.");
+          return;
+        }
+        currentUser.workouts[newName] = currentUser.workouts[activeWorkoutKey];
+        delete currentUser.workouts[activeWorkoutKey];
+        activeWorkoutKey = newName;
+        saveDB();
+        renderWorkouts();
+      }
 
       function openNewWorkoutModal() {
         const name = prompt("Nome da nova ficha (Ex: Treino C, Pernas, Abdômen...):");
