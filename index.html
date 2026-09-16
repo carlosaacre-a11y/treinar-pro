@@ -827,15 +827,26 @@ async function saveDB() {
       });
 
       if (!response.ok) {
-        throw new Error("Erro ao salvar na nuvem.");
+        let errorMessage = "Erro ao salvar na nuvem.";
+
+        try {
+          const errorData = await response.json();
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+        } catch (_) {}
+
+        throw new Error(errorMessage);
       }
 
-      await response.json();
+      const data = await response.json();
+
+      if (!data.ok) {
+        throw new Error(data.error || "Erro ao salvar na nuvem.");
+      }
 
       updateAdminBadge();
-    })
-    .catch((error) => {
-      console.error("Erro ao salvar na nuvem:", error);
+      return data;
     });
 
   return saveQueue;
