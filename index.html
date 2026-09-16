@@ -889,12 +889,15 @@
             if (data.ok && data.state) {
       globalState = data.state;
       
-      // Identifica se é o Admin principal ou um usuário comum
+      // Se houver um usuário logado, valida de forma flexível
       if (currentUser && currentUser.email) {
-        const isMaster = (currentUser.email.toLowerCase() === "antonio@email.com" || currentUser.isAdmin); // ou o seu e-mail de admin cadastrado
-        if (!isMaster && globalState.users) {
-          const found = globalState.users.find(u => (u.email || "").toLowerCase() === currentUser.email.toLowerCase());
-          if (found) currentUser = found;
+        const emailLower = currentUser.email.toLowerCase().trim();
+        // Verifica se é o seu e-mail de admin ou se está na lista de usuários
+        if (globalState.users && Array.isArray(globalState.users)) {
+          const found = globalState.users.find(u => (u.email || "").toLowerCase().trim() === emailLower);
+          if (found) {
+            currentUser = found;
+          }
         }
       }
     }
