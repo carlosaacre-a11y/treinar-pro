@@ -1174,11 +1174,9 @@
       }
 
       function updateExercise(idx, field, val) {
-        currentUser.workouts[activeWorkoutKey][idx][field] = val;
-        saveDB();
-        if (field === "video") {
-          renderWorkouts();
-        }
+  currentUser.workouts[activeWorkoutKey][idx][field] = val;
+  saveDB();
+}
       }
 
       function editCurrentWorkoutName() {
