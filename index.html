@@ -962,79 +962,262 @@ async function saveDB() {
 
   return saveQueue;
 }
-      function openExerciseImportModal() {
-        const modal = document.getElementById("exerciseImportModal");
-        const textArea = document.getElementById("exerciseImportText");
-        const preview = document.getElementById("exerciseImportPreview");
-        const previewContent = document.getElementById("exerciseImportPreviewContent");
-        const message = document.getElementById("exerciseImportMessage");
-
-        if (!modal) return;
-
-        textArea.value = "";
-        preview.classList.add("hidden");
-        previewContent.innerHTML = "";
-        message.classList.add("hidden");
-        message.textContent = "";
-
-        modal.classList.remove("hidden");
-      }
-
-      function closeExerciseImportModal() {
-        const modal = document.getElementById("exerciseImportModal");
-
-        if (modal) {
-          modal.classList.add("hidden");
-        }
-      }
-
       function analyzeExerciseImport() {
-        const textArea = document.getElementById("exerciseImportText");
-        const preview = document.getElementById("exerciseImportPreview");
-        const previewContent = document.getElementById("exerciseImportPreviewContent");
-        const message = document.getElementById("exerciseImportMessage");
+  const textArea = document.getElementById("exerciseImportText");
+  const preview = document.getElementById("exerciseImportPreview");
+  const previewContent = document.getElementById("exerciseImportPreviewContent");
+  const message = document.getElementById("exerciseImportMessage");
 
-        const text = textArea.value.trim();
+  const text = textArea.value.trim();
 
-        if (!text) {
-          message.textContent = "Cole o treino completo antes de analisar.";
-          message.className =
-            "text-xs rounded-xl p-3 bg-amber-500/10 border border-amber-500/30 text-amber-300";
-          return;
-        }
+  if (!text) {
+    message.textContent = "Cole o treino completo antes de analisar.";
+    message.className =
+      "text-xs rounded-xl p-3 bg-amber-500/10 border border-amber-500/30 text-amber-300";
+    message.classList.remove("hidden");
+    return;
+  }
 
-        const matches = text.match(/(?:^|\n)\s*\d+\.\s+/g) || [];
+  const blocks = text
+    .split(/(?=^\s*\d+\s*[.)]\s*)/m)
+    .map(block => block.trim())
+    .filter(Boolean);
 
-        const count = matches.length;
+  const exercises = [];
 
-        preview.classList.remove("hidden");
+  blocks.forEach((block) => {
+    block = block.replace(/^\s*\d+\s*[.)]\s*/, "").trim();
 
-        if (count === 0) {
-          previewContent.innerHTML = `
-            <p class="text-amber-300">
-              Não encontrei exercícios numerados.
-            </p>
-            <p class="text-[10px] text-zinc-500 mt-1">
-              Por enquanto, use o formato 1., 2., 3., etc.
-            </p>
-          `;
-          return;
-        }
+    if (!block) return;
 
-        previewContent.innerHTML = `
-          <div class="flex items-center gap-2">
-            <i class="fa-solid fa-circle-check text-primary-400"></i>
-            <span>
-              Foram encontrados <strong class="text-white">${count}</strong>
-              exercícios.
-            </span>
-          </div>
+    const lines = block
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(Boolean);
 
-          <p class="text-[10px] text-zinc-500 mt-1">
-            A próxima etapa vai separar automaticamente os campos de cada exercício.
-          </p>
-        `;
+    let customLabel = "";
+    let name = "";
+    let sets = "";
+    let repetitions = "";
+    let load = "";
+    let video = "";
+    let obs = "";
+
+    const remaining = [];
+
+    lines.forEach((line) => {
+
+      if (/^(instrução especial|instrução|especial)\s*:/i.test(line)) {
+        customLabel = line.replace(
+          /^(instrução especial|instrução|especial)\s*:/i,
+          ""
+        ).trim();
+        return;
       }
+
+      if (/^(exercício|exercicio|nome)\s*:/i.test(line)) {
+        name = line.replace(
+          /^(exercício|exercicio|nome)\s*:/i,
+          ""
+        ).trim();
+        return;
+      }
+
+      if (/^séries\s*\/\s*reps?\s*:/i.test(line)) {
+        sets = line.replace(
+          /^séries\s*\/\s*reps?\s*:/i,
+          ""
+        ).trim();
+        return;
+      }
+
+      if (/^séries\s*:/i.test(line)) {
+        sets = line.replace(/^séries\s*:/i, "").trim();
+        return;
+      }
+
+      if (/^repetições\s*:/i.test(line) || /^reps?\s*:/i.test(line)) {
+        repetitions = line.replace(
+          /^(repetições|repeticoes|reps?)\s*:/i,
+          ""
+        ).trim();
+        return;
+      }
+
+      if (/^carga\s*:/i.test(line)) {
+        load = line.replace(/^carga\s*:/i, "").trim();
+        return;
+      }
+
+      if (/^(youtube|vídeo|video|link)\s*:/i.test(line)) {
+        video = line.replace(
+          /^(youtube|vídeo|video|link)\s*:/i,
+          ""
+        ).trim();
+        return;
+      }
+
+      if (/^(observações|observacao|obs)\s*:/i.test(line)) {
+        obs = line.replace(
+          /^(observações|observacao|obs)\s*:/i,
+          ""
+        ).trim();
+        return;
+      }
+
+      if (/^https?:\/\//i.test(line)) {
+        video = line;
+        return;
+      }
+
+      remaining.push(line);
+    });
+
+    if (sets && repetitions && !sets.includes("x")) {
+      sets = `${sets}x${repetitions}`;
+    } else if (!sets && repetitions) {
+      sets = repetitions;
+    }
+
+    if (!name && remaining.length > 0) {
+      const specialWords = [
+        "aquecimento",
+        "série válida",
+        "serie valida",
+        "super série",
+        "super serie",
+        "bi-set",
+        "biset",
+        "drop-set",
+        "dropset",
+        "opcional",
+        "obrigatório",
+        "obrigatorio"
+      ];
+
+      const first = remaining[0];
+      const firstLower = first.toLowerCase();
+
+      if (
+        remaining.length >= 2 &&
+        specialWords.some(word => firstLower.includes(word))
+      ) {
+        customLabel = customLabel || first;
+        name = remaining[1];
+        remaining.splice(0, 2);
+      } else {
+        name = first;
+        remaining.shift();
+      }
+    }
+
+    if (!sets && remaining.length > 0) {
+      const setsIndex = remaining.findIndex(line =>
+        /^\d+\s*x\s*\d+/i.test(line)
+      );
+
+      if (setsIndex !== -1) {
+        sets = remaining[setsIndex];
+        remaining.splice(setsIndex, 1);
+      }
+    }
+
+    if (!load && remaining.length > 0) {
+      const loadIndex = remaining.findIndex(line =>
+        /(?:kg|kgs|quilo|quilos|carga|peso)/i.test(line)
+      );
+
+      if (loadIndex !== -1) {
+        load = remaining[loadIndex];
+        remaining.splice(loadIndex, 1);
+      }
+    }
+
+    if (!obs && remaining.length > 0) {
+      obs = remaining.join(" ");
+    }
+
+    if (name) {
+      exercises.push({
+        customLabel,
+        name,
+        sets,
+        load,
+        video,
+        obs
+      });
+    }
+  });
+
+  window.pendingExerciseImport = exercises;
+
+  preview.classList.remove("hidden");
+  message.classList.add("hidden");
+
+  if (exercises.length === 0) {
+    previewContent.innerHTML = `
+      <p class="text-amber-300">
+        Não consegui identificar nenhum exercício.
+      </p>
+      <p class="text-[10px] text-zinc-500 mt-1">
+        Confira se os exercícios estão numerados como 1., 2., 3. etc.
+      </p>
+    `;
+    return;
+  }
+
+  let html = `
+    <div class="flex items-center gap-2 mb-3">
+      <i class="fa-solid fa-circle-check text-primary-400"></i>
+      <span>
+        Foram encontrados
+        <strong class="text-white">${exercises.length}</strong>
+        exercícios.
+      </span>
+    </div>
+  `;
+
+  exercises.forEach((ex, index) => {
+    html += `
+      <div class="bg-dark-900 border border-dark-700 rounded-lg p-2.5">
+        <div class="flex items-center gap-2">
+          <span class="text-primary-400 font-bold">
+            ${index + 1}.
+          </span>
+          <span class="font-bold text-white">
+            ${ex.name}
+          </span>
+        </div>
+
+        ${
+          ex.customLabel
+            ? `<p class="text-[10px] text-primary-400 mt-1">
+                ${ex.customLabel}
+              </p>`
+            : ""
+        }
+
+        <p class="text-[10px] text-zinc-500 mt-1">
+          ${ex.sets || "Sem séries/reps"}
+          ${ex.load ? " • " + ex.load : ""}
+          ${ex.obs ? " • " + ex.obs : ""}
+        </p>
+      </div>
+    `;
+  });
+
+  html += `
+    <button
+      onclick="confirmExerciseImport()"
+      class="w-full mt-3 bg-primary-500 hover:bg-primary-600 text-dark-950 px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-md flex items-center justify-center gap-2"
+    >
+      <i class="fa-solid fa-file-import"></i>
+      Importar ${exercises.length} exercícios para esta ficha
+    </button>
+  `;
+
+  previewContent.innerHTML = html;
+}
       function updateAdminBadge() {
         const badge = document.getElementById("adminBadge");
         if (!badge) return;
