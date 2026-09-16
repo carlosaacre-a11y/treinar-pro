@@ -825,17 +825,16 @@
             globalState = data.state;
 
             if (currentUser) {
-              const updatedUser = globalState.users.find(
-                (u) =>
-                  (u.email || "").toLowerCase() ===
-                  (currentUser.email || "").toLowerCase()
-              );
-
-              if (updatedUser) {
-                currentUser = updatedUser;
-              }
-            }
-          }
+     // Se for aluno, acha na lista. Se for admin, mantém o currentUser atual sem apagar
+     if (globalState.users && Array.isArray(globalState.users)) {
+       const updatedUser = globalState.users.find(
+         (u) => (u.email || "").toLowerCase() === (currentUser.email || "").toLowerCase()
+       );
+       if (updatedUser) {
+         currentUser = updatedUser;
+       }
+     }
+   }
 
           updateAdminBadge();
         } catch (error) {
