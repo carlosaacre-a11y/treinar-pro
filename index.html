@@ -962,6 +962,79 @@ async function saveDB() {
 
   return saveQueue;
 }
+      function openExerciseImportModal() {
+        const modal = document.getElementById("exerciseImportModal");
+        const textArea = document.getElementById("exerciseImportText");
+        const preview = document.getElementById("exerciseImportPreview");
+        const previewContent = document.getElementById("exerciseImportPreviewContent");
+        const message = document.getElementById("exerciseImportMessage");
+
+        if (!modal) return;
+
+        textArea.value = "";
+        preview.classList.add("hidden");
+        previewContent.innerHTML = "";
+        message.classList.add("hidden");
+        message.textContent = "";
+
+        modal.classList.remove("hidden");
+      }
+
+      function closeExerciseImportModal() {
+        const modal = document.getElementById("exerciseImportModal");
+
+        if (modal) {
+          modal.classList.add("hidden");
+        }
+      }
+
+      function analyzeExerciseImport() {
+        const textArea = document.getElementById("exerciseImportText");
+        const preview = document.getElementById("exerciseImportPreview");
+        const previewContent = document.getElementById("exerciseImportPreviewContent");
+        const message = document.getElementById("exerciseImportMessage");
+
+        const text = textArea.value.trim();
+
+        if (!text) {
+          message.textContent = "Cole o treino completo antes de analisar.";
+          message.className =
+            "text-xs rounded-xl p-3 bg-amber-500/10 border border-amber-500/30 text-amber-300";
+          return;
+        }
+
+        const matches = text.match(/(?:^|\n)\s*\d+\.\s+/g) || [];
+
+        const count = matches.length;
+
+        preview.classList.remove("hidden");
+
+        if (count === 0) {
+          previewContent.innerHTML = `
+            <p class="text-amber-300">
+              Não encontrei exercícios numerados.
+            </p>
+            <p class="text-[10px] text-zinc-500 mt-1">
+              Por enquanto, use o formato 1., 2., 3., etc.
+            </p>
+          `;
+          return;
+        }
+
+        previewContent.innerHTML = `
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-circle-check text-primary-400"></i>
+            <span>
+              Foram encontrados <strong class="text-white">${count}</strong>
+              exercícios.
+            </span>
+          </div>
+
+          <p class="text-[10px] text-zinc-500 mt-1">
+            A próxima etapa vai separar automaticamente os campos de cada exercício.
+          </p>
+        `;
+      }
       function updateAdminBadge() {
         const badge = document.getElementById("adminBadge");
         if (!badge) return;
