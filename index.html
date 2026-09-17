@@ -2104,5 +2104,12 @@ if (newUser.status === "pending") {
         document.getElementById("studentModal").classList.add("hidden");
       }
     </script>
+    <script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js");
+    });
+  }
+</script>
   </body>
 </html>
