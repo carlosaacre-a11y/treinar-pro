@@ -1442,11 +1442,12 @@ if (newUser.status === "pending") {
         const newWorkoutBtn = document.getElementById("newWorkoutBtn");
         const addExerciseBtn = document.getElementById("addExerciseBtn");
         if (isAdmin) {
-          navAdminEl.classList.remove("hidden");
-          newWorkoutBtn.classList.remove("hidden");
-          addExerciseBtn.classList.remove("hidden");
-          addExerciseBtn.classList.add("flex");
-          renderAdminPanel();
+  navAdminEl.classList.remove("hidden");
+  newWorkoutBtn.classList.add("hidden");
+  addExerciseBtn.classList.add("hidden");
+  addExerciseBtn.classList.remove("flex");
+  renderAdminPanel();
+}
         } else {
           navAdminEl.classList.add("hidden");
           newWorkoutBtn.classList.add("hidden");
@@ -1550,7 +1551,7 @@ if (newUser.status === "pending") {
           tabsContainer.appendChild(btn);
         });
         document.getElementById("currentWorkoutTitle").textContent = `Ficha: ${activeWorkoutKey}`;
-        const isAdmin = currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+        const isAdmin = false;
         const editNameBtn = document.getElementById("editWorkoutNameBtn");
         if (isAdmin) {
           editNameBtn.classList.remove("hidden");
