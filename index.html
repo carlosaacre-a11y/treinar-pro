@@ -2011,22 +2011,44 @@ function toggleTheme() {
         wKeys.sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
 
         wKeys.forEach((wKey) => {
-          const box = document.createElement("div");
-          box.className = "bg-dark-950 border border-dark-800 rounded-xl p-3 flex justify-between items-center text-xs";
-          box.innerHTML = `
-            <div class="flex items-center gap-2 min-w-0 flex-1 mr-2">
-              <span class="font-bold text-primary-400 truncate">Ficha: ${wKey}</span>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
-              <button onclick="openAdminWorkoutExercises('${wKey}')" class="bg-primary-500/10 hover:bg-primary-500/20 text-primary-400 border border-primary-500/30 px-2 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1">
-                <i class="fa-solid fa-dumbbell"></i> Exercícios
-              </button>
-              <button onclick="adminRemoveWorkout('${wKey}')" class="text-red-400 hover:text-red-300 text-[10px] font-semibold p-1">Remover</button>
-            </div>
-          `;
-          container.appendChild(box);
-        });
+  const box = document.createElement("div");
+  box.className = "bg-dark-950 border border-dark-800 rounded-xl p-3 flex justify-between items-center text-xs";
+  box.innerHTML = `
+    <div class="flex items-center gap-2 min-w-0 flex-1 mr-2">
+      <span class="font-bold text-primary-400 truncate">Ficha: ${wKey}</span>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <button onclick="adminRenameWorkout('${wKey}')" class="text-primary-400 hover:text-primary-300 text-[10px] font-semibold p-1">
+        <i class="fa-solid fa-pen"></i> Editar
+      </button>
+      <button onclick="openAdminWorkoutExercises('${wKey}')" class="bg-primary-500/10 hover:bg-primary-500/20 text-primary-400 border border-primary-500/30 px-2 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1">
+        <i class="fa-solid fa-dumbbell"></i> Exercícios
+      </button>
+      <button onclick="adminRemoveWorkout('${wKey}')" class="text-red-400 hover:text-red-300 text-[10px] font-semibold p-1">Remover</button>
+    </div>
+  `;
+  container.appendChild(box);
+});
       }
+      function adminRenameWorkout(wKey) {
+  const user = globalState.users[editingStudentIndex];
+  const newName = prompt("Digite o novo nome para esta ficha:", wKey);
+
+  if (!newName || newName.trim() === "" || newName.trim() === wKey) return;
+
+  const cleanName = newName.trim();
+
+  if (user.workouts[cleanName]) {
+    alert("Já existe uma ficha com esse nome.");
+    return;
+  }
+
+  user.workouts[cleanName] = user.workouts[wKey];
+  delete user.workouts[wKey];
+
+  saveDB();
+  renderStudentWorkoutsInModal();
+}
 
       function adminAddWorkoutToStudent() {
         const wName = prompt("Nome da ficha (Ex: Treino C, Funcional...):");
