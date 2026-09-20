@@ -688,6 +688,92 @@ html.light .border-dark-600 {
             </div>
           </div>
           <div>
+             <!-- MODAL DE GERENCIAMENTO DE ALUNO (ADMIN) -->
+    <div
+      id="studentModal"
+      class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-dark-900 border border-dark-800 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-5 shadow-2xl"
+      >
+        <div
+          class="flex items-center justify-between border-b border-dark-800 pb-3"
+        >
+          <h3 id="modalStudentTitle" class="text-base font-bold text-white">
+            Editar Aluno
+          </h3>
+          <button
+            onclick="closeStudentModal()"
+            class="text-zinc-400 hover:text-white"
+          >
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+        <div class="space-y-4">
+          <h4
+            class="text-[10px] font-bold text-primary-400 uppercase tracking-wider"
+          >
+            Dados do Aluno
+          </h4>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] text-zinc-400 mb-1">Nome</label>
+              <input
+                type="text"
+                id="mStudentName"
+                class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white"
+              />
+            </div>
+            <div>
+              <label class="block text-[10px] text-zinc-400 mb-1">E-mail</label>
+              <input
+                type="email"
+                id="mStudentEmail"
+                class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label id="modalDueDateLabel" class="block text-[10px] text-zinc-400 mb-1">Informação de Vencimento</label>
+              <input
+                type="text"
+                id="mStudentDueDate"
+                placeholder="Ex: Todo dia 10 / Pago"
+                class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white"
+              />
+            </div>
+            <div>
+              <label class="block text-[10px] text-zinc-400 mb-1">Nova Foto de Perfil (Avatar)</label>
+              <input
+                type="file"
+                id="mStudentAvatarFile"
+                accept="image/*"
+                class="w-full bg-dark-800 border border-dark-700 rounded-xl px-2 py-1 text-[10px] text-zinc-300 file:mr-1 file:py-0.5 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-bold file:bg-primary-500 file:text-dark-950"
+              />
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] text-zinc-400 mb-1">Mural de Avisos Exclusivo para este Aluno</label>
+            <textarea
+              id="mStudentNotice"
+              rows="2"
+              placeholder="Digite um recado específico para este aluno..."
+              class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white resize-none"
+            ></textarea>
+          </div>
+        </div>
+        <div class="space-y-3 border-t border-dark-800 pt-4">
+          <div class="flex items-center justify-between">
+            <h4
+              class="text-[10px] font-bold text-primary-400 uppercase tracking-wider"
+            >
+              Fichas de Treino do Aluno
+            </h4>
+            <button
+              onclick="adminAddWorkoutToStudent()"
+              class="text-xs bg-primary-500/10 text-primary-400 px-2.5 py-1 rounded-lg border border-primary-500/30 font-medium"
+            >
             <label class="block text-[10px] text-zinc-400 mb-1">Mural de Avisos Exclusivo para este Aluno</label>
             <textarea
               id="mStudentNotice"
@@ -1994,6 +2080,7 @@ function toggleTheme() {
         document.getElementById("mStudentEmail").value = user.email;
         document.getElementById("mStudentDueDate").value = user.dueDate || "";
         document.getElementById("mStudentNotice").value = user.notice || "";
+        document.getElementById("mStudentTeacher").value = user.teacher || "";
         document.getElementById("mStudentAvatarFile").value = "";
         
         document.getElementById("modalDueDateLabel").textContent = globalState.dueDateLabel || "Informação de Vencimento";
@@ -2170,6 +2257,7 @@ function toggleTheme() {
         const user = globalState.users[editingStudentIndex];
         const newDueDate = document.getElementById("mStudentDueDate").value;
         const newNotice = document.getElementById("mStudentNotice").value;
+        const newTeacher = document.getElementById("mStudentTeacher").value.trim();
         
         if (user.dueDate !== newDueDate) {
           user.dismissedDueDate = false;
@@ -2179,6 +2267,7 @@ function toggleTheme() {
         user.email = document.getElementById("mStudentEmail").value;
         user.dueDate = newDueDate;
         user.notice = newNotice;
+        user.teacher = newTeacher;
 
         const avatarFileInput = document.getElementById("mStudentAvatarFile");
         if (avatarFileInput.files && avatarFileInput.files[0]) {
