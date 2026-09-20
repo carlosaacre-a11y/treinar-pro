@@ -1897,8 +1897,10 @@ function toggleTheme() {
         const studentsList = document.getElementById("adminStudentsList");
         studentsList.innerHTML = "";
         const filteredUsers = globalState.users.filter(
-          (u) => u.name.toLowerCase().includes(searchTerm) || u.email.toLowerCase().includes(searchTerm)
-        );
+  (u) => u.name.toLowerCase().includes(searchTerm) ||
+         u.email.toLowerCase().includes(searchTerm) ||
+         (u.teacher || "").toLowerCase().includes(searchTerm)
+);
         const sortedUsers = [...filteredUsers].sort((a, b) => a.name.localeCompare(b.name));
         if (sortedUsers.length === 0) {
           studentsList.innerHTML = '<p class="text-xs text-zinc-500 text-center py-4">Nenhum aluno encontrado.</p>';
