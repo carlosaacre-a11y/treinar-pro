@@ -2212,7 +2212,8 @@ function toggleTheme() {
           alert("Dados do aluno salvos com sucesso!");
         });
       }
-
+      }
+      
       function deleteStudent() {
         if (confirm("Tem certeza que deseja excluir este aluno?")) {
           globalState.users.splice(editingStudentIndex, 1);
