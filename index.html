@@ -2206,11 +2206,11 @@ function toggleTheme() {
           };
           reader.readAsDataURL(avatarFileInput.files[0]);
         } else {
-          saveDB();
+          saveDB().then(() => {
           closeStudentModal();
           renderAdminPanel();
           alert("Dados do aluno salvos com sucesso!");
-        }
+        });
       }
 
       function deleteStudent() {
