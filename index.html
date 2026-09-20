@@ -2193,6 +2193,7 @@ function toggleTheme() {
         user.dueDate = newDueDate;
         user.notice = newNotice;
         user.teacher = newTeacher;
+        console.log("PROFESSOR SALVO:", user.teacher);
 
         const avatarFileInput = document.getElementById("mStudentAvatarFile");
         if (avatarFileInput.files && avatarFileInput.files[0]) {
