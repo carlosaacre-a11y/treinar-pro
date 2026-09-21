@@ -2223,6 +2223,33 @@ function openAddNewTeacherModal() {
 
   document.getElementById("teacherModal").classList.remove("hidden");
 }
+
+function adminDeleteTeacher(teacherId) {
+  const teacher = (globalState.teachers || []).find(
+    (t) => t.id === teacherId
+  );
+
+  if (!teacher) {
+    alert("Professor não encontrado.");
+    return;
+  }
+
+  const confirmed = confirm(
+    `Excluir o professor "${teacher.name}"?`
+  );
+
+  if (!confirmed) return;
+
+  globalState.teachers = globalState.teachers.filter(
+    (t) => t.id !== teacherId
+  );
+
+  saveDB();
+
+  renderAdminTeachersList();
+
+  alert("Professor excluído com sucesso.");
+}
       
 function closeTeacherModal() {
   document.getElementById("teacherModal").classList.add("hidden");
@@ -2376,12 +2403,21 @@ function saveTeacherModal() {
         </div>
       </div>
 
-      <button
-        onclick="adminEditTeacher('${teacher.id}')"
-        class="text-primary-400 hover:text-primary-300 text-[10px] font-semibold p-1 shrink-0"
-      >
-        <i class="fa-solid fa-pen"></i> Editar
-      </button>
+      <div class="flex items-center gap-2 shrink-0">
+  <button
+    onclick="adminEditTeacher('${teacher.id}')"
+    class="text-primary-400 hover:text-primary-300 text-[10px] font-semibold p-1"
+  >
+    <i class="fa-solid fa-pen"></i> Editar
+  </button>
+
+  <button
+    onclick="adminDeleteTeacher('${teacher.id}')"
+    class="text-red-400 hover:text-red-300 text-[10px] font-semibold p-1"
+  >
+    <i class="fa-solid fa-trash"></i> Excluir
+  </button>
+</div>
     `;
 
     container.appendChild(box);
