@@ -2824,40 +2824,21 @@ teacherSelect.value = user.teacher || "";
 
 function saveStudentModal() {
   const user = globalState.users[editingStudentIndex];
-
-  const isTeacher = currentUser && currentUser.role === "teacher";
-
   const newDueDate = document.getElementById("mStudentDueDate").value;
   const newNotice = document.getElementById("mStudentNotice").value;
+  const newTeacher = document.getElementById("mStudentTeacher").value.trim();
 
   if (user.dueDate !== newDueDate) {
     user.dismissedDueDate = false;
   }
 
-  if (isTeacher) {
-    // Professor pode alterar somente vencimento e mural
-    user.dueDate = newDueDate;
-    user.notice = newNotice;
-
-    saveDB().then(() => {
-      closeStudentModal();
-      alert("Dados do aluno salvos com sucesso!");
-      renderProfessorStudents();
-    });
-
-    return;
-  }
-
-  // Administrador pode alterar todos os dados
-  const newName = document.getElementById("mStudentName").value.trim();
-  const newEmail = document.getElementById("mStudentEmail").value.trim().toLowerCase();
-  const newTeacher = document.getElementById("mStudentTeacher").value.trim();
-
-  user.name = newName;
-  user.email = newEmail;
+  user.name = document.getElementById("mStudentName").value;
+  user.email = document.getElementById("mStudentEmail").value;
   user.dueDate = newDueDate;
   user.notice = newNotice;
   user.teacher = newTeacher;
+
+  console.log("PROFESSOR SALVO:", user.teacher);
 
   const avatarFileInput = document.getElementById("mStudentAvatarFile");
 
@@ -2866,11 +2847,9 @@ function saveStudentModal() {
 
     reader.onload = async function (e) {
       user.avatar = e.target.result;
-
       await saveDB();
       closeStudentModal();
       renderAdminPanel();
-
       alert("Dados e foto do aluno salvos com sucesso!");
     };
 
@@ -2879,7 +2858,6 @@ function saveStudentModal() {
     saveDB().then(() => {
       closeStudentModal();
       renderAdminPanel();
-
       alert("Dados do aluno salvos com sucesso!");
     });
   }
