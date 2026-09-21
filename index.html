@@ -1220,20 +1220,45 @@ Observações: Descer lentamente"
 
           const savedEmail = localStorage.getItem("treinarPro_loggedEmail");
 
-          if (savedEmail) {
-            const foundUser = globalState.users.find(
-              (u) => u.email.toLowerCase() === savedEmail.toLowerCase()
-            );
+if (savedEmail) {
+  const savedEmailLower = savedEmail.toLowerCase();
 
-            if (
-              foundUser &&
-              (foundUser.status === "approved" ||
-                foundUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase())
-            ) {
-              currentUser = foundUser;
-              initApp();
-            }
-          }
+  const foundTeacher = (globalState.teachers || []).find(
+    (teacher) => teacher.email.toLowerCase() === savedEmailLower
+  );
+
+  if (foundTeacher) {
+    currentUser = {
+      id: foundTeacher.id,
+      name: foundTeacher.name,
+      email: foundTeacher.email,
+      avatar: foundTeacher.avatar || "",
+      role: "teacher",
+      status: "approved",
+      dueDate: "",
+      notice: "",
+      dismissedDueDate: false,
+      teacher: foundTeacher.name,
+      workouts: {}
+    };
+
+    initApp();
+    return;
+  }
+
+  const foundUser = globalState.users.find(
+    (u) => u.email.toLowerCase() === savedEmailLower
+  );
+
+  if (
+    foundUser &&
+    (foundUser.status === "approved" ||
+      foundUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase())
+  ) {
+    currentUser = foundUser;
+    initApp();
+  }
+}
         } catch (e) {
           console.error("Erro ao carregar dados da nuvem:", e);
         }
