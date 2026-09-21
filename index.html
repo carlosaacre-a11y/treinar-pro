@@ -2615,7 +2615,7 @@ function saveTeacherModal() {
   });
 }
       
-      function openStudentModal(email) {
+function openStudentModal(email) {
         editingStudentIndex = globalState.users.findIndex((u) => u.email === email);
         const user = globalState.users[editingStudentIndex];
         document.getElementById("modalStudentTitle").textContent = `Gerenciar: ${user.name}`;
