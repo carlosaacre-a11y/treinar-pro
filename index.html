@@ -1665,7 +1665,38 @@ function closeExerciseImportModal() {
         
         const email = document.getElementById("loginEmail").value.trim().toLowerCase();
         const msgEl = document.getElementById("loginMessage");
-        let user = globalState.users.find((u) => u.email.toLowerCase() === email);
+
+        const teacher = (globalState.teachers || []).find(
+  (t) => t.email.toLowerCase() === email
+);
+
+if (teacher) {
+  currentUser = {
+    id: teacher.id,
+    name: teacher.name,
+    email: teacher.email,
+    avatar: teacher.avatar || "",
+    role: "teacher",
+    status: "approved",
+    dueDate: "",
+    notice: "",
+    dismissedDueDate: false,
+    teacher: teacher.name,
+    workouts: {}
+  };
+
+  localStorage.setItem(
+    "treinarPro_loggedEmail",
+    currentUser.email
+  );
+
+  initApp();
+  return;
+}
+
+let user = globalState.users.find(
+  (u) => u.email.toLowerCase() === email
+);
         
         if (user) {
           if (user.status === "approved" || email === ADMIN_EMAIL.toLowerCase()) {
@@ -1756,11 +1787,15 @@ if (newUser.status === "pending") {
         applyAppSettings();
         document.getElementById("headerAvatar").src = currentUser.avatar;
         document.getElementById("headerName").textContent = currentUser.name;
-        const isAdmin = currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
-        document.getElementById("headerRole").textContent = isAdmin ? "Administrador" : "Aluno";
+        const isAdmin =
+        currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+        const isTeacher = currentUser.role === "teacher";
+        document.getElementById("headerRole").textContent =
+        isAdmin ? "Administrador" : isTeacher ? "Professor" : "Aluno";
         const navAdminEl = document.getElementById("navAdmin");
         const newWorkoutBtn = document.getElementById("newWorkoutBtn");
         const addExerciseBtn = document.getElementById("addExerciseBtn");
+        
         if (isAdmin) {
   navAdminEl.classList.remove("hidden");
   newWorkoutBtn.classList.add("hidden");
@@ -1768,11 +1803,26 @@ if (newUser.status === "pending") {
   addExerciseBtn.classList.remove("flex");
   renderAdminPanel();
         } else {
-          navAdminEl.classList.add("hidden");
-          newWorkoutBtn.classList.add("hidden");
-          addExerciseBtn.classList.add("hidden");
-          addExerciseBtn.classList.remove("flex");
-        }
+  navAdminEl.classList.add("hidden");
+  newWorkoutBtn.classList.add("hidden");
+  addExerciseBtn.classList.add("hidden");
+  addExerciseBtn.classList.remove("flex");
+
+  if (isTeacher) {
+    document.getElementById("professorScreen").classList.remove("hidden");
+
+    document.getElementById("professorScreenAvatar").src =
+      currentUser.avatar || "";
+
+    document.getElementById("professorScreenName").textContent =
+      currentUser.name;
+
+    document.getElementById("tabWorkouts").classList.add("hidden");
+    document.getElementById("tabProfile").classList.add("hidden");
+
+    renderProfessorStudents();
+  }
+}
         document.getElementById("profileAvatar").src = currentUser.avatar;
         document.getElementById("profileName").textContent = currentUser.name;
         document.getElementById("profileEmail").textContent = currentUser.email;
@@ -1866,7 +1916,70 @@ function toggleTheme() {
         saveDB();
         document.getElementById("dueDateAlertBanner").classList.add("hidden");
       }
+      
+      
+      function renderProfessorStudents() {
+  const container = document.getElementById("professorStudentsList");
 
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  const searchTerm = (
+    document.getElementById("professorSearchInput")?.value || ""
+  ).trim().toLowerCase();
+
+  const students = (globalState.users || [])
+    .filter((user) => {
+      return (
+        (user.teacher || "").toLowerCase() ===
+        (currentUser.name || "").toLowerCase()
+      );
+    })
+    .filter((user) => {
+      return (
+        user.name.toLowerCase().includes(searchTerm) ||
+        user.email.toLowerCase().includes(searchTerm)
+      );
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  if (students.length === 0) {
+    container.innerHTML =
+      '<p class="text-xs text-zinc-500 text-center py-6">Nenhum aluno encontrado.</p>';
+    return;
+  }
+
+  students.forEach((student) => {
+    const div = document.createElement("div");
+
+    div.className =
+      "flex items-center justify-between bg-dark-800 border border-dark-700 rounded-xl p-3 hover:border-primary-500/50 transition cursor-pointer";
+
+    div.innerHTML = `
+      <div class="flex items-center gap-3 min-w-0">
+        <img
+          src="${student.avatar || ""}"
+          class="w-10 h-10 rounded-full object-cover border border-dark-600 shrink-0"
+        >
+
+        <div class="min-w-0">
+          <p class="text-xs font-bold text-white truncate">
+            ${student.name}
+          </p>
+          <p class="text-[10px] text-zinc-400 truncate">
+            ${student.email}
+          </p>
+        </div>
+      </div>
+
+      <i class="fa-solid fa-chevron-right text-xs text-zinc-500"></i>
+    `;
+
+    container.appendChild(div);
+  });
+}
+      
       function renderWorkouts() {
         checkDueDateAndNotice();
         const tabsContainer = document.getElementById("workoutTabsList");
