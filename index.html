@@ -2192,6 +2192,10 @@ function openAddNewTeacherModal() {
   document.getElementById("teacherModal").classList.remove("hidden");
 }
       
+function closeTeacherModal() {
+  document.getElementById("teacherModal").classList.add("hidden");
+}  
+      
       function openStudentModal(email) {
         editingStudentIndex = globalState.users.findIndex((u) => u.email === email);
         const user = globalState.users[editingStudentIndex];
