@@ -2182,7 +2182,14 @@ function toggleTheme() {
 }
       
 function openAddNewTeacherModal() {
-  alert("A função Novo Professor está funcionando!");
+  document.getElementById("teacherModalTitle").textContent = "Novo Professor";
+
+  document.getElementById("teacherNameInput").value = "";
+  document.getElementById("teacherEmailInput").value = "";
+  document.getElementById("teacherPasswordInput").value = "";
+  document.getElementById("teacherAvatarFile").value = "";
+
+  document.getElementById("teacherModal").classList.remove("hidden");
 }
       
       function openStudentModal(email) {
