@@ -2619,6 +2619,9 @@ function saveTeacherModal() {
         editingStudentIndex = globalState.users.findIndex((u) => u.email === email);
         const user = globalState.users[editingStudentIndex];
         document.getElementById("modalStudentTitle").textContent = `Gerenciar: ${user.name}`;
+        const isTeacher = currentUser && currentUser.role === "teacher";
+document.querySelector('#studentModal button[onclick="deleteStudent()"]')
+  .classList.toggle("hidden", isTeacher);
         document.getElementById("mStudentName").value = user.name;
         document.getElementById("mStudentEmail").value = user.email;
         document.getElementById("mStudentDueDate").value = user.dueDate || "";
