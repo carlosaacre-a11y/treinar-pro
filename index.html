@@ -2237,10 +2237,11 @@ function saveTeacherModal() {
     avatar: ""
   });
 
-  saveDB();
-
-  closeTeacherModal();
   renderAdminTeachersList();
+
+alert("Professor adicionado na memória do aplicativo.");
+
+closeTeacherModal();
 }
       
       function renderAdminTeachersList() {
