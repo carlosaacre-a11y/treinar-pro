@@ -2624,7 +2624,7 @@ function openStudentModal(email) {
         .classList.toggle("hidden", isTeacher);
         document.getElementById("mStudentName").value = user.name;
         document.getElementById("mStudentEmail").value = user.email;
-        const isTeacher = currentUser && currentUser.role === "teacher";
+       
         document.getElementById("mStudentName").disabled = isTeacher;
         document.getElementById("mStudentEmail").disabled = isTeacher;
         document.getElementById("mStudentEmail").parentElement.classList.toggle("hidden", isTeacher);
