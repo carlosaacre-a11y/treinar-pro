@@ -1977,6 +1977,17 @@ function toggleTheme() {
       <i class="fa-solid fa-chevron-right text-xs text-zinc-500"></i>
     `;
 
+    div.onclick = () => {
+  const index = globalState.users.findIndex(
+    (u) => u.email.toLowerCase() === student.email.toLowerCase()
+  );
+
+  if (index === -1) return;
+
+  editingStudentIndex = index;
+  openStudentModal(student.email);
+};
+    
     container.appendChild(div);
   });
 }
