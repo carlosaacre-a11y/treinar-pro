@@ -19,6 +19,9 @@
     />
     
     <script>
+// ==========================================================
+// CONFIGURAÇÕES GERAIS DO APLICATIVO
+// ==========================================================
       tailwind.config = {
         theme: {
           extend: {
@@ -111,6 +114,11 @@ html.light .border-dark-600 {
 </script>
   </head>
   <body class="bg-dark-950 min-h-screen flex flex-col justify-between">
+
+    <!-- ========================================================== -->
+    <!-- LOGIN E ACESSO                                             -->
+    <!-- ========================================================== -->
+
     <!-- TELA DE LOGIN -->
     <div
       id="loginScreen"
@@ -163,7 +171,10 @@ html.light .border-dark-600 {
       </div>
     </div>
 
-    <!-- APLICATIVO PRINCIPAL -->
+<!-- ========================================================== -->
+<!-- APLICATIVO PRINCIPAL                                       -->
+<!-- ========================================================== -->
+    
     <div
       id="mainApp"
       class="hidden flex-1 flex flex-col max-w-md w-full mx-auto pb-24 shadow-2xl bg-dark-900 border-x border-dark-800"
@@ -471,7 +482,10 @@ html.light .border-dark-600 {
         </div>
       </main>
 
-      <!-- BARRA DE NAVEGAÇÃO INFERIOR -->
+<!-- ========================================================== -->
+<!-- BARRA DE NAVEGAÇÃO INFERIOR                               -->
+<!-- ========================================================== -->
+      
       <nav
         id="bottomNav"
         class="bg-dark-800/90 backdrop-blur-md border-t border-dark-700 p-2 flex justify-around items-center fixed bottom-0 max-w-md w-full z-40"
@@ -507,6 +521,10 @@ html.light .border-dark-600 {
       </nav>
     </div>
 
+<!-- ========================================================== -->
+<!-- JANELAS E MODAIS DO APLICATIVO                            -->
+<!-- ========================================================== -->
+    
     <!-- MODAL ADICIONAR EXERCÍCIO -->
     <div
       id="exerciseModal"
