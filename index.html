@@ -479,6 +479,49 @@ html.light .border-dark-600 {
             </div>
             <div id="adminStudentsList" class="space-y-2"></div>
           </div>
+<!-- GERENCIAMENTO DE PROFESSORES -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h4
+                class="text-[10px] font-bold uppercase tracking-wider text-zinc-400"
+              >
+                Professores
+              </h4>
+
+              <button
+                onclick="openAddNewTeacherModal()"
+                class="text-xs bg-primary-500 hover:bg-primary-600 text-dark-950 font-bold px-3 py-1.5 rounded-lg shadow-sm transition"
+              >
+                + Novo Professor
+              </button>
+            </div>
+
+            <!-- Pesquisa de professores -->
+            <div>
+              <div class="relative">
+                <span
+                  class="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-500 text-xs"
+                >
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+
+                <input
+                  type="text"
+                  id="adminTeacherSearchInput"
+                  oninput="renderAdminTeachersList()"
+                  placeholder="Pesquisar professor por nome ou e-mail..."
+                  class="w-full bg-dark-800 border border-dark-700 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-primary-500"
+                />
+              </div>
+            </div>
+
+            <!-- Lista de professores -->
+            <div
+              id="adminTeachersList"
+              class="space-y-2"
+            ></div>
+          </div>
+          
         </div>
       </main>
 
