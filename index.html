@@ -2252,6 +2252,42 @@ function saveTeacherModal() {
     globalState.teachers = [];
   }
 
+  // EDITANDO PROFESSOR EXISTENTE
+  if (editingTeacherId) {
+    const teacher = globalState.teachers.find(
+      (t) => t.id === editingTeacherId
+    );
+
+    if (!teacher) {
+      alert("Professor não encontrado.");
+      return;
+    }
+
+    const emailExists = globalState.teachers.some(
+      (t) => t.email === email && t.id !== editingTeacherId
+    );
+
+    if (emailExists) {
+      alert("Já existe outro professor cadastrado com este e-mail.");
+      return;
+    }
+
+    teacher.name = name;
+    teacher.email = email;
+    teacher.password = password;
+
+    saveDB();
+
+    renderAdminTeachersList();
+    closeTeacherModal();
+
+    editingTeacherId = null;
+
+    alert("Professor atualizado com sucesso.");
+    return;
+  }
+
+  // NOVO PROFESSOR
   const emailExists = globalState.teachers.some(
     (teacher) => teacher.email === email
   );
@@ -2268,13 +2304,13 @@ function saveTeacherModal() {
     password: password,
     avatar: ""
   });
+
   saveDB();
 
   renderAdminTeachersList();
+  closeTeacherModal();
 
-alert("Professor adicionado na memória do aplicativo.");
-
-closeTeacherModal();
+  alert("Professor adicionado com sucesso.");
 }
       
       function renderAdminTeachersList() {
