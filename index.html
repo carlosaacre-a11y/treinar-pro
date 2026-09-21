@@ -2195,6 +2195,53 @@ function openAddNewTeacherModal() {
 function closeTeacherModal() {
   document.getElementById("teacherModal").classList.add("hidden");
 }  
+
+function saveTeacherModal() {
+  const name = document.getElementById("teacherNameInput").value.trim();
+  const email = document.getElementById("teacherEmailInput").value.trim().toLowerCase();
+  const password = document.getElementById("teacherPasswordInput").value;
+
+  if (!name) {
+    alert("Digite o nome do professor.");
+    return;
+  }
+
+  if (!email) {
+    alert("Digite o e-mail do professor.");
+    return;
+  }
+
+  if (!password) {
+    alert("Digite a senha do professor.");
+    return;
+  }
+
+  if (!globalState.teachers) {
+    globalState.teachers = [];
+  }
+
+  const emailExists = globalState.teachers.some(
+    (teacher) => teacher.email === email
+  );
+
+  if (emailExists) {
+    alert("Já existe um professor cadastrado com este e-mail.");
+    return;
+  }
+
+  globalState.teachers.push({
+    id: crypto.randomUUID(),
+    name: name,
+    email: email,
+    password: password,
+    avatar: ""
+  });
+
+  saveDB();
+
+  closeTeacherModal();
+  renderAdminTeachersList();
+}
       
       function openStudentModal(email) {
         editingStudentIndex = globalState.users.findIndex((u) => u.email === email);
