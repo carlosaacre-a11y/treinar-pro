@@ -799,7 +799,6 @@ html.light .border-dark-600 {
     >
       Informação de Vencimento
     </label>
-
     <input
       type="text"
       id="mStudentDueDate"
@@ -812,7 +811,6 @@ html.light .border-dark-600 {
     <label class="block text-[10px] text-zinc-400 mb-1">
       Professor
     </label>
-
     <select
       id="mStudentTeacher"
       class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white"
@@ -820,36 +818,22 @@ html.light .border-dark-600 {
       <option value="">Sem professor</option>
     </select>
   </div>
-
-  <div class="col-span-2">
-    <label class="block text-[10px] text-zinc-400 mb-1">
-      Foto do Aluno
-    </label>
-
-    <div class="flex items-center">
-      <img
-        id="mStudentAvatarPreview"
-        src=""
-        class="w-16 h-16 rounded-full object-cover border border-dark-700"
-      />
-    </div>
-
-    <input
-      type="file"
-      id="mStudentAvatarFile"
-      accept="image/*"
-      class="hidden"
-    />
-  </div>
 </div>
-            <label class="block text-[10px] text-zinc-400 mb-1">Mural de Avisos Exclusivo para este Aluno</label>
-            <textarea
-              id="mStudentNotice"
-              rows="2"
-              placeholder="Digite um recado específico para este aluno..."
-              class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white resize-none"
-            ></textarea>
-          </div>
+
+<div>
+  <label
+    class="block text-[10px] text-zinc-400 mb-1"
+  >
+    Mural de Avisos Exclusivo para este Aluno
+  </label>
+
+  <textarea
+    id="mStudentNotice"
+    rows="2"
+    placeholder="Digite um recado específico para este aluno..."
+    class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white resize-none"
+  ></textarea>
+</div>
         </div>
         <div class="space-y-3 border-t border-dark-800 pt-4">
           <div class="flex items-center justify-between">
