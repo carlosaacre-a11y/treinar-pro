@@ -1792,6 +1792,7 @@ if (newUser.status === "pending") {
         const isTeacher = currentUser.role === "teacher";
         document.getElementById("headerRole").textContent =
         isAdmin ? "Administrador" : isTeacher ? "Professor" : "Aluno";
+        document.getElementById("professorScreen").classList.add("hidden");
         const navAdminEl = document.getElementById("navAdmin");
         const newWorkoutBtn = document.getElementById("newWorkoutBtn");
         const addExerciseBtn = document.getElementById("addExerciseBtn");
