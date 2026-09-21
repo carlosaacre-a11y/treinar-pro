@@ -1129,6 +1129,7 @@ Observações: Descer lentamente"
       let activeWorkoutKey = null;
       let editingStudentIndex = null;
       let editingAdminWorkoutKey = null;
+      let editingTeacherId = null;
 
       async function initSystem() {
         try {
@@ -2182,6 +2183,8 @@ function toggleTheme() {
 }
       
 function openAddNewTeacherModal() {
+  editingTeacherId = null;
+  
   document.getElementById("teacherModalTitle").textContent = "Novo Professor";
 
   document.getElementById("teacherNameInput").value = "";
@@ -2193,6 +2196,8 @@ function openAddNewTeacherModal() {
 }
 
       function adminEditTeacher(teacherId) {
+        editingTeacherId = teacherId;
+        
   const teacher = (globalState.teachers || []).find(
     (t) => t.id === teacherId
   );
