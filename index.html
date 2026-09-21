@@ -2191,6 +2191,33 @@ function openAddNewTeacherModal() {
 
   document.getElementById("teacherModal").classList.remove("hidden");
 }
+
+      function adminEditTeacher(teacherId) {
+  const teacher = (globalState.teachers || []).find(
+    (t) => t.id === teacherId
+  );
+
+  if (!teacher) {
+    alert("Professor não encontrado.");
+    return;
+  }
+
+  document.getElementById("teacherModalTitle").textContent =
+    "Editar Professor";
+
+  document.getElementById("teacherNameInput").value =
+    teacher.name || "";
+
+  document.getElementById("teacherEmailInput").value =
+    teacher.email || "";
+
+  document.getElementById("teacherPasswordInput").value =
+    teacher.password || "";
+
+  document.getElementById("teacherAvatarFile").value = "";
+
+  document.getElementById("teacherModal").classList.remove("hidden");
+}
       
 function closeTeacherModal() {
   document.getElementById("teacherModal").classList.add("hidden");
