@@ -740,12 +740,12 @@ html.light .border-dark-600 {
             </div>
             <div>
   <label class="block text-[10px] text-zinc-400 mb-1">Professor</label>
-  <input
-    type="text"
-    id="mStudentTeacher"
-    placeholder="Nome do professor"
-    class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white"
-  />
+<select
+  id="mStudentTeacher"
+  class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white"
+>
+  <option value="">Sem professor</option>
+</select>
 </div>
                     <div>
               <label class="block text-[10px] text-zinc-400 mb-1">Nova Foto de Perfil (Avatar)</label>
@@ -2432,6 +2432,22 @@ function saveTeacherModal() {
         document.getElementById("mStudentEmail").value = user.email;
         document.getElementById("mStudentDueDate").value = user.dueDate || "";
         document.getElementById("mStudentTeacher").value = user.teacher || "";
+        const teacherSelect = document.getElementById("mStudentTeacher");
+
+teacherSelect.innerHTML = `
+  <option value="">Sem professor</option>
+`;
+
+(globalState.teachers || []).forEach((teacher) => {
+  const option = document.createElement("option");
+
+  option.value = teacher.name;
+  option.textContent = teacher.name;
+
+  teacherSelect.appendChild(option);
+});
+
+teacherSelect.value = user.teacher || "";
         document.getElementById("mStudentNotice").value = user.notice || "";
         document.getElementById("mStudentAvatarFile").value = "";
         
