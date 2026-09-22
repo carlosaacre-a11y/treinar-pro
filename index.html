@@ -2556,7 +2556,7 @@ function saveTeacherModal() {
   alert("Professor adicionado com sucesso.");
 }
       
-      function renderAdminTeachersList() {
+function renderAdminTeachersList() {
   const container = document.getElementById("adminTeachersList");
 
   if (!container) return;
@@ -2595,6 +2595,8 @@ function saveTeacherModal() {
   filteredTeachers.forEach((teacher) => {
     const box = document.createElement("div");
 
+    const isActive = (teacher.status || "active") === "active";
+
     box.className =
       "bg-dark-800 border border-dark-700 rounded-xl p-3 flex items-center justify-between gap-3";
 
@@ -2616,24 +2618,44 @@ function saveTeacherModal() {
           <div class="text-[10px] text-zinc-500 truncate">
             ${teacher.email}
           </div>
+
+          <div class="text-[10px] font-semibold mt-0.5 ${
+            isActive ? "text-green-400" : "text-red-400"
+          }">
+            ${isActive ? "Ativo" : "Inativo"}
+          </div>
         </div>
       </div>
 
       <div class="flex items-center gap-2 shrink-0">
-  <button
-    onclick="adminEditTeacher('${teacher.id}')"
-    class="text-primary-400 hover:text-primary-300 text-[10px] font-semibold p-1"
-  >
-    <i class="fa-solid fa-pen"></i> Editar
-  </button>
+        <button
+          onclick="adminToggleTeacherStatus('${teacher.id}')"
+          class="${
+            isActive
+              ? "text-red-400 hover:text-red-300"
+              : "text-green-400 hover:text-green-300"
+          } text-[10px] font-semibold p-1"
+        >
+          <i class="fa-solid ${
+            isActive ? "fa-toggle-off" : "fa-toggle-on"
+          }"></i>
+          ${isActive ? "Desativar" : "Ativar"}
+        </button>
 
-  <button
-    onclick="adminDeleteTeacher('${teacher.id}')"
-    class="text-red-400 hover:text-red-300 text-[10px] font-semibold p-1"
-  >
-    <i class="fa-solid fa-trash"></i> Excluir
-  </button>
-</div>
+        <button
+          onclick="adminEditTeacher('${teacher.id}')"
+          class="text-primary-400 hover:text-primary-300 text-[10px] font-semibold p-1"
+        >
+          <i class="fa-solid fa-pen"></i> Editar
+        </button>
+
+        <button
+          onclick="adminDeleteTeacher('${teacher.id}')"
+          class="text-red-400 hover:text-red-300 text-[10px] font-semibold p-1"
+        >
+          <i class="fa-solid fa-trash"></i> Excluir
+        </button>
+      </div>
     `;
 
     container.appendChild(box);
