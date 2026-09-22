@@ -2572,6 +2572,7 @@ function saveTeacherModal() {
   const name = document.getElementById("teacherNameInput").value.trim();
   const email = document.getElementById("teacherEmailInput").value.trim().toLowerCase();
   const password = document.getElementById("teacherPasswordInput").value;
+  const avatarFileInput = document.getElementById("teacherAvatarFile");
 
   if (!name) {
     alert("Digite o nome do professor.");
@@ -2615,8 +2616,23 @@ function saveTeacherModal() {
     teacher.name = name;
     teacher.email = email;
     teacher.password = password;
+    if (avatarFileInput.files && avatarFileInput.files[0]) {
+  const reader = new FileReader();
 
-    saveDB();
+  reader.onload = function (e) {
+    teacher.avatar = e.target.result;
+  };
+
+  reader.readAsDataURL(avatarFileInput.files[0]);
+}
+
+    if (avatarFileInput.files && avatarFileInput.files[0]) {
+  const reader = new FileReader();
+
+  reader.onload = async function (e) {
+    teacher.avatar = e.target.result;
+
+    await saveDB();
 
     renderAdminTeachersList();
     closeTeacherModal();
@@ -2624,7 +2640,21 @@ function saveTeacherModal() {
     editingTeacherId = null;
 
     alert("Professor atualizado com sucesso.");
-    return;
+  };
+
+  reader.readAsDataURL(avatarFileInput.files[0]);
+} else {
+  saveDB();
+
+  renderAdminTeachersList();
+  closeTeacherModal();
+
+  editingTeacherId = null;
+
+  alert("Professor atualizado com sucesso.");
+}
+
+return;
   }
 
   // NOVO PROFESSOR
