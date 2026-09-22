@@ -2752,6 +2752,38 @@ function renderAdminTeachersList() {
     container.appendChild(box);
   });
 }
+
+function adminToggleStudentStatus(email) {
+  const user = (globalState.users || []).find(
+    (u) => u.email.toLowerCase() === email.toLowerCase()
+  );
+
+  if (!user) return;
+
+  if (user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+    return;
+  }
+
+  const currentStatus = user.status || "approved";
+
+  const newStatus =
+    currentStatus === "approved" ? "inactive" : "approved";
+
+  user.status = newStatus;
+
+  saveDB()
+    .then(() => {
+      renderAdminPanel();
+    })
+    .catch((error) => {
+      console.error("Erro ao alterar status do aluno:", error);
+
+      user.status = currentStatus;
+
+      alert("Não foi possível alterar o status do aluno.");
+      renderAdminPanel();
+    });
+}
       
 function openStudentModal(email) {
         editingStudentIndex = globalState.users.findIndex((u) => u.email === email);
