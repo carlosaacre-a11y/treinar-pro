@@ -2572,6 +2572,7 @@ function saveTeacherModal() {
   const name = document.getElementById("teacherNameInput").value.trim();
   const email = document.getElementById("teacherEmailInput").value.trim().toLowerCase();
   const password = document.getElementById("teacherPasswordInput").value;
+  const avatarFileInput = document.getElementById("teacherAvatarFile");
 
   if (!name) {
     alert("Digite o nome do professor.");
@@ -2591,6 +2592,15 @@ function saveTeacherModal() {
   if (!globalState.teachers) {
     globalState.teachers = [];
   }
+
+  // Função para finalizar o salvamento
+  const finishSave = async (teacher, successMessage) => {
+    await saveDB();
+    renderAdminTeachersList();
+    closeTeacherModal();
+    editingTeacherId = null;
+    alert(successMessage);
+  };
 
   // EDITANDO PROFESSOR EXISTENTE
   if (editingTeacherId) {
@@ -2616,14 +2626,36 @@ function saveTeacherModal() {
     teacher.email = email;
     teacher.password = password;
 
-    saveDB();
+    if (avatarFileInput.files && avatarFileInput.files[0]) {
+      const reader = new FileReader();
 
-    renderAdminTeachersList();
-    closeTeacherModal();
+      reader.onload = async function (e) {
+        teacher.avatar = e.target.result;
 
-    editingTeacherId = null;
+        try {
+          await finishSave(
+            teacher,
+            "Professor atualizado com sucesso."
+          );
+        } catch (error) {
+          console.error("Erro ao salvar professor:", error);
+          alert("Não foi possível salvar o professor.");
+        }
+      };
 
-    alert("Professor atualizado com sucesso.");
+      reader.readAsDataURL(avatarFileInput.files[0]);
+    } else {
+      try {
+        await finishSave(
+          teacher,
+          "Professor atualizado com sucesso."
+        );
+      } catch (error) {
+        console.error("Erro ao salvar professor:", error);
+        alert("Não foi possível salvar o professor.");
+      }
+    }
+
     return;
   }
 
@@ -2637,20 +2669,46 @@ function saveTeacherModal() {
     return;
   }
 
-  globalState.teachers.push({
+  const newTeacher = {
     id: crypto.randomUUID(),
     name: name,
     email: email,
     password: password,
-    avatar: ""
-  });
+    avatar: "",
+    status: "active"
+  };
 
-  saveDB();
+  globalState.teachers.push(newTeacher);
 
-  renderAdminTeachersList();
-  closeTeacherModal();
+  if (avatarFileInput.files && avatarFileInput.files[0]) {
+    const reader = new FileReader();
 
-  alert("Professor adicionado com sucesso.");
+    reader.onload = async function (e) {
+      newTeacher.avatar = e.target.result;
+
+      try {
+        await finishSave(
+          newTeacher,
+          "Professor adicionado com sucesso."
+        );
+      } catch (error) {
+        console.error("Erro ao salvar professor:", error);
+        alert("Não foi possível salvar o professor.");
+      }
+    };
+
+    reader.readAsDataURL(avatarFileInput.files[0]);
+  } else {
+    try {
+      await finishSave(
+        newTeacher,
+        "Professor adicionado com sucesso."
+      );
+    } catch (error) {
+      console.error("Erro ao salvar professor:", error);
+      alert("Não foi possível salvar o professor.");
+    }
+  }
 }
       
 function renderAdminTeachersList() {
