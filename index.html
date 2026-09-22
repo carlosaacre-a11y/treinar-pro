@@ -1695,6 +1695,13 @@ function closeExerciseImportModal() {
   (t) => t.email.toLowerCase() === email
 );
 
+if (teacher && (teacher.status || "active") !== "active") {
+  msgEl.textContent =
+    "Seu acesso está temporariamente desativado pelo Administrador.";
+  msgEl.classList.remove("hidden");
+  return;
+}
+
 if (teacher) {
   currentUser = {
     id: teacher.id,
