@@ -1731,7 +1731,13 @@ let user = globalState.users.find(
 );
         
         if (user) {
-          if (user.status === "approved" || email === ADMIN_EMAIL.toLowerCase()) {
+  if (user.status === "inactive") {
+    msgEl.textContent = "Perfil temporariamente indisponível.";
+    msgEl.classList.remove("hidden");
+    return;
+  }
+
+  if (user.status === "approved" || email === ADMIN_EMAIL.toLowerCase()) {
             user.status = "approved";
             currentUser = user;
             localStorage.setItem("treinarPro_loggedEmail", currentUser.email);
