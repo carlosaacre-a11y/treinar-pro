@@ -2667,20 +2667,39 @@ return;
     return;
   }
 
-  globalState.teachers.push({
-    id: crypto.randomUUID(),
-    name: name,
-    email: email,
-    password: password,
-    avatar: ""
-  });
+  const newTeacher = {
+  id: crypto.randomUUID(),
+  name: name,
+  email: email,
+  password: password,
+  avatar: ""
+};
 
+globalState.teachers.push(newTeacher);
+
+if (avatarFileInput.files && avatarFileInput.files[0]) {
+  const reader = new FileReader();
+
+  reader.onload = async function (e) {
+    newTeacher.avatar = e.target.result;
+
+    await saveDB();
+
+    renderAdminTeachersList();
+    closeTeacherModal();
+
+    alert("Professor adicionado com sucesso.");
+  };
+
+  reader.readAsDataURL(avatarFileInput.files[0]);
+} else {
   saveDB();
 
   renderAdminTeachersList();
   closeTeacherModal();
 
   alert("Professor adicionado com sucesso.");
+}
 }
       
 function renderAdminTeachersList() {
