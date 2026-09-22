@@ -2311,21 +2311,78 @@ function toggleTheme() {
           return;
         }
         sortedUsers.forEach((user) => {
-          const div = document.createElement("div");
-          div.className = "flex items-center justify-between bg-dark-800 border border-dark-700 rounded-xl p-3 hover:border-primary-500/50 transition cursor-pointer";
-          div.onclick = () => openStudentModal(user.email);
-          div.innerHTML = `
-            <div class="flex items-center gap-3">
-              <img src="${user.avatar}" class="w-9 h-9 rounded-full object-cover border border-dark-600">
-              <div>
-                <p class="text-xs font-bold text-white">${user.name} ${user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? '<span class="text-primary-400 font-normal">(Admin)</span>' : ""}</p>
-                <p class="text-[10px] text-zinc-400">${user.email}</p>
-              </div>
-            </div>
-            <span class="text-xs text-primary-400"><i class="fa-solid fa-pen-to-square"></i></span>
-          `;
-          studentsList.appendChild(div);
-        });
+  const div = document.createElement("div");
+
+  const isActive =
+    user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() ||
+    (user.status || "approved") === "approved";
+
+  div.className =
+    "flex items-center justify-between bg-dark-800 border border-dark-700 rounded-xl p-3 hover:border-primary-500/50 transition";
+
+  div.innerHTML = `
+    <div
+      class="flex items-center gap-3 min-w-0 flex-1 cursor-pointer"
+      onclick="openStudentModal('${user.email}')"
+    >
+      <img
+        src="${user.avatar}"
+        class="w-9 h-9 rounded-full object-cover border border-dark-600"
+      >
+
+      <div class="min-w-0">
+        <p class="text-xs font-bold text-white truncate">
+          ${user.name}
+          ${
+            user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+              ? '<span class="text-primary-400 font-normal">(Admin)</span>'
+              : ""
+          }
+        </p>
+
+        <p class="text-[10px] text-zinc-400 truncate">
+          ${user.email}
+        </p>
+
+        <p class="text-[10px] font-semibold mt-0.5 ${
+          isActive ? "text-green-400" : "text-red-400"
+        }">
+          ${isActive ? "Ativo" : "Inativo"}
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2 shrink-0">
+      ${
+        user.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()
+          ? `
+            <button
+              onclick="event.stopPropagation(); adminToggleStudentStatus('${user.email}')"
+              class="${
+                isActive
+                  ? "text-red-400 hover:text-red-300"
+                  : "text-green-400 hover:text-green-300"
+              } text-[10px] font-semibold p-1"
+            >
+              <i class="fa-solid ${
+                isActive ? "fa-toggle-off" : "fa-toggle-on"
+              }"></i>
+              ${isActive ? "Desativar" : "Ativar"}
+            </button>
+          `
+          : ""
+      }
+
+      <span class="text-xs text-primary-400 cursor-pointer"
+        onclick="event.stopPropagation(); openStudentModal('${user.email}')"
+      >
+        <i class="fa-solid fa-pen-to-square"></i>
+      </span>
+    </div>
+  `;
+
+  studentsList.appendChild(div);
+});
       }
 
       function saveAppSettings() {
