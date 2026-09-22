@@ -2440,6 +2440,33 @@ function openAddNewTeacherModal() {
   document.getElementById("teacherModal").classList.remove("hidden");
 }
 
+  function adminToggleTeacherStatus(teacherId) {
+  const teacher = (globalState.teachers || []).find(
+    (t) => t.id === teacherId
+  );
+
+  if (!teacher) return;
+
+  const currentStatus = teacher.status || "active";
+  const newStatus =
+    currentStatus === "active" ? "inactive" : "active";
+
+  teacher.status = newStatus;
+
+  saveDB()
+    .then(() => {
+      renderAdminTeachersList();
+    })
+    .catch((error) => {
+      console.error("Erro ao alterar status do professor:", error);
+
+      teacher.status = currentStatus;
+
+      alert("Não foi possível alterar o status do professor.");
+      renderAdminTeachersList();
+    });
+}    
+      
 function adminDeleteTeacher(teacherId) {
   const teacher = (globalState.teachers || []).find(
     (t) => t.id === teacherId
