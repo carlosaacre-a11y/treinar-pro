@@ -1850,11 +1850,11 @@ if (newUser.status === "pending") {
 
  if (isTeacher) {
     document.getElementById("professorScreen").classList.add("hidden");
-
     document.getElementById("tabWorkouts").classList.remove("hidden");
     document.getElementById("tabProfile").classList.add("hidden");
 
     renderWorkouts();
+    renderProfessorStudents();
   }
 }
         document.getElementById("profileAvatar").src = currentUser.avatar;
