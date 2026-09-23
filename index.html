@@ -2276,28 +2276,55 @@ function toggleTheme() {
       }
 
       function saveMyProfile() {
-        const newName = document.getElementById("editMyName").value.trim();
-        if (newName) {
-          currentUser.name = newName;
-          document.getElementById("headerName").textContent = newName;
-          document.getElementById("profileName").textContent = newName;
-        }
-        const fileInput = document.getElementById("editMyAvatarFile");
-        if (fileInput.files && fileInput.files[0]) {
-          const reader = new FileReader();
-          reader.onload = async function (e) {
-            currentUser.avatar = e.target.result;
-            document.getElementById("headerAvatar").src = currentUser.avatar;
-            document.getElementById("profileAvatar").src = currentUser.avatar;
-            await saveDB();
-            alert("Perfil e foto atualizados com sucesso!");
-          };
-          reader.readAsDataURL(fileInput.files[0]);
-        } else {
-          saveDB();
-          alert("Perfil atualizado com sucesso!");
-        }
+  const newName = document.getElementById("editMyName").value.trim();
+
+  if (newName) {
+    currentUser.name = newName;
+    document.getElementById("headerName").textContent = newName;
+    document.getElementById("profileName").textContent = newName;
+  }
+
+  const fileInput = document.getElementById("editMyAvatarFile");
+
+  if (fileInput.files && fileInput.files[0]) {
+    const reader = new FileReader();
+
+    reader.onload = async function (e) {
+      currentUser.avatar = e.target.result;
+
+      const savedUser = globalState.users.find(
+        (user) =>
+          user.email.toLowerCase() === currentUser.email.toLowerCase()
+      );
+
+      if (savedUser) {
+        savedUser.name = currentUser.name;
+        savedUser.avatar = currentUser.avatar;
       }
+
+      document.getElementById("headerAvatar").src = currentUser.avatar;
+      document.getElementById("profileAvatar").src = currentUser.avatar;
+
+      await saveDB();
+
+      alert("Perfil e foto atualizados com sucesso!");
+    };
+
+    reader.readAsDataURL(fileInput.files[0]);
+  } else {
+    const savedUser = globalState.users.find(
+      (user) =>
+        user.email.toLowerCase() === currentUser.email.toLowerCase()
+    );
+
+    if (savedUser) {
+      savedUser.name = currentUser.name;
+    }
+
+    saveDB();
+    alert("Perfil atualizado com sucesso!");
+  }
+}
 
       function renderAdminPanel() {
         if (!currentUser || currentUser.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) return;
