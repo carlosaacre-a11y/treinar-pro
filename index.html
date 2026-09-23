@@ -260,7 +260,7 @@ html.light .border-dark-600 {
         <div id="tabWorkouts" class="tab-content space-y-4">
 
           <!-- MEUS ALUNOS -->
-<div class="space-y-3">
+<div id="professorStudentsSection" class="space-y-3 hidden">
 
   <div class="flex items-center justify-between">
     <h4 class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
@@ -1854,6 +1854,7 @@ if (newUser.status === "pending") {
     document.getElementById("tabProfile").classList.add("hidden");
 
     renderWorkouts();
+    document.getElementById("professorStudentsSection").classList.remove("hidden");
     renderProfessorStudents();
   }
 }
