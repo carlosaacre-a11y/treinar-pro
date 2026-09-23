@@ -1955,7 +1955,7 @@ function toggleTheme() {
       }
       
       
-      function renderProfessorStudents() {
+  function renderProfessorStudents() {
   const container = document.getElementById("professorStudentsList");
 
   if (!container) return;
@@ -1966,7 +1966,9 @@ function toggleTheme() {
     document.getElementById("professorSearchInput")?.value || ""
   ).trim().toLowerCase();
 
-  const students = (globalState.users || [])
+  let showAll = container.dataset.showAll === "true";
+
+  let students = (globalState.users || [])
     .filter((user) => {
       return (
         (user.teacher || "").toLowerCase() ===
@@ -1985,6 +1987,13 @@ function toggleTheme() {
     container.innerHTML =
       '<p class="text-xs text-zinc-500 text-center py-6">Nenhum aluno encontrado.</p>';
     return;
+  }
+
+  const totalStudents = students.length;
+
+  // Quando não estiver pesquisando, mostra apenas os 5 primeiros
+  if (!searchTerm && !showAll) {
+    students = students.slice(0, 5);
   }
 
   students.forEach((student) => {
@@ -2014,18 +2023,37 @@ function toggleTheme() {
     `;
 
     div.onclick = () => {
-  const index = globalState.users.findIndex(
-    (u) => u.email.toLowerCase() === student.email.toLowerCase()
-  );
+      const index = globalState.users.findIndex(
+        (u) => u.email.toLowerCase() === student.email.toLowerCase()
+      );
 
-  if (index === -1) return;
+      if (index === -1) return;
 
-  editingStudentIndex = index;
-  openStudentModal(student.email);
-};
-    
+      editingStudentIndex = index;
+      openStudentModal(student.email);
+    };
+
     container.appendChild(div);
   });
+
+  // Botão para mostrar todos os alunos
+  if (!searchTerm && totalStudents > 5) {
+    const button = document.createElement("button");
+
+    button.className =
+      "w-full text-xs font-bold text-primary-400 hover:text-primary-300 py-2.5 transition";
+
+    button.textContent = showAll
+      ? "Mostrar menos"
+      : `Ver todos os alunos (${totalStudents})`;
+
+    button.onclick = () => {
+      container.dataset.showAll = showAll ? "false" : "true";
+      renderProfessorStudents();
+    };
+
+    container.appendChild(button);
+  }
 }
       
       function renderWorkouts() {
