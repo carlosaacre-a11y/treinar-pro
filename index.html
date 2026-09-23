@@ -1256,8 +1256,8 @@ if (savedEmail) {
     (foundUser.status === "approved" ||
       foundUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase())
   ) {
-    currentUser = foundUser;
-    initApp();
+    currentUser = JSON.parse(JSON.stringify(foundUser));
+initApp();
   }
 }
         } catch (e) {
