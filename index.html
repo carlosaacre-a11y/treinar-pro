@@ -2950,6 +2950,7 @@ teacherSelect.value = user.teacher || "";
 
       function renderStudentWorkoutsInModal() {
         const user = globalState.users[editingStudentIndex];
+        console.log("ALUNO NO MODAL:", user);
         const container = document.getElementById("mStudentWorkoutsList");
         container.innerHTML = "";
         
