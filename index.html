@@ -1848,19 +1848,13 @@ if (newUser.status === "pending") {
   addExerciseBtn.classList.add("hidden");
   addExerciseBtn.classList.remove("flex");
 
-  if (isTeacher) {
-    document.getElementById("professorScreen").classList.remove("hidden");
+ if (isTeacher) {
+    document.getElementById("professorScreen").classList.add("hidden");
 
-    document.getElementById("professorScreenAvatar").src =
-      currentUser.avatar || "";
-
-    document.getElementById("professorScreenName").textContent =
-      currentUser.name;
-
-    document.getElementById("tabWorkouts").classList.add("hidden");
+    document.getElementById("tabWorkouts").classList.remove("hidden");
     document.getElementById("tabProfile").classList.add("hidden");
 
-    renderProfessorStudents();
+    renderWorkouts();
   }
 }
         document.getElementById("profileAvatar").src = currentUser.avatar;
