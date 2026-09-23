@@ -2997,26 +2997,35 @@ teacherSelect.value = user.teacher || "";
 }
 
       function adminAddWorkoutToStudent() {
-        const wName = prompt("Nome da ficha (Ex: Treino C, Funcional...):");
-        if (!wName) return;
-        const user = globalState.users[editingStudentIndex];
-        if (!user.workouts[wName]) {
-          user.workouts[wName] = [
-            {
-              customLabel: "",
-              name: "Exercício",
-              sets: "3x12",
-              load: "10 Kg",
-              video: "",
-              obs: ""
-            }
-          ];
-          saveDB().then(() => {
-  renderStudentWorkoutsInModal();
-  alert("Ficha adicionada com sucesso!");
-});
-        }
+  const wName = prompt("Nome da ficha (Ex: Treino C, Funcional...):");
+  if (!wName) return;
+
+  const user = globalState.users[editingStudentIndex];
+
+  if (!user.workouts[wName]) {
+    user.workouts[wName] = [
+      {
+        customLabel: "",
+        name: "Exercício",
+        sets: "3x12",
+        load: "10 Kg",
+        video: "",
+        obs: ""
       }
+    ];
+
+    renderStudentWorkoutsInModal();
+
+    saveDB()
+      .then(() => {
+        alert("Ficha adicionada com sucesso!");
+      })
+      .catch((error) => {
+        alert("Erro ao salvar a ficha: " + error.message);
+        console.error("ERRO AO SALVAR FICHA:", error);
+      });
+  }
+}
 
       function adminRemoveWorkout(wKey) {
         const user = globalState.users[editingStudentIndex];
