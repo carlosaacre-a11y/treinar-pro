@@ -3133,45 +3133,17 @@ function saveStudentModal() {
   const avatarFileInput = document.getElementById("mStudentAvatarFile");
 
   if (avatarFileInput.files && avatarFileInput.files[0]) {
-  const reader = new FileReader();
+    const reader = new FileReader();
 
-  reader.onload = function (e) {
-    const img = new Image();
-
-    img.onload = async function () {
-      const maxSize = 400;
-
-      let width = img.width;
-      let height = img.height;
-
-      if (width > height && width > maxSize) {
-        height = Math.round(height * maxSize / width);
-        width = maxSize;
-      } else if (height > maxSize) {
-        width = Math.round(width * maxSize / height);
-        height = maxSize;
-      }
-
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, width, height);
-
-      user.avatar = canvas.toDataURL("image/jpeg", 0.75);
-
+    reader.onload = async function (e) {
+      user.avatar = e.target.result;
       await saveDB();
       closeStudentModal();
       renderAdminPanel();
       alert("Dados e foto do aluno salvos com sucesso!");
     };
 
-    img.src = e.target.result;
-  };
-
-  reader.readAsDataURL(avatarFileInput.files[0]);
-}
+    reader.readAsDataURL(avatarFileInput.files[0]);
   } else {
     saveDB().then(() => {
       closeStudentModal();
