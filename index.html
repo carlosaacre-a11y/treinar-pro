@@ -1256,8 +1256,8 @@ if (savedEmail) {
     (foundUser.status === "approved" ||
       foundUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase())
   ) {
-    currentUser = JSON.parse(JSON.stringify(foundUser));
-initApp();
+    currentUser = foundUser;
+    initApp();
   }
 }
         } catch (e) {
@@ -2905,102 +2905,51 @@ function adminToggleStudentStatus(email) {
     });
 }
       
-async function openStudentModal(email) {
-  try {
-    const response = await fetch(API_URL + "/api/state");
+function openStudentModal(email) {
+        editingStudentIndex = globalState.users.findIndex((u) => u.email === email);
+        const user = globalState.users[editingStudentIndex];
+        document.getElementById("modalStudentTitle").textContent = `Gerenciar: ${user.name}`;
+        const isTeacher = currentUser && currentUser.role === "teacher";
+        document.querySelector('#studentModal button[onclick="deleteStudent()"]')
+        .classList.toggle("hidden", isTeacher);
+        document.getElementById("mStudentName").value = user.name;
+        document.getElementById("mStudentEmail").value = user.email;
+       
+        document.getElementById("mStudentName").disabled = isTeacher;
+        document.getElementById("mStudentEmail").disabled = isTeacher;
+        document.getElementById("mStudentEmail").parentElement.classList.toggle("hidden", isTeacher);
+        document.getElementById("mStudentTeacher").parentElement.classList.toggle("hidden", isTeacher);
+        
+        document.getElementById("mStudentDueDate").value = user.dueDate || "";
+        document.getElementById("mStudentTeacher").value = user.teacher || "";
+        const teacherSelect = document.getElementById("mStudentTeacher");
 
-    if (response.ok) {
-      const data = await response.json();
+teacherSelect.innerHTML = `
+  <option value="">Sem professor</option>
+`;
 
-      if (data.ok && data.state) {
-        globalState = data.state;
+(globalState.teachers || []).forEach((teacher) => {
+  const option = document.createElement("option");
+
+  option.value = teacher.name;
+  option.textContent = teacher.name;
+
+  teacherSelect.appendChild(option);
+});
+
+teacherSelect.value = user.teacher || "";
+        document.getElementById("mStudentNotice").value = user.notice || "";
+        document.getElementById("mStudentAvatarFile").value = "";
+        document.getElementById("mStudentAvatarFile").parentElement.classList.toggle("hidden", isTeacher);
+        
+        document.getElementById("modalDueDateLabel").textContent = globalState.dueDateLabel || "Informação de Vencimento";
+
+        renderStudentWorkoutsInModal();
+        document.getElementById("studentModal").classList.remove("hidden");
       }
-    }
-  } catch (error) {
-    console.error("Erro ao atualizar dados do aluno:", error);
-  }
-
-  editingStudentIndex = globalState.users.findIndex(
-    (u) => u.email.toLowerCase() === email.toLowerCase()
-  );
-
-  if (editingStudentIndex === -1) {
-    alert("Aluno não encontrado.");
-    return;
-  }
-
-  const user = globalState.users[editingStudentIndex];
-
-  document.getElementById("modalStudentTitle").textContent =
-    `Gerenciar: ${user.name}`;
-
-  const isTeacher = currentUser && currentUser.role === "teacher";
-
-  document
-    .querySelector('#studentModal button[onclick="deleteStudent()"]')
-    .classList.toggle("hidden", isTeacher);
-
-  document.getElementById("mStudentName").value = user.name;
-  document.getElementById("mStudentEmail").value = user.email;
-
-  document.getElementById("mStudentName").disabled = isTeacher;
-  document.getElementById("mStudentEmail").disabled = isTeacher;
-
-  document
-    .getElementById("mStudentEmail")
-    .parentElement
-    .classList.toggle("hidden", isTeacher);
-
-  document
-    .getElementById("mStudentTeacher")
-    .parentElement
-    .classList.toggle("hidden", isTeacher);
-
-  document.getElementById("mStudentDueDate").value =
-    user.dueDate || "";
-
-  const teacherSelect =
-    document.getElementById("mStudentTeacher");
-
-  teacherSelect.innerHTML = `
-    <option value="">Sem professor</option>
-  `;
-
-  (globalState.teachers || []).forEach((teacher) => {
-    const option = document.createElement("option");
-
-    option.value = teacher.name;
-    option.textContent = teacher.name;
-
-    teacherSelect.appendChild(option);
-  });
-
-  teacherSelect.value = user.teacher || "";
-
-  document.getElementById("mStudentNotice").value =
-    user.notice || "";
-
-  document.getElementById("mStudentAvatarFile").value = "";
-
-  document
-    .getElementById("mStudentAvatarFile")
-    .parentElement
-    .classList.toggle("hidden", isTeacher);
-
-  document.getElementById("modalDueDateLabel").textContent =
-    globalState.dueDateLabel ||
-    "Informação de Vencimento";
-
-  renderStudentWorkoutsInModal();
-
-  document
-    .getElementById("studentModal")
-    .classList.remove("hidden");
-}
 
       function renderStudentWorkoutsInModal() {
         const user = globalState.users[editingStudentIndex];
-        alert(JSON.stringify(user.workouts, null, 2));
         const container = document.getElementById("mStudentWorkoutsList");
         container.innerHTML = "";
         
@@ -3048,35 +2997,24 @@ async function openStudentModal(email) {
 }
 
       function adminAddWorkoutToStudent() {
-  const wName = prompt("Nome da ficha (Ex: Treino C, Funcional...):");
-  if (!wName) return;
-
-  const user = globalState.users[editingStudentIndex];
-
-  if (!user.workouts[wName]) {
-    user.workouts[wName] = [
-      {
-        customLabel: "",
-        name: "Exercício",
-        sets: "3x12",
-        load: "10 Kg",
-        video: "",
-        obs: ""
+        const wName = prompt("Nome da ficha (Ex: Treino C, Funcional...):");
+        if (!wName) return;
+        const user = globalState.users[editingStudentIndex];
+        if (!user.workouts[wName]) {
+          user.workouts[wName] = [
+            {
+              customLabel: "",
+              name: "Exercício",
+              sets: "3x12",
+              load: "10 Kg",
+              video: "",
+              obs: ""
+            }
+          ];
+          saveDB();
+          renderStudentWorkoutsInModal();
+        }
       }
-    ];
-
-    renderStudentWorkoutsInModal();
-
-    saveDB()
-      .then(() => {
-        alert("Ficha adicionada com sucesso!");
-      })
-      .catch((error) => {
-        alert("Erro ao salvar a ficha: " + error.message);
-        console.error("ERRO AO SALVAR FICHA:", error);
-      });
-  }
-}
 
       function adminRemoveWorkout(wKey) {
         const user = globalState.users[editingStudentIndex];
