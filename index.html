@@ -1867,8 +1867,10 @@ if (newUser.status === "pending") {
         document.getElementById("profileEmail").textContent = currentUser.email;
         document.getElementById("editMyName").value = currentUser.name;
         document.getElementById("editMyAvatarFile").value = "";
-        renderWorkouts();
-        switchTab("workouts");
+        if (!isTeacher) {
+  renderWorkouts();
+  switchTab("workouts");
+}
       }
 
       function logout() {
