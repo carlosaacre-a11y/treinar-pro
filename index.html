@@ -2064,7 +2064,7 @@ function toggleTheme() {
         const tabsContainer = document.getElementById("workoutTabsList");
         tabsContainer.innerHTML = "";
         
-        let keys = Object.keys(currentUser.workouts || {});
+        let keys = Object.keys(globalState.users.find(u => u.email === currentUser.email)?.workouts || {});
         keys.sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
 
         if (keys.length === 0) {
