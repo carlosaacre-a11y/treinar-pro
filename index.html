@@ -1829,6 +1829,7 @@ if (newUser.status === "pending") {
         const isAdmin =
         currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
         const isTeacher = currentUser.role === "teacher";
+        document.getElementById("professorStudentsSection").classList.add("hidden");
         document.getElementById("headerRole").textContent =
         isAdmin ? "Administrador" : isTeacher ? "Professor" : "Aluno";
         document.getElementById("professorScreen").classList.add("hidden");
