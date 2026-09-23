@@ -3000,7 +3000,7 @@ async function openStudentModal(email) {
 
       function renderStudentWorkoutsInModal() {
         const user = globalState.users[editingStudentIndex];
-        console.log("ALUNO NO MODAL:", user);
+        alert(JSON.stringify(user.workouts, null, 2));
         const container = document.getElementById("mStudentWorkoutsList");
         container.innerHTML = "";
         
