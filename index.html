@@ -3011,8 +3011,10 @@ teacherSelect.value = user.teacher || "";
               obs: ""
             }
           ];
-          saveDB();
-          renderStudentWorkoutsInModal();
+          saveDB().then(() => {
+  renderStudentWorkoutsInModal();
+  alert("Ficha adicionada com sucesso!");
+});
         }
       }
 
