@@ -2275,7 +2275,7 @@ function toggleTheme() {
         }
       }
 
-      function saveMyProfile() {
+function saveMyProfile() {
   const newName = document.getElementById("editMyName").value.trim();
 
   if (newName) {
@@ -2286,20 +2286,38 @@ function toggleTheme() {
 
   const fileInput = document.getElementById("editMyAvatarFile");
 
+  const savedUser = globalState.users.find(
+    (user) =>
+      user.email.toLowerCase() === currentUser.email.toLowerCase()
+  );
+
+  const savedTeacher = globalState.teachers?.find(
+    (teacher) =>
+      teacher.email.toLowerCase() === currentUser.email.toLowerCase()
+  );
+
+  if (newName) {
+    if (savedUser) {
+      savedUser.name = currentUser.name;
+    }
+
+    if (savedTeacher) {
+      savedTeacher.name = currentUser.name;
+    }
+  }
+
   if (fileInput.files && fileInput.files[0]) {
     const reader = new FileReader();
 
     reader.onload = async function (e) {
       currentUser.avatar = e.target.result;
 
-      const savedUser = globalState.users.find(
-        (user) =>
-          user.email.toLowerCase() === currentUser.email.toLowerCase()
-      );
-
       if (savedUser) {
-        savedUser.name = currentUser.name;
         savedUser.avatar = currentUser.avatar;
+      }
+
+      if (savedTeacher) {
+        savedTeacher.avatar = currentUser.avatar;
       }
 
       document.getElementById("headerAvatar").src = currentUser.avatar;
@@ -2312,15 +2330,6 @@ function toggleTheme() {
 
     reader.readAsDataURL(fileInput.files[0]);
   } else {
-    const savedUser = globalState.users.find(
-      (user) =>
-        user.email.toLowerCase() === currentUser.email.toLowerCase()
-    );
-
-    if (savedUser) {
-      savedUser.name = currentUser.name;
-    }
-
     saveDB();
     alert("Perfil atualizado com sucesso!");
   }
