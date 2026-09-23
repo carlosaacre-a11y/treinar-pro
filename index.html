@@ -1869,8 +1869,9 @@ if (newUser.status === "pending") {
         document.getElementById("editMyName").value = currentUser.name;
         document.getElementById("editMyAvatarFile").value = "";
         
-        renderWorkouts();
-switchTab("workouts");
+        if (!isTeacher) {
+  renderWorkouts();
+  switchTab("workouts");
 }
       }
 
