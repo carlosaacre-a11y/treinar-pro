@@ -3134,11 +3134,10 @@ function saveStudentModal() {
   const avatarFileInput = document.getElementById("mStudentAvatarFile");
 
   if (avatarFileInput.files && avatarFileInput.files[0]) {
-    const compressedAvatar = avatarFileInput.dataset.compressedAvatar;
+    const reader = new FileReader();
 
-if (compressedAvatar) {
-  user.avatar = compressedAvatar;
-}
+    reader.onload = async function (e) {
+      user.avatar = e.target.result;
       await saveDB();
       closeStudentModal();
       renderAdminPanel();
