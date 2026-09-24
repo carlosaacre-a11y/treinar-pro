@@ -2631,7 +2631,7 @@ function openAddNewTeacherModal() {
     });
 }    
       
-function adminDeleteTeacher(teacherId) {
+async function adminDeleteTeacher(teacherId) {
   const teacher = (globalState.teachers || []).find(
     (t) => t.id === teacherId
   );
@@ -2647,15 +2647,38 @@ function adminDeleteTeacher(teacherId) {
 
   if (!confirmed) return;
 
-  globalState.teachers = globalState.teachers.filter(
-    (t) => t.id !== teacherId
-  );
+  try {
+    const response = await fetch(API_URL + "/api/teacher", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        id: teacherId
+      })
+    });
 
-  saveDB();
+    const data = await response.json();
 
-  renderAdminTeachersList();
+    if (!response.ok || !data.ok) {
+      throw new Error(
+        data.error || "Erro ao excluir professor."
+      );
+    }
 
-  alert("Professor excluído com sucesso.");
+    globalState.teachers = globalState.teachers.filter(
+      (t) => t.id !== teacherId
+    );
+
+    renderAdminTeachersList();
+
+    alert("Professor excluído com sucesso.");
+  } catch (error) {
+    console.error("Erro ao excluir professor:", error);
+    alert(
+      error.message || "Não foi possível excluir o professor."
+    );
+  }
 }
       
 function closeTeacherModal() {
