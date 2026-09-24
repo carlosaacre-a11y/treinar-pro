@@ -3269,70 +3269,102 @@ teacherSelect.value = user.teacher || "";
   renderAdminWorkoutExercisesList();
 }
 
-function saveStudentModal() {
+async function saveStudentModal() {
   const user = globalState.users[editingStudentIndex];
+
+  const originalEmail = user.email;
+
+  const newName = document.getElementById("mStudentName").value;
+  const newEmail = document.getElementById("mStudentEmail").value;
   const newDueDate = document.getElementById("mStudentDueDate").value;
   const newNotice = document.getElementById("mStudentNotice").value;
   const newTeacher = document.getElementById("mStudentTeacher").value.trim();
 
-  if (user.dueDate !== newDueDate) {
-    user.dismissedDueDate = false;
-  }
-
-  user.name = document.getElementById("mStudentName").value;
-  user.email = document.getElementById("mStudentEmail").value;
-  user.dueDate = newDueDate;
-  user.notice = newNotice;
-  user.teacher = newTeacher;
-
-  console.log("PROFESSOR SALVO:", user.teacher);
+  let newAvatar = user.avatar || "";
 
   const avatarFileInput = document.getElementById("mStudentAvatarFile");
 
   if (avatarFileInput.files && avatarFileInput.files[0]) {
-    const reader = new FileReader();
+    newAvatar = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
 
-    reader.onload = async function (e) {
-  const img = new Image();
+      reader.onload = function (e) {
+        const img = new Image();
 
-  img.onload = async function () {
-    const maxSize = 400;
+        img.onload = function () {
+          const maxSize = 400;
 
-    let width = img.width;
-    let height = img.height;
+          let width = img.width;
+          let height = img.height;
 
-    if (width > height && width > maxSize) {
-      height = Math.round(height * maxSize / width);
-      width = maxSize;
-    } else if (height > maxSize) {
-      width = Math.round(width * maxSize / height);
-      height = maxSize;
+          if (width > height && width > maxSize) {
+            height = Math.round(height * maxSize / width);
+            width = maxSize;
+          } else if (height > maxSize) {
+            width = Math.round(width * maxSize / height);
+            height = maxSize;
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+
+          resolve(canvas.toDataURL("image/jpeg", 0.75));
+        };
+
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+
+      reader.onerror = reject;
+      reader.readAsDataURL(avatarFileInput.files[0]);
+    });
+  }
+
+  try {
+    const response = await fetch(API_URL + "/api/student", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        originalEmail: originalEmail,
+        name: newName,
+        email: newEmail,
+        dueDate: newDueDate,
+        notice: newNotice,
+        teacher: newTeacher,
+        avatar: newAvatar
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || "Erro ao salvar os dados do aluno.");
     }
 
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
+    user.name = newName;
+    user.email = newEmail;
+    user.dueDate = newDueDate;
+    user.notice = newNotice;
+    user.teacher = newTeacher;
+    user.avatar = newAvatar;
 
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0, width, height);
+    if (user.dueDate !== newDueDate) {
+      user.dismissedDueDate = false;
+    }
 
-    user.avatar = canvas.toDataURL("image/jpeg", 0.75);
-      await saveDB();
-      closeStudentModal();
-      renderAdminPanel();
-      alert("Dados e foto do aluno salvos com sucesso!");
-    };
+    closeStudentModal();
+    renderAdminPanel();
 
-img.src = e.target.result;
-};
-
-reader.readAsDataURL(avatarFileInput.files[0]);
-  } else {
-    saveDB().then(() => {
-      closeStudentModal();
-      renderAdminPanel();
-      alert("Dados do aluno salvos com sucesso!");
-    });
+    alert("Dados do aluno salvos com sucesso!");
+  } catch (error) {
+    console.error("Erro ao salvar aluno:", error);
+    alert("Não foi possível salvar os dados do aluno.");
   }
 }
       
