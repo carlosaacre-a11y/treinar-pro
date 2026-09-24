@@ -3017,11 +3017,20 @@ teacherSelect.value = user.teacher || "";
       }
 
       function adminRemoveWorkout(wKey) {
-        const user = globalState.users[editingStudentIndex];
-        delete user.workouts[wKey];
-        saveDB();
-        renderStudentWorkoutsInModal();
-      }
+  const user = globalState.users[editingStudentIndex];
+
+  const confirmar = confirm(
+    `Tem certeza que deseja remover a ficha "${wKey}"?\n\nTodos os exercícios dessa ficha também serão removidos.`
+  );
+
+  if (!confirmar) {
+    return;
+  }
+
+  delete user.workouts[wKey];
+  saveDB();
+  renderStudentWorkoutsInModal();
+}
 
       function openAdminWorkoutExercises(wKey) {
         editingAdminWorkoutKey = wKey;
