@@ -2276,15 +2276,8 @@ function toggleTheme() {
         }
       }
 
-function saveMyProfile() {
+async function saveMyProfile() {
   const newName = document.getElementById("editMyName").value.trim();
-
-  if (newName) {
-    currentUser.name = newName;
-    document.getElementById("headerName").textContent = newName;
-    document.getElementById("profileName").textContent = newName;
-  }
-
   const fileInput = document.getElementById("editMyAvatarFile");
 
   const savedUser = globalState.users.find(
@@ -2297,45 +2290,78 @@ function saveMyProfile() {
       teacher.email.toLowerCase() === currentUser.email.toLowerCase()
   );
 
-  if (newName) {
+  let newAvatar = currentUser.avatar || "";
+
+  if (fileInput.files && fileInput.files[0]) {
+    newAvatar = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        resolve(e.target.result);
+      };
+
+      reader.onerror = reject;
+      reader.readAsDataURL(fileInput.files[0]);
+    });
+  }
+
+  try {
+    const response = await fetch(API_URL + "/api/profile", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email: currentUser.email,
+        name: newName || currentUser.name,
+        avatar: newAvatar
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(
+        data.error || "Erro ao salvar o perfil."
+      );
+    }
+
+    currentUser.name = newName || currentUser.name;
+    currentUser.avatar = newAvatar;
+
     if (savedUser) {
       savedUser.name = currentUser.name;
+      savedUser.avatar = currentUser.avatar;
     }
 
     if (savedTeacher) {
       savedTeacher.name = currentUser.name;
+      savedTeacher.avatar = currentUser.avatar;
     }
-  }
 
-  if (fileInput.files && fileInput.files[0]) {
-    const reader = new FileReader();
+    document.getElementById("headerName").textContent =
+      currentUser.name;
 
-    reader.onload = async function (e) {
-      currentUser.avatar = e.target.result;
+    document.getElementById("profileName").textContent =
+      currentUser.name;
 
-      if (savedUser) {
-        savedUser.avatar = currentUser.avatar;
-      }
+    document.getElementById("headerAvatar").src =
+      currentUser.avatar;
 
-      if (savedTeacher) {
-        savedTeacher.avatar = currentUser.avatar;
-      }
+    document.getElementById("profileAvatar").src =
+      currentUser.avatar;
 
-      document.getElementById("headerAvatar").src = currentUser.avatar;
-      document.getElementById("profileAvatar").src = currentUser.avatar;
+    alert("Perfil e foto atualizados com sucesso!");
+  } catch (error) {
+    console.error("Erro ao salvar perfil:", error);
 
-      await saveDB();
-
-      alert("Perfil e foto atualizados com sucesso!");
-    };
-
-    reader.readAsDataURL(fileInput.files[0]);
-  } else {
-    saveDB();
-    alert("Perfil atualizado com sucesso!");
+    alert(
+      error.message ||
+      "Não foi possível salvar o perfil."
+    );
   }
 }
-
+      
       function renderAdminPanel() {
         if (!currentUser || currentUser.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) return;
         document.getElementById("adminAppNameInput").value = globalState.appName || "Treinar Pro";
