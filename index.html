@@ -3147,7 +3147,7 @@ function renderAdminTeachersList() {
   });
 }
 
-function adminToggleStudentStatus(email) {
+async function adminToggleStudentStatus(email) {
   const user = (globalState.users || []).find(
     (u) => u.email.toLowerCase() === email.toLowerCase()
   );
@@ -3163,20 +3163,45 @@ function adminToggleStudentStatus(email) {
   const newStatus =
     currentStatus === "approved" ? "inactive" : "approved";
 
-  user.status = newStatus;
+  try {
+    const response = await fetch(
+      API_URL + "/api/student/status",
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: email,
+          status: newStatus
+        })
+      }
+    );
 
-  saveDB()
-    .then(() => {
-      renderAdminPanel();
-    })
-    .catch((error) => {
-      console.error("Erro ao alterar status do aluno:", error);
+    const data = await response.json();
 
-      user.status = currentStatus;
+    if (!response.ok || !data.ok) {
+      throw new Error(
+        data.error || "Erro ao alterar status do aluno."
+      );
+    }
 
-      alert("Não foi possível alterar o status do aluno.");
-      renderAdminPanel();
-    });
+    user.status = newStatus;
+
+    renderAdminPanel();
+  } catch (error) {
+    console.error(
+      "Erro ao alterar status do aluno:",
+      error
+    );
+
+    alert(
+      error.message ||
+      "Não foi possível alterar o status do aluno."
+    );
+
+    renderAdminPanel();
+  }
 }
       
 function openStudentModal(email) {
