@@ -2499,38 +2499,67 @@ function saveMyProfile() {
         renderAdminPanel();
       }
 
-      function openAddNewStudentModal() {
+ async function openAddNewStudentModal() {
   const name = prompt("Nome do novo aluno:");
   if (!name) return;
 
   const email = prompt("E-mail do novo aluno:");
   if (!email) return;
 
-  globalState.users.push({
-    name: name,
-    email: email.trim().toLowerCase(),
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-    status: "approved",
-    dueDate: "",
-    notice: "",
-    dismissedDueDate: false,
-    teacher: "",
-    workouts: {
-      "Treino A": [
-        {
-          customLabel: "",
-          name: "Exercício 1",
-          sets: "3x12",
-          load: "10 Kg",
-          video: "",
-          obs: ""
-        }
-      ]
-    }
-  });
+  const cleanName = name.trim();
+  const cleanEmail = email.trim().toLowerCase();
 
-  saveDB();
-  renderAdminPanel();
+  try {
+    const response = await fetch(API_URL + "/api/student", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: cleanName,
+        email: cleanEmail,
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || "Erro ao criar aluno.");
+    }
+
+    globalState.users.push({
+      id: data.userId,
+      name: cleanName,
+      email: cleanEmail,
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+      status: "approved",
+      dueDate: "",
+      notice: "",
+      dismissedDueDate: false,
+      teacher: "",
+      workouts: {
+        "Treino A": [
+          {
+            id: data.exerciseId,
+            customLabel: "",
+            name: "Exercício 1",
+            sets: "3x12",
+            load: "10 Kg",
+            video: "",
+            obs: ""
+          }
+        ]
+      }
+    });
+
+    renderAdminPanel();
+
+    alert("Aluno criado com sucesso!");
+  } catch (error) {
+    console.error("Erro ao criar aluno:", error);
+    alert(error.message || "Não foi possível criar o aluno.");
+  }
 }
       
 function openAddNewTeacherModal() {
