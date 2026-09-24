@@ -3397,14 +3397,50 @@ async function saveStudentModal() {
   }
 }
       
-      function deleteStudent() {
-        if (confirm("Tem certeza que deseja excluir este aluno?")) {
-          globalState.users.splice(editingStudentIndex, 1);
-          saveDB();
-          closeStudentModal();
-          renderAdminPanel();
-        }
-      }
+      async function deleteStudent() {
+  const user = globalState.users[editingStudentIndex];
+
+  if (!user) {
+    alert("Aluno não encontrado.");
+    return;
+  }
+
+  const confirmed = confirm(
+    `Tem certeza que deseja excluir o aluno "${user.name}"?`
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const response = await fetch(API_URL + "/api/student", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email: user.email
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || "Erro ao excluir aluno.");
+    }
+
+    globalState.users.splice(editingStudentIndex, 1);
+
+    closeStudentModal();
+    renderAdminPanel();
+
+    alert("Aluno excluído com sucesso!");
+  } catch (error) {
+    console.error("Erro ao excluir aluno:", error);
+    alert(error.message || "Não foi possível excluir o aluno.");
+  }
+}
 
       function closeStudentModal() {
         document.getElementById("studentModal").classList.add("hidden");
