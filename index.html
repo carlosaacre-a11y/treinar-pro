@@ -3094,13 +3094,37 @@ teacherSelect.value = user.teacher || "";
         });
       }
 
-      function updateAdminExercise(idx, field, val) {
+      async function updateAdminExercise(idx, field, val) {
   const user = globalState.users[editingStudentIndex];
   const exercise = user.workouts[editingAdminWorkoutKey][idx];
 
   exercise[field] = val;
 
-  saveDB();
+  if (!exercise.id) {
+    console.warn("Exercício sem ID no banco.");
+    return;
+  }
+
+  try {
+    const response = await fetch(API_URL + "/api/exercise", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(exercise)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || "Erro ao salvar exercício.");
+    }
+
+    console.log("Exercício salvo individualmente:", exercise.id);
+  } catch (error) {
+    console.error("Erro ao salvar exercício:", error);
+    alert("Não foi possível salvar esta alteração.");
+  }
 }
 
       function adminAddExerciseToWorkout() {
