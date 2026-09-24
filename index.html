@@ -3127,19 +3127,54 @@ teacherSelect.value = user.teacher || "";
   }
 }
 
-      function adminAddExerciseToWorkout() {
-        const user = globalState.users[editingStudentIndex];
-        user.workouts[editingAdminWorkoutKey].push({
-          customLabel: "",
-          name: "Novo Exercício",
-          sets: "3x12",
-          load: "",
-          video: "",
-          obs: ""
-        });
-        saveDB();
-        renderAdminWorkoutExercisesList();
-      }
+      async function adminAddExerciseToWorkout() {
+  const user = globalState.users[editingStudentIndex];
+
+  const exercise = {
+    customLabel: "",
+    name: "Novo Exercício",
+    sets: "3x12",
+    load: "",
+    video: "",
+    obs: "",
+    sort_order: (user.workouts[editingAdminWorkoutKey] || []).length
+  };
+
+  try {
+    const response = await fetch(API_URL + "/api/exercise", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email: user.email,
+        workoutName: editingAdminWorkoutKey,
+        exercise: exercise
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || "Erro ao criar exercício.");
+    }
+
+    exercise.id = data.id;
+
+    if (!user.workouts[editingAdminWorkoutKey]) {
+      user.workouts[editingAdminWorkoutKey] = [];
+    }
+
+    user.workouts[editingAdminWorkoutKey].push(exercise);
+
+    renderAdminWorkoutExercisesList();
+
+    console.log("Exercício criado individualmente:", exercise.id);
+  } catch (error) {
+    console.error("Erro ao criar exercício:", error);
+    alert("Não foi possível adicionar o exercício.");
+  }
+}
 
       function adminRemoveExerciseFromWorkout(idx) {
   const user = globalState.users[editingStudentIndex];
