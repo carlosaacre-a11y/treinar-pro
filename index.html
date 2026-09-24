@@ -1951,11 +1951,48 @@ function toggleTheme() {
         }
       }
 
-      function dismissDueDateAlert() {
-        currentUser.dismissedDueDate = true;
-        saveDB();
-        document.getElementById("dueDateAlertBanner").classList.add("hidden");
+      async function dismissDueDateAlert() {
+  currentUser.dismissedDueDate = true;
+
+  try {
+    const response = await fetch(
+      API_URL + "/api/student/dismiss-due-date",
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: currentUser.email
+        })
       }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(
+        data.error || "Erro ao dispensar o aviso."
+      );
+    }
+
+    document
+      .getElementById("dueDateAlertBanner")
+      .classList.add("hidden");
+  } catch (error) {
+    console.error(
+      "Erro ao dispensar aviso de vencimento:",
+      error
+    );
+
+    currentUser.dismissedDueDate = false;
+
+    alert(
+      error.message ||
+      "Não foi possível dispensar o aviso."
+    );
+  }
+}
       
       
   function renderProfessorStudents() {
