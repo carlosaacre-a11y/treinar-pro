@@ -2662,7 +2662,7 @@ function closeTeacherModal() {
   document.getElementById("teacherModal").classList.add("hidden");
 }  
 
-function saveTeacherModal() {
+async function saveTeacherModal() {
   const name = document.getElementById("teacherNameInput").value.trim();
   const email = document.getElementById("teacherEmailInput").value.trim().toLowerCase();
   const password = document.getElementById("teacherPasswordInput").value;
