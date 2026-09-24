@@ -3094,12 +3094,10 @@ teacherSelect.value = user.teacher || "";
         });
       }
 
-      async function updateAdminExercise(idx, field, val) {
-  const user = globalState.users[editingStudentIndex];
-  user.workouts[editingAdminWorkoutKey][idx][field] = val;
-  saveDB();
-}
-}
+      function updateAdminExercise(idx, field, val) {
+        const user = globalState.users[editingStudentIndex];
+        user.workouts[editingAdminWorkoutKey][idx][field] = val;
+        saveDB();
       }
 
       function adminAddExerciseToWorkout() {
