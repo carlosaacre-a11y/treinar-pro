@@ -2766,7 +2766,7 @@ function openAddNewTeacherModal() {
   document.getElementById("teacherModal").classList.remove("hidden");
 }
 
-  function adminToggleTeacherStatus(teacherId) {
+async function adminToggleTeacherStatus(teacherId) {
   const teacher = (globalState.teachers || []).find(
     (t) => t.id === teacherId
   );
@@ -2777,21 +2777,46 @@ function openAddNewTeacherModal() {
   const newStatus =
     currentStatus === "active" ? "inactive" : "active";
 
-  teacher.status = newStatus;
+  try {
+    const response = await fetch(
+      API_URL + "/api/teacher/status",
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          id: teacherId,
+          status: newStatus
+        })
+      }
+    );
 
-  saveDB()
-    .then(() => {
-      renderAdminTeachersList();
-    })
-    .catch((error) => {
-      console.error("Erro ao alterar status do professor:", error);
+    const data = await response.json();
 
-      teacher.status = currentStatus;
+    if (!response.ok || !data.ok) {
+      throw new Error(
+        data.error || "Erro ao alterar status do professor."
+      );
+    }
 
-      alert("Não foi possível alterar o status do professor.");
-      renderAdminTeachersList();
-    });
-}    
+    teacher.status = newStatus;
+
+    renderAdminTeachersList();
+  } catch (error) {
+    console.error(
+      "Erro ao alterar status do professor:",
+      error
+    );
+
+    alert(
+      error.message ||
+      "Não foi possível alterar o status do professor."
+    );
+
+    renderAdminTeachersList();
+  }
+}   
       
 async function adminDeleteTeacher(teacherId) {
   const teacher = (globalState.teachers || []).find(
