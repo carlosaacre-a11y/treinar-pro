@@ -2613,7 +2613,7 @@ function adminDeleteTeacher(teacherId) {
   }
 
   const confirmed = confirm(
-    `Excluir o professor "${teacher.name}"?`
+    `Deseja excluir este professor do sistema "${teacher.name}"?`
   );
 
   if (!confirmed) return;
@@ -3115,11 +3115,21 @@ teacherSelect.value = user.teacher || "";
       }
 
       function adminRemoveExerciseFromWorkout(idx) {
-        const user = globalState.users[editingStudentIndex];
-        user.workouts[editingAdminWorkoutKey].splice(idx, 1);
-        saveDB();
-        renderAdminWorkoutExercisesList();
-      }
+  const user = globalState.users[editingStudentIndex];
+  const exercise = user.workouts[editingAdminWorkoutKey][idx];
+
+  const confirmed = confirm(
+    `Tem certeza que deseja remover o exercício "${exercise.name}"?`
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  user.workouts[editingAdminWorkoutKey].splice(idx, 1);
+  saveDB();
+  renderAdminWorkoutExercisesList();
+}
 
 function saveStudentModal() {
   const user = globalState.users[editingStudentIndex];
