@@ -2976,11 +2976,17 @@ teacherSelect.value = user.teacher || "";
   container.appendChild(box);
 });
       }
-      function adminRenameWorkout(wKey) {
+      async function adminRenameWorkout(wKey) {
   const user = globalState.users[editingStudentIndex];
-  const newName = prompt("Digite o novo nome para esta ficha:", wKey);
 
-  if (!newName || newName.trim() === "" || newName.trim() === wKey) return;
+  const newName = prompt(
+    "Digite o novo nome para esta ficha:",
+    wKey
+  );
+
+  if (!newName || newName.trim() === "" || newName.trim() === wKey) {
+    return;
+  }
 
   const cleanName = newName.trim();
 
@@ -2989,11 +2995,35 @@ teacherSelect.value = user.teacher || "";
     return;
   }
 
-  user.workouts[cleanName] = user.workouts[wKey];
-  delete user.workouts[wKey];
+  try {
+    const response = await fetch(API_URL + "/api/workout", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email: user.email,
+        oldName: wKey,
+        newName: cleanName
+      })
+    });
 
-  saveDB();
-  renderStudentWorkoutsInModal();
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || "Erro ao renomear ficha.");
+    }
+
+    user.workouts[cleanName] = user.workouts[wKey];
+    delete user.workouts[wKey];
+
+    renderStudentWorkoutsInModal();
+
+    console.log("Ficha renomeada individualmente:", wKey, "→", cleanName);
+  } catch (error) {
+    console.error("Erro ao renomear ficha:", error);
+    alert("Não foi possível renomear a ficha.");
+  }
 }
 
       async function adminAddWorkoutToStudent() {
