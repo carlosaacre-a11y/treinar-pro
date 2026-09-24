@@ -3339,7 +3339,7 @@ teacherSelect.value = user.teacher || "";
   }
 }
 
-      function adminRemoveExerciseFromWorkout(idx) {
+async function adminRemoveExerciseFromWorkout(idx) {
   const user = globalState.users[editingStudentIndex];
   const exercise = user.workouts[editingAdminWorkoutKey][idx];
 
@@ -3351,9 +3351,43 @@ teacherSelect.value = user.teacher || "";
     return;
   }
 
-  user.workouts[editingAdminWorkoutKey].splice(idx, 1);
-  saveDB();
-  renderAdminWorkoutExercisesList();
+  if (!exercise.id) {
+    alert("Exercício sem ID no banco.");
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      API_URL + "/api/exercise?id=" + encodeURIComponent(exercise.id),
+      {
+        method: "DELETE"
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(
+        data.error || "Erro ao excluir exercício."
+      );
+    }
+
+    user.workouts[editingAdminWorkoutKey].splice(idx, 1);
+
+    renderAdminWorkoutExercisesList();
+
+    console.log(
+      "Exercício excluído individualmente:",
+      exercise.id
+    );
+  } catch (error) {
+    console.error("Erro ao excluir exercício:", error);
+
+    alert(
+      error.message ||
+      "Não foi possível excluir o exercício."
+    );
+  }
 }
 
 async function saveStudentModal() {
