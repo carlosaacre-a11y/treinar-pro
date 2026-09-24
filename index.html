@@ -1774,27 +1774,49 @@ let user = globalState.users.find(
           globalState.users.push(newUser);
 
 if (newUser.status === "pending") {
-  globalState.pending.push(newUser);
-
   try {
-    await saveDB();
+    const response = await fetch(
+      API_URL + "/api/student/request",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: newUser.name,
+          email: newUser.email,
+          avatar: newUser.avatar
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(
+        data.error || "Erro ao enviar solicitação."
+      );
+    }
+
+    newUser.id = data.userId;
+
+    globalState.users.push(newUser);
+    globalState.pending.push(newUser);
 
     msgEl.textContent =
       "Solicitação enviada com sucesso! Aguarde aprovação.";
+
     msgEl.classList.remove("hidden");
   } catch (error) {
-    globalState.users = globalState.users.filter(
-      (u) => u.email !== newUser.email
+    console.error(
+      "Falha ao enviar solicitação:",
+      error
     );
-
-    globalState.pending = globalState.pending.filter(
-      (email) => email !== newUser.email
-    );
-
-    console.error("Falha ao enviar solicitação:", error);
 
     msgEl.textContent =
+      error.message ||
       "Não foi possível enviar sua solicitação. Tente novamente.";
+
     msgEl.classList.remove("hidden");
   }
 } else {
