@@ -2558,14 +2558,50 @@ async function saveMyProfile() {
 }
 
       async function approveUser(email) {
-        let u = globalState.users.find((x) => x.email === email);
-        if (u) {
-          u.status = "approved";
-          globalState.pending = globalState.pending.filter((x) => x.email !== email);
-          await saveDB();
-          renderAdminPanel();
-        }
+  const u = globalState.users.find((x) => x.email === email);
+
+  if (!u) {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      API_URL + "/api/student/approve",
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: email
+        })
       }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(
+        data.error || "Erro ao aprovar aluno."
+      );
+    }
+
+    u.status = "approved";
+
+    globalState.pending = globalState.pending.filter(
+      (x) => x.email !== email
+    );
+
+    renderAdminPanel();
+  } catch (error) {
+    console.error("Erro ao aprovar aluno:", error);
+
+    alert(
+      error.message ||
+      "Não foi possível aprovar o aluno."
+    );
+  }
+}
 
       async function rejectUser(email) {
         globalState.users = globalState.users.filter((x) => x.email !== email);
