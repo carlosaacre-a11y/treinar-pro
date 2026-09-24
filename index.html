@@ -2761,39 +2761,59 @@ return;
     return;
   }
 
-  const newTeacher = {
-  id: crypto.randomUUID(),
-  name: name,
-  email: email,
-  password: password,
-  avatar: ""
-};
+  let avatar = "";
 
-globalState.teachers.push(newTeacher);
+  if (avatarFileInput.files && avatarFileInput.files[0]) {
+    avatar = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
 
-if (avatarFileInput.files && avatarFileInput.files[0]) {
-  const reader = new FileReader();
+      reader.onload = function (e) {
+        resolve(e.target.result);
+      };
 
-  reader.onload = async function (e) {
-    newTeacher.avatar = e.target.result;
+      reader.onerror = reject;
+      reader.readAsDataURL(avatarFileInput.files[0]);
+    });
+  }
 
-    await saveDB();
+  try {
+    const response = await fetch(API_URL + "/api/teacher", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: name,
+        email: email,
+        password: password,
+        avatar: avatar
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(
+        data.error || "Erro ao adicionar professor."
+      );
+    }
+
+    globalState.teachers.push({
+      id: data.id,
+      name: name,
+      email: email,
+      password: password,
+      avatar: avatar
+    });
 
     renderAdminTeachersList();
     closeTeacherModal();
 
     alert("Professor adicionado com sucesso.");
-  };
-
-  reader.readAsDataURL(avatarFileInput.files[0]);
-} else {
-  saveDB();
-
-  renderAdminTeachersList();
-  closeTeacherModal();
-
-  alert("Professor adicionado com sucesso.");
-}
+  } catch (error) {
+    console.error("Erro ao adicionar professor:", error);
+    alert(error.message || "Não foi possível adicionar o professor.");
+  }
 }
       
 function renderAdminTeachersList() {
