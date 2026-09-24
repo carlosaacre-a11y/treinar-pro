@@ -2482,31 +2482,80 @@ async function saveMyProfile() {
 });
       }
 
-      function saveAppSettings() {
-        const newName = document.getElementById("adminAppNameInput").value.trim();
-        const newIcon = document.getElementById("adminAppIconInput").value.trim();
-        const newDueDateLabel = document.getElementById("adminDueDateLabelInput").value.trim();
+      async function saveAppSettings() {
+  const newName = document.getElementById("adminAppNameInput").value.trim();
+  const newIcon = document.getElementById("adminAppIconInput").value.trim();
+  const newDueDateLabel = document.getElementById("adminDueDateLabelInput").value.trim();
 
-        if (newName) globalState.appName = newName;
-        if (newIcon) globalState.appIcon = newIcon;
-        if (newDueDateLabel) globalState.dueDateLabel = newDueDateLabel;
+  const logoFile = document.getElementById("adminAppLogoFile");
 
-        const logoFile = document.getElementById("adminAppLogoFile");
-        if (logoFile.files && logoFile.files[0]) {
-          const reader = new FileReader();
-          reader.onload = async function (e) {
-            globalState.appLogoImg = e.target.result;
-            await saveDB();
-            applyAppSettings();
-            alert("Identidade visual e configurações atualizadas com sucesso!");
-          };
-          reader.readAsDataURL(logoFile.files[0]);
-        } else {
-          saveDB();
-          applyAppSettings();
-          alert("Identidade visual e configurações atualizadas com sucesso!");
-        }
-      }
+  let newLogo = globalState.appLogoImg || "";
+
+  if (logoFile.files && logoFile.files[0]) {
+    newLogo = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        resolve(e.target.result);
+      };
+
+      reader.onerror = reject;
+
+      reader.readAsDataURL(logoFile.files[0]);
+    });
+  }
+
+  try {
+    const response = await fetch(API_URL + "/api/settings", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        appName: newName || globalState.appName,
+        appIcon: newIcon || globalState.appIcon,
+        appLogoImg: newLogo,
+        dueDateLabel:
+          newDueDateLabel || globalState.dueDateLabel
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(
+        data.error || "Erro ao salvar as configurações."
+      );
+    }
+
+    globalState.appName =
+      newName || globalState.appName;
+
+    globalState.appIcon =
+      newIcon || globalState.appIcon;
+
+    globalState.appLogoImg = newLogo;
+
+    globalState.dueDateLabel =
+      newDueDateLabel || globalState.dueDateLabel;
+
+    applyAppSettings();
+
+    alert(
+      "Identidade visual e configurações atualizadas com sucesso!"
+    );
+  } catch (error) {
+    console.error(
+      "Erro ao salvar configurações:",
+      error
+    );
+
+    alert(
+      error.message ||
+      "Não foi possível salvar as configurações."
+    );
+  }
+}
 
       async function approveUser(email) {
         let u = globalState.users.find((x) => x.email === email);
