@@ -2687,46 +2687,68 @@ async function saveTeacherModal() {
     globalState.teachers = [];
   }
 
-  // EDITANDO PROFESSOR EXISTENTE
-  if (editingTeacherId) {
-    const teacher = globalState.teachers.find(
-      (t) => t.id === editingTeacherId
-    );
+// EDITANDO PROFESSOR EXISTENTE
+if (editingTeacherId) {
+  const teacher = globalState.teachers.find(
+    (t) => t.id === editingTeacherId
+  );
 
-    if (!teacher) {
-      alert("Professor não encontrado.");
-      return;
-    }
+  if (!teacher) {
+    alert("Professor não encontrado.");
+    return;
+  }
 
-    const emailExists = globalState.teachers.some(
-      (t) => t.email === email && t.id !== editingTeacherId
-    );
+  const emailExists = globalState.teachers.some(
+    (t) => t.email === email && t.id !== editingTeacherId
+  );
 
-    if (emailExists) {
-      alert("Já existe outro professor cadastrado com este e-mail.");
-      return;
+  if (emailExists) {
+    alert("Já existe outro professor cadastrado com este e-mail.");
+    return;
+  }
+
+  let avatar = teacher.avatar || "";
+
+  if (avatarFileInput.files && avatarFileInput.files[0]) {
+    avatar = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        resolve(e.target.result);
+      };
+
+      reader.onerror = reject;
+      reader.readAsDataURL(avatarFileInput.files[0]);
+    });
+  }
+
+  try {
+    const response = await fetch(API_URL + "/api/teacher", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        id: teacher.id,
+        name: name,
+        email: email,
+        password: password,
+        avatar: avatar
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(
+        data.error || "Erro ao atualizar professor."
+      );
     }
 
     teacher.name = name;
     teacher.email = email;
     teacher.password = password;
-    if (avatarFileInput.files && avatarFileInput.files[0]) {
-  const reader = new FileReader();
-
-  reader.onload = function (e) {
-    teacher.avatar = e.target.result;
-  };
-
-  reader.readAsDataURL(avatarFileInput.files[0]);
-}
-
-    if (avatarFileInput.files && avatarFileInput.files[0]) {
-  const reader = new FileReader();
-
-  reader.onload = async function (e) {
-    teacher.avatar = e.target.result;
-
-    await saveDB();
+    teacher.avatar = avatar;
 
     renderAdminTeachersList();
     closeTeacherModal();
@@ -2734,22 +2756,15 @@ async function saveTeacherModal() {
     editingTeacherId = null;
 
     alert("Professor atualizado com sucesso.");
-  };
-
-  reader.readAsDataURL(avatarFileInput.files[0]);
-} else {
-  saveDB();
-
-  renderAdminTeachersList();
-  closeTeacherModal();
-
-  editingTeacherId = null;
-
-  alert("Professor atualizado com sucesso.");
-}
-
-return;
+  } catch (error) {
+    console.error("Erro ao atualizar professor:", error);
+    alert(
+      error.message || "Não foi possível atualizar o professor."
+    );
   }
+
+  return;
+}
 
   // NOVO PROFESSOR
   const emailExists = globalState.teachers.some(
