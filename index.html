@@ -3534,7 +3534,7 @@ teacherSelect.value = user.teacher || "";
     console.log("Ficha do professor criada:", data.id);
   } catch (error) {
     console.error("Erro ao criar ficha do professor:", error);
-    alert("Não foi possível criar a ficha.");
+    alert(error.message || "Não foi possível criar a ficha.");
   }
 }
 
