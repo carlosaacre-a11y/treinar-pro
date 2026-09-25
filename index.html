@@ -326,12 +326,12 @@ html.light .border-dark-600 {
               Treino
             </h3>
             <button
-  id="newWorkoutBtn"
-  onclick="teacherAddWorkout()"
-  class="hidden bg-primary-500 text-dark-950 px-3 py-2 rounded-xl text-[10px] font-bold"
->
-  <i class="fa-solid fa-plus text-[10px]"></i> Nova Ficha
-</button>
+              id="newWorkoutBtn"
+              onclick="openNewWorkoutModal()"
+              class="hidden bg-primary-500/10 text-primary-400 border border-primary-500/30 text-xs px-3 py-1.5 rounded-lg hover:bg-primary-500/20 transition font-medium flex items-center gap-1"
+            >
+              <i class="fa-solid fa-plus text-[10px]"></i> Nova Ficha
+            </button>
           </div>
           <!-- Seletor de Fichas -->
           <div
@@ -1747,7 +1747,7 @@ if (teacher) {
     notice: "",
     dismissedDueDate: false,
     teacher: teacher.name,
-    workouts: teacher.workouts || {}
+    workouts: {}
   };
 
   localStorage.setItem(
@@ -1931,7 +1931,7 @@ if (newUser.status === "pending") {
   renderAdminPanel();
         } else {
   navAdminEl.classList.add("hidden");
-  newWorkoutBtn.classList.toggle("hidden", !isTeacher);
+  newWorkoutBtn.classList.add("hidden");
   addExerciseBtn.classList.add("hidden");
   addExerciseBtn.classList.remove("flex");
 
@@ -3489,52 +3489,6 @@ teacherSelect.value = user.teacher || "";
   } catch (error) {
     console.error("Erro ao criar ficha:", error);
     alert("Não foi possível criar a ficha.");
-  }
-}
-
-      async function teacherAddWorkout() {
-  const newName = prompt("Digite o nome da nova ficha:");
-
-  if (!newName || newName.trim() === "") return;
-
-  const cleanName = newName.trim();
-
-  if (!currentUser.workouts) {
-    currentUser.workouts = {};
-  }
-
-  if (currentUser.workouts[cleanName]) {
-    alert("Já existe uma ficha com esse nome.");
-    return;
-  }
-
-  try {
-    const response = await fetch(API_URL + "/api/workout", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        email: currentUser.email,
-        workoutName: cleanName,
-        sort_order: Object.keys(currentUser.workouts).length
-      })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data.ok) {
-      throw new Error(data.error || "Erro ao criar ficha.");
-    }
-
-    currentUser.workouts[cleanName] = [];
-
-    renderWorkouts();
-
-    console.log("Ficha do professor criada:", data.id);
-  } catch (error) {
-    console.error("Erro ao criar ficha do professor:", error);
-    alert(error.message || "Não foi possível criar a ficha.");
   }
 }
 
