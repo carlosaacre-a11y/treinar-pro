@@ -1747,7 +1747,7 @@ if (teacher) {
     notice: "",
     dismissedDueDate: false,
     teacher: teacher.name,
-    workouts: {}
+    workouts: teacher.workouts || {}
   };
 
   localStorage.setItem(
