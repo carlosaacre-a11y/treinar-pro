@@ -1589,7 +1589,8 @@ function closeExerciseImportModal() {
 
   previewContent.innerHTML = html;
 }
-      function confirmExerciseImport() {
+
+     async function confirmExerciseImport() {
   const exercises = window.pendingExerciseImport || [];
 
   if (!exercises.length) {
@@ -1613,26 +1614,57 @@ function closeExerciseImportModal() {
     user.workouts[editingAdminWorkoutKey] = [];
   }
 
-  user.workouts[editingAdminWorkoutKey].push(...exercises);
+  try {
+    for (const exercise of exercises) {
+      const response = await fetch(
+        API_URL + "/api/exercise",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            email: user.email,
+            workoutName: editingAdminWorkoutKey,
+            exercise: exercise
+          })
+        }
+      );
 
-  window.pendingExerciseImport = [];
+      const data = await response.json();
 
-  closeExerciseImportModal();
+      if (!response.ok || !data.ok) {
+        throw new Error(
+          data.error || "Erro ao importar exercício."
+        );
+      }
 
-  renderAdminWorkoutExercisesList();
+      exercise.id = data.id;
+      user.workouts[editingAdminWorkoutKey].push(exercise);
+    }
 
-  alert(
-    `${exercises.length} exercícios foram adicionados à ficha.`
-  );
+    window.pendingExerciseImport = [];
 
-  saveDB().catch((error) => {
-    console.error("Falha ao salvar exercícios importados:", error);
+    closeExerciseImportModal();
+
+    renderAdminWorkoutExercisesList();
 
     alert(
-      "Os exercícios foram adicionados na tela, mas não foi possível salvar na nuvem agora. Tente novamente quando o acesso ao banco estiver disponível."
+      `${exercises.length} exercícios foram importados com sucesso.`
     );
-  });
-}
+  } catch (error) {
+    console.error(
+      "Falha ao importar exercícios:",
+      error
+    );
+
+    alert(
+      error.message ||
+      "Não foi possível importar os exercícios."
+    );
+  }
+} 
+      
       function updateAdminBadge() {
         const badge = document.getElementById("adminBadge");
         if (!badge) return;
