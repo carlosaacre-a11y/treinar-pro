@@ -2447,7 +2447,7 @@ if (newUser.status === "pending") {
       modal.remove();
     };
 
-        document
+document
   .getElementById("shareMapOption")
   .onclick = () => {
 
@@ -2490,84 +2490,54 @@ if (newUser.status === "pending") {
 
       </div>
 
-     <div
-  class="bg-dark-900 border border-dark-700 rounded-2xl overflow-hidden"
->
-  <div
-    id="runningMap"
-    class="w-full h-[60vh] min-h-[350px]"
-  ></div>
-</div>
+      <div
+        class="bg-dark-900 border border-dark-700 rounded-2xl overflow-hidden"
+      >
+        <div
+          id="runningMap"
+          class="w-full h-[60vh] min-h-[350px]"
+        ></div>
+      </div>
+
+    </div>
+  `;
 
   document.body.appendChild(mapModal);
+
   const map = L.map("runningMap");
 
-L.tileLayer(
-  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-  {
-    attribution: "&copy; OpenStreetMap contributors"
-  }
-).addTo(map);
+  L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      attribution: "&copy; OpenStreetMap contributors"
+    }
+  ).addTo(map);
 
-const routePoints = points.map(point => [
-  point.latitude,
-  point.longitude
-]);
+  const routePoints = points.map(point => [
+    point.latitude,
+    point.longitude
+  ]);
 
-const routeLine = L.polyline(
-  routePoints,
-  {
-    color: "#22c55e",
-    weight: 5,
-    opacity: 0.9
-  }
-).addTo(map);
+  const routeLine = L.polyline(
+    routePoints,
+    {
+      color: "#22c55e",
+      weight: 5,
+      opacity: 0.9
+    }
+  ).addTo(map);
 
-map.fitBounds(routeLine.getBounds(), {
-  padding: [30, 30]
-});
+  map.fitBounds(routeLine.getBounds(), {
+    padding: [30, 30]
+  });
 
-L.marker(routePoints[0])
-  .addTo(map)
-  .bindPopup("Início da corrida");
+  L.marker(routePoints[0])
+    .addTo(map)
+    .bindPopup("Início da corrida");
 
-L.marker(routePoints[routePoints.length - 1])
-  .addTo(map)
-  .bindPopup("Fim da corrida");
-
-  
-L.tileLayer(
-  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-  {
-    attribution: "&copy; OpenStreetMap contributors"
-  }
-).addTo(map);
-
-const routePoints = points.map(point => [
-  point.latitude,
-  point.longitude
-]);
-
-const routeLine = L.polyline(
-  routePoints,
-  {
-    color: "#22c55e",
-    weight: 5,
-    opacity: 0.9
-  }
-).addTo(map);
-
-map.fitBounds(routeLine.getBounds(), {
-  padding: [30, 30]
-});
-
-L.marker(routePoints[0])
-  .addTo(map)
-  .bindPopup("Início da corrida");
-
-L.marker(routePoints[routePoints.length - 1])
-  .addTo(map)
-  .bindPopup("Fim da corrida");
+  L.marker(routePoints[routePoints.length - 1])
+    .addTo(map)
+    .bindPopup("Fim da corrida");
 
   document
     .getElementById("closeRunningMapPreview")
