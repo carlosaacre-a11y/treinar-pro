@@ -2337,6 +2337,8 @@ let runningDistanceMeters = 0;
 let runningLastPosition = null;
 let runningIsPaused = false;
 
+let runningActivities = [];
+
 function startRunning() {
   if (!navigator.geolocation) {
     alert("Seu dispositivo não oferece suporte ao GPS.");
@@ -2569,7 +2571,7 @@ function formatRunningTime(totalSeconds) {
   }
 }
 
-      function finishRunning() {
+function finishRunning() {
   if (runningWatchId !== null) {
     navigator.geolocation.clearWatch(runningWatchId);
     runningWatchId = null;
@@ -2582,16 +2584,30 @@ function formatRunningTime(totalSeconds) {
 
   const distanceKm = runningDistanceMeters / 1000;
 
+  let paceSecondsPerKm = 0;
+  let averageSpeedKmh = 0;
+
+  if (distanceKm > 0 && runningElapsedSeconds > 0) {
+    paceSecondsPerKm = runningElapsedSeconds / distanceKm;
+    averageSpeedKmh = distanceKm / (runningElapsedSeconds / 3600);
+  }
+
   const activity = {
     id: "running_" + Date.now(),
     date: new Date().toISOString(),
     durationSeconds: runningElapsedSeconds,
     distanceKm: Number(distanceKm.toFixed(2)),
-    distanceMeters: Math.round(runningDistanceMeters)
+    distanceMeters: Math.round(runningDistanceMeters),
+    paceSecondsPerKm: Math.round(paceSecondsPerKm),
+    averageSpeedKmh: Number(averageSpeedKmh.toFixed(1))
   };
 
-  console.log("Corrida finalizada:", activity);
+  // Guarda a corrida no histórico
+  runningActivities.push(activity);
 
+  console.log("Corrida salva no histórico:", activity);
+
+  // Limpa a corrida atual
   runningIsPaused = false;
   runningStartTime = null;
   runningElapsedSeconds = 0;
@@ -2619,11 +2635,145 @@ function formatRunningTime(totalSeconds) {
     gpsStatus.textContent = "GPS desligado";
   }
 
+  // Atualiza o histórico
+  renderRunningHistory();
+
+  // Atualiza o resumo
+  updateRunningSummary();
+
   alert(
     "Corrida finalizada!\n\n" +
     "Distância: " + activity.distanceKm.toFixed(2) + " km\n" +
     "Tempo: " + formatRunningTime(activity.durationSeconds)
   );
+}
+
+      function renderRunningHistory() {
+  const container = document.getElementById("runningActivitiesList");
+
+  if (!container) return;
+
+  if (runningActivities.length === 0) {
+    container.innerHTML = `
+      <div class="text-center text-zinc-400 py-6">
+        Nenhuma corrida registrada ainda.
+      </div>
+    `;
+    return;
+  }
+
+  const sortedActivities = [...runningActivities].sort(
+    (a, b) => new Date(b.date) - new Date(a.date)
+  );
+
+  container.innerHTML = sortedActivities.map(activity => {
+    const date = new Date(activity.date);
+
+    const dateText = date.toLocaleDateString("pt-BR");
+    const timeText = date.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+
+    const paceText =
+      activity.paceSecondsPerKm > 0
+        ? Math.floor(activity.paceSecondsPerKm / 60) +
+          ":" +
+          String(activity.paceSecondsPerKm % 60).padStart(2, "0") +
+          " /km"
+        : "--:-- /km";
+
+    return `
+      <div class="bg-zinc-900 rounded-xl p-4 mb-3 border border-zinc-800">
+        
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <div class="font-semibold text-white">
+              Corrida
+            </div>
+
+            <div class="text-xs text-zinc-400 mt-1">
+              ${dateText} às ${timeText}
+            </div>
+          </div>
+
+          <i class="fa-solid fa-person-running text-primary-500 text-xl"></i>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          
+          <div>
+            <div class="text-xs text-zinc-400">
+              Distância
+            </div>
+
+            <div class="text-white font-semibold">
+              ${activity.distanceKm.toFixed(2)} km
+            </div>
+          </div>
+
+          <div>
+            <div class="text-xs text-zinc-400">
+              Tempo
+            </div>
+
+            <div class="text-white font-semibold">
+              ${formatRunningTime(activity.durationSeconds)}
+            </div>
+          </div>
+
+          <div>
+            <div class="text-xs text-zinc-400">
+              Ritmo médio
+            </div>
+
+            <div class="text-white font-semibold">
+              ${paceText}
+            </div>
+          </div>
+
+          <div>
+            <div class="text-xs text-zinc-400">
+              Velocidade média
+            </div>
+
+            <div class="text-white font-semibold">
+              ${activity.averageSpeedKmh.toFixed(1)} km/h
+            </div>
+          </div>
+
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+      function updateRunningSummary() {
+  const distanceEl = document.getElementById("runningSummaryDistance");
+  const activitiesEl = document.getElementById("runningSummaryActivities");
+  const timeEl = document.getElementById("runningSummaryTime");
+
+  const totalDistance = runningActivities.reduce(
+    (total, activity) => total + activity.distanceKm,
+    0
+  );
+
+  const totalSeconds = runningActivities.reduce(
+    (total, activity) => total + activity.durationSeconds,
+    0
+  );
+
+  if (distanceEl) {
+    distanceEl.textContent = totalDistance.toFixed(2) + " km";
+  }
+
+  if (activitiesEl) {
+    activitiesEl.textContent = runningActivities.length;
+  }
+
+  if (timeEl) {
+    timeEl.textContent = formatRunningTime(totalSeconds);
+  }
 }
       
       function switchTab(tab) {
