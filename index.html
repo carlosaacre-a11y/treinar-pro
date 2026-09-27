@@ -2577,7 +2577,7 @@ function formatRunningTime(totalSeconds) {
   }
 }
 
-function finishRunning() {
+async function finishRunning() {
   if (runningWatchId !== null) {
     navigator.geolocation.clearWatch(runningWatchId);
     runningWatchId = null;
@@ -2609,24 +2609,40 @@ function finishRunning() {
     gpsPoints: [...runningGpsPoints]
   };
 
-  // Guarda a corrida no histórico
+// Guarda a corrida no histórico local
 runningActivities.push(activity);
 
-// Salva as corridas permanentemente no usuário atual
-if (currentUser) {
-  currentUser.runningActivities = [...runningActivities];
+// Salva somente esta corrida na D1
+try {
+  const response = await fetch(API_URL + "/api/running", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      email: currentUser.email,
+      activity: activity
+    })
+  });
 
-  const userIndex = globalState.users.findIndex(
-    user => user.email.toLowerCase() === currentUser.email.toLowerCase()
-  );
+  const result = await response.json();
 
-  if (userIndex !== -1) {
-    globalState.users[userIndex].runningActivities = [...runningActivities];
-    saveDB();
+  if (!response.ok || !result.ok) {
+    throw new Error(
+      result.error || "Não foi possível salvar a corrida."
+    );
   }
-}
 
-console.log("Corrida salva no histórico:", activity);
+  console.log("Corrida salva na D1:", activity);
+
+} catch (error) {
+  console.error("Erro ao salvar corrida na D1:", error);
+
+  alert(
+    "A corrida foi finalizada, mas não foi possível salvá-la na nuvem.\n\n" +
+    "Verifique sua conexão e tente novamente."
+  );
+}
 
   // Limpa a corrida atual
   runningIsPaused = false;
