@@ -2604,9 +2604,23 @@ function finishRunning() {
   };
 
   // Guarda a corrida no histórico
-  runningActivities.push(activity);
+runningActivities.push(activity);
 
-  console.log("Corrida salva no histórico:", activity);
+// Salva as corridas permanentemente no usuário atual
+if (currentUser) {
+  currentUser.runningActivities = [...runningActivities];
+
+  const userIndex = globalState.users.findIndex(
+    user => user.email.toLowerCase() === currentUser.email.toLowerCase()
+  );
+
+  if (userIndex !== -1) {
+    globalState.users[userIndex].runningActivities = [...runningActivities];
+    saveDB();
+  }
+}
+
+console.log("Corrida salva no histórico:", activity);
 
   // Limpa a corrida atual
   runningIsPaused = false;
