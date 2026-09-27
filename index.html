@@ -1571,7 +1571,13 @@ if (savedEmail) {
       foundUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase())
   ) {
     currentUser = foundUser;
-    initApp();
+
+// Carrega o histórico de corridas salvo
+runningActivities = Array.isArray(currentUser.runningActivities)
+  ? [...currentUser.runningActivities]
+  : [];
+
+initApp();
   }
 }
         } catch (e) {
