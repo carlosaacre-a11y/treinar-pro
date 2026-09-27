@@ -2338,6 +2338,7 @@ let runningLastPosition = null;
 let runningIsPaused = false;
 
 let runningActivities = [];
+let runningGpsPoints = [];
 
 function startRunning() {
   if (!navigator.geolocation) {
@@ -2349,11 +2350,12 @@ function startRunning() {
     return;
   }
 
-  runningIsPaused = false;
-  runningDistanceMeters = 0;
-  runningElapsedSeconds = 0;
-  runningLastPosition = null;
-  runningStartTime = Date.now();
+runningIsPaused = false;
+runningDistanceMeters = 0;
+runningElapsedSeconds = 0;
+runningLastPosition = null;
+runningGpsPoints = [];
+runningStartTime = Date.now();
 
   const startBtn = document.getElementById("startRunningBtn");
   const activeCard = document.getElementById("runningActiveCard");
@@ -2402,6 +2404,14 @@ function handleRunningPosition(position) {
     latitude: position.coords.latitude,
     longitude: position.coords.longitude
   };
+
+  if (!runningIsPaused) {
+  runningGpsPoints.push({
+    latitude: position.coords.latitude,
+    longitude: position.coords.longitude,
+    timestamp: Date.now()
+  });
+}
 
   const gpsStatus = document.getElementById("runningGpsStatus");
 
@@ -2599,7 +2609,8 @@ function finishRunning() {
     distanceKm: Number(distanceKm.toFixed(2)),
     distanceMeters: Math.round(runningDistanceMeters),
     paceSecondsPerKm: Math.round(paceSecondsPerKm),
-    averageSpeedKmh: Number(averageSpeedKmh.toFixed(1))
+    averageSpeedKmh: Number(averageSpeedKmh.toFixed(1)),
+    gpsPoints: [...runningGpsPoints]
   };
 
   // Guarda a corrida no histórico
@@ -2613,6 +2624,7 @@ function finishRunning() {
   runningElapsedSeconds = 0;
   runningDistanceMeters = 0;
   runningLastPosition = null;
+  runningGpsPoints = [];
 
   const startBtn = document.getElementById("startRunningBtn");
   const activeCard = document.getElementById("runningActiveCard");
