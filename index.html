@@ -2504,20 +2504,38 @@ document
 
   document.body.appendChild(mapModal);
 
-  const map = L.map("runningMap");
+const mapContainer =
+  document.getElementById("runningMap");
 
-  L.tileLayer(
-    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    {
-      attribution: "&copy; OpenStreetMap contributors"
-    }
-  ).addTo(map);
+const map = L.map(mapContainer, {
+  zoomControl: true
+});
 
-  const routePoints = points.map(point => [
-    point.latitude,
-    point.longitude
+const routePoints =
+  points.map(point => [
+    Number(point.latitude),
+    Number(point.longitude)
   ]);
 
+map.setView(
+  routePoints[0],
+  16
+);
+
+L.tileLayer(
+  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  {
+    maxZoom: 19,
+    attribution:
+      "&copy; OpenStreetMap contributors"
+  }
+).addTo(map);
+
+setTimeout(() => {
+  map.invalidateSize();
+}, 300);
+
+  
   const routeLine = L.polyline(
     routePoints,
     {
