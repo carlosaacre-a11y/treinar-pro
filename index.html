@@ -2821,8 +2821,11 @@ if (sharePreviewBtn) {
       );
 
       alert(
-        "Não foi possível preparar a imagem para compartilhamento."
-      );
+  "ERRO: " +
+  (error && error.message
+    ? error.message
+    : String(error))
+);
 
     } finally {
 
