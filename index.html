@@ -2546,7 +2546,7 @@ if (newUser.status === "pending") {
 
     <button
       type="button"
-      id="shareRunningBackgroundPreviewBtn"
+      id="shareRunningGalleryPreviewBtn"
       class="w-full mt-4 bg-primary-500 hover:bg-primary-600 text-dark-950 font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2"
     >
       <i class="fa-solid fa-share-nodes"></i>
@@ -2560,7 +2560,7 @@ document.body.appendChild(previewModal);
 
 const sharePreviewBtn =
   document.getElementById(
-    "shareRunningBackgroundPreviewBtn"
+    "shareRunningGalleryPreviewBtn"
   );
 
 if (sharePreviewBtn) {
@@ -2573,9 +2573,13 @@ if (sharePreviewBtn) {
       sharePreviewBtn.innerHTML =
         '<i class="fa-solid fa-spinner fa-spin"></i> Preparando...';
 
-      const image = new Image();
+      const image =
+        new Image();
 
-      image.crossOrigin = "anonymous";
+      /*
+       * A foto veio da galeria do celular.
+       * Não usamos crossOrigin aqui.
+       */
 
       image.src = imageUrl;
 
@@ -2599,6 +2603,10 @@ if (sharePreviewBtn) {
       const ctx =
         canvas.getContext("2d");
 
+      /*
+       * FOTO
+       */
+
       ctx.drawImage(
         image,
         0,
@@ -2608,7 +2616,7 @@ if (sharePreviewBtn) {
       );
 
       /*
-       * GRADIENTE ESCURO NA PARTE INFERIOR
+       * GRADIENTE
        */
 
       const gradient =
@@ -2669,7 +2677,8 @@ if (sharePreviewBtn) {
        * DADOS
        */
 
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle =
+        "#ffffff";
 
       ctx.font =
         "bold 34px Arial";
@@ -2696,7 +2705,8 @@ if (sharePreviewBtn) {
         "bold 42px Arial";
 
       ctx.fillText(
-        activity.distanceKm.toFixed(2) + " km",
+        activity.distanceKm.toFixed(2) +
+        " km",
         60,
         1210
       );
@@ -2716,7 +2726,7 @@ if (sharePreviewBtn) {
       );
 
       /*
-       * CONVERTE PARA PNG
+       * TRANSFORMA A PRÉVIA EM PNG
        */
 
       const blob =
@@ -2731,9 +2741,11 @@ if (sharePreviewBtn) {
         });
 
       if (!blob) {
+
         throw new Error(
           "Não foi possível criar a imagem."
         );
+
       }
 
       const file =
@@ -2746,7 +2758,7 @@ if (sharePreviewBtn) {
         );
 
       /*
-       * COMPARTILHAMENTO NATIVO DO CELULAR
+       * COMPARTILHAMENTO DO ARQUIVO
        */
 
       if (
@@ -2759,16 +2771,12 @@ if (sharePreviewBtn) {
 
         await navigator.share({
           title: "Treinar Running",
-          text: "Minha corrida no Treinar Running 🏃",
+          text:
+            "Minha corrida no Treinar Running 🏃",
           files: [file]
         });
 
       } else {
-
-        /*
-         * CASO O NAVEGADOR NÃO ACEITE
-         * COMPARTILHAMENTO DE ARQUIVOS
-         */
 
         const downloadUrl =
           URL.createObjectURL(blob);
@@ -2776,7 +2784,8 @@ if (sharePreviewBtn) {
         const link =
           document.createElement("a");
 
-        link.href = downloadUrl;
+        link.href =
+          downloadUrl;
 
         link.download =
           "treinar-running.png";
@@ -2794,6 +2803,7 @@ if (sharePreviewBtn) {
         alert(
           "A imagem foi salva no celular. Agora você pode enviá-la pelo WhatsApp ou outro aplicativo."
         );
+
       }
 
     } catch (error) {
@@ -2816,7 +2826,8 @@ if (sharePreviewBtn) {
 
     } finally {
 
-      sharePreviewBtn.disabled = false;
+      sharePreviewBtn.disabled =
+        false;
 
       sharePreviewBtn.innerHTML =
         '<i class="fa-solid fa-share-nodes"></i> Compartilhar';
