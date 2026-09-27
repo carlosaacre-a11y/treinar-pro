@@ -2504,58 +2504,76 @@ document
 
   document.body.appendChild(mapModal);
 
-const mapContainer =
-  document.getElementById("runningMap");
-
-const map = L.map(mapContainer, {
-  zoomControl: true
-});
-
-const routePoints =
-  points.map(point => [
-    Number(point.latitude),
-    Number(point.longitude)
-  ]);
-
-map.setView(
-  routePoints[0],
-  16
-);
-
-L.tileLayer(
-  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-  {
-    maxZoom: 19,
-    attribution:
-      "&copy; OpenStreetMap contributors"
-  }
-).addTo(map);
-
 setTimeout(() => {
-  map.invalidateSize();
-}, 300);
 
-  
-  const routeLine = L.polyline(
-    routePoints,
+  const mapContainer =
+    document.getElementById("runningMap");
+
+  const map = L.map(mapContainer, {
+    zoomControl: true
+  });
+
+  const routePoints =
+    points.map(point => [
+      Number(point.latitude),
+      Number(point.longitude)
+    ]);
+
+  map.setView(
+    routePoints[0],
+    16
+  );
+
+  L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
-      color: "#22c55e",
-      weight: 5,
-      opacity: 0.9
+      maxZoom: 19,
+      attribution:
+        "&copy; OpenStreetMap contributors"
     }
   ).addTo(map);
 
-  map.fitBounds(routeLine.getBounds(), {
-    padding: [30, 30]
-  });
+  const routeLine =
+    L.polyline(
+      routePoints,
+      {
+        color: "#22c55e",
+        weight: 5,
+        opacity: 0.9
+      }
+    ).addTo(map);
+
+  map.fitBounds(
+    routeLine.getBounds(),
+    {
+      padding: [30, 30]
+    }
+  );
 
   L.marker(routePoints[0])
     .addTo(map)
     .bindPopup("Início da corrida");
 
-  L.marker(routePoints[routePoints.length - 1])
+  L.marker(
+    routePoints[routePoints.length - 1]
+  )
     .addTo(map)
     .bindPopup("Fim da corrida");
+
+  setTimeout(() => {
+    map.invalidateSize();
+  }, 300);
+
+  document
+    .getElementById(
+      "closeRunningMapPreview"
+    )
+    .onclick = () => {
+      mapModal.remove();
+    };
+
+}, 300);
+
 
   document
     .getElementById("closeRunningMapPreview")
