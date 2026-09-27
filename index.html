@@ -2861,137 +2861,111 @@ if (sharePreviewBtn) {
           : "--:-- /km";
 
       previewModal.innerHTML = `
-        <div class="w-full max-w-md">
+  <div class="w-full max-w-md">
 
-          <div class="flex items-center justify-between mb-3">
+    <div class="flex items-center justify-between mb-3">
 
-            <h3 class="text-sm font-bold text-white">
-              Prévia do compartilhamento
-            </h3>
+      <h3 class="text-sm font-bold text-white">
+        Prévia do compartilhamento
+      </h3>
 
-            <button
-              type="button"
-              id="closeRunningBackgroundPreview"
-              class="text-zinc-400 hover:text-white text-xl"
-            >
-              <i class="fa-solid fa-xmark"></i>
-            </button>
+      <button
+        type="button"
+        id="closeRunningBackgroundPreview"
+        class="text-zinc-400 hover:text-white text-xl"
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
 
-          </div>
+    </div>
 
-          <div
-            class="relative w-full overflow-hidden rounded-2xl bg-black"
-          >
+    <div
+      class="relative w-full overflow-hidden rounded-2xl bg-black"
+    >
 
-            <img
-              src="${imageUrl}"
-              class="w-full block object-cover"
-              style="max-height:70vh;"
-            >
+      <img
+        src="${imageUrl}"
+        class="w-full block object-cover"
+        style="max-height:70vh;"
+      >
 
-            <div
-              class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent"
-            ></div>
+      <div
+        class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent"
+      ></div>
 
-            <div
-              class="absolute bottom-0 left-0 right-0 p-5"
-            >
+      <div
+        class="absolute bottom-0 left-0 right-0 p-5"
+      >
 
-              <div
-                class="text-white font-bold text-xl"
-              >
-                Treinar Running
-              </div>
+        <div class="text-white font-bold text-xl">
+          Treinar Running
+        </div>
 
-              <div
-                class="text-xs text-zinc-300 mt-1"
-              >
-                Minha corrida
-              </div>
+        <div class="text-xs text-zinc-300 mt-1">
+          Minha corrida
+        </div>
 
-              <div
-                class="grid grid-cols-2 gap-4 mt-4"
-              >
+        <div class="grid grid-cols-2 gap-4 mt-4">
 
-                <div>
-
-                  <div
-                    class="text-[9px] text-zinc-300 uppercase"
-                  >
-                    Distância
-                  </div>
-
-                  <div
-                    class="text-white font-bold text-lg"
-                  >
-                    ${activity.distanceKm.toFixed(2)} km
-                  </div>
-
-                </div>
-
-                <div>
-
-                  <div
-                    class="text-[9px] text-zinc-300 uppercase"
-                  >
-                    Tempo
-                  </div>
-
-                  <div
-                    class="text-white font-bold text-lg"
-                  >
-                    ${formatRunningTime(
-                      activity.durationSeconds
-                    )}
-                  </div>
-
-                </div>
-
-                <div>
-
-                  <div
-                    class="text-[9px] text-zinc-300 uppercase"
-                  >
-                    Ritmo médio
-                  </div>
-
-                  <div
-                    class="text-white font-bold"
-                  >
-                    ${paceText}
-                  </div>
-
-                </div>
-
-                <div>
-
-                  <div
-                    class="text-[9px] text-zinc-300 uppercase"
-                  >
-                    Velocidade média
-                  </div>
-
-                  <div
-                    class="text-white font-bold"
-                  >
-                    ${activity.averageSpeedKmh.toFixed(1)}
-                    km/h
-                  </div>
-
-                </div>
-
-              </div>
-
+          <div>
+            <div class="text-[9px] text-zinc-300 uppercase">
+              Distância
             </div>
 
+            <div class="text-white font-bold text-lg">
+              ${activity.distanceKm.toFixed(2)} km
+            </div>
+          </div>
+
+          <div>
+            <div class="text-[9px] text-zinc-300 uppercase">
+              Tempo
+            </div>
+
+            <div class="text-white font-bold text-lg">
+              ${formatRunningTime(activity.durationSeconds)}
+            </div>
+          </div>
+
+          <div>
+            <div class="text-[9px] text-zinc-300 uppercase">
+              Ritmo médio
+            </div>
+
+            <div class="text-white font-bold">
+              ${paceText}
+            </div>
+          </div>
+
+          <div>
+            <div class="text-[9px] text-zinc-300 uppercase">
+              Velocidade média
+            </div>
+
+            <div class="text-white font-bold">
+              ${activity.averageSpeedKmh.toFixed(1)} km/h
+            </div>
           </div>
 
         </div>
-      `;
 
-      document.body.appendChild(
-        previewModal
-      );
+      </div>
+
+    </div>
+
+    <button
+      type="button"
+      id="shareRunningBackgroundPreviewBtn"
+      class="w-full mt-4 bg-primary-500 hover:bg-primary-600 text-dark-950 font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2"
+    >
+      <i class="fa-solid fa-share-nodes"></i>
+      Compartilhar
+    </button>
+
+  </div>
+`;
+
+document.body.appendChild(previewModal);
 
       document
         .getElementById(
