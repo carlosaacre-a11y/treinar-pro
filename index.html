@@ -2311,6 +2311,7 @@ if (newUser.status === "pending") {
         document.getElementById("editMyName").value = currentUser.name;
         document.getElementById("editMyAvatarFile").value = "";
         loadRunningActivities();
+        setupRunningFilters();
         
         if (!isTeacher) {
   renderWorkouts();
@@ -2369,6 +2370,7 @@ let runningIsPaused = false;
 
 let runningActivities = [];
 let runningGpsPoints = [];
+let runningSelectedPeriod = "today";
 
 function startRunning() {
   if (!navigator.geolocation) {
@@ -2824,6 +2826,63 @@ try {
       </div>
     `;
   }).join("");
+}
+
+      function setupRunningFilters() {
+  const todayBtn = document.getElementById("runningFilterToday");
+  const weekBtn = document.getElementById("runningFilterWeek");
+  const monthBtn = document.getElementById("runningFilterMonth");
+
+  function selectFilter(period, label) {
+    runningSelectedPeriod = period;
+
+    const selectedPeriodEl =
+      document.getElementById("runningSelectedPeriod");
+
+    if (selectedPeriodEl) {
+      selectedPeriodEl.textContent = label;
+    }
+
+    [todayBtn, weekBtn, monthBtn].forEach(button => {
+      if (!button) return;
+
+      button.className =
+        "bg-dark-800 text-zinc-400 border border-dark-700 font-bold py-2 rounded-lg text-[10px] transition";
+    });
+
+    const activeButton =
+      period === "today"
+        ? todayBtn
+        : period === "week"
+        ? weekBtn
+        : monthBtn;
+
+    if (activeButton) {
+      activeButton.className =
+        "bg-primary-500 text-dark-950 font-bold py-2 rounded-lg text-[10px] transition";
+    }
+
+    renderRunningHistory();
+    updateRunningSummary();
+  }
+
+  if (todayBtn) {
+    todayBtn.onclick = () => {
+      selectFilter("today", "Hoje");
+    };
+  }
+
+  if (weekBtn) {
+    weekBtn.onclick = () => {
+      selectFilter("week", "Semana");
+    };
+  }
+
+  if (monthBtn) {
+    monthBtn.onclick = () => {
+      selectFilter("month", "Mês");
+    };
+  }
 }
 
       function updateRunningSummary() {
