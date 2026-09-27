@@ -407,6 +407,7 @@ html.light .border-dark-600 {
 
             <button
               id="startRunningBtn"
+              onclick="startRunning()"
               class="w-full bg-primary-500 hover:bg-primary-600 text-dark-950 font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2"
             >
               <i class="fa-solid fa-play"></i>
@@ -2321,6 +2322,216 @@ function toggleTheme() {
 
   updateThemeButton();
 }
+
+// ==========================================================
+// TREINAR RUNNING - GPS + CRONÔMETRO + DISTÂNCIA
+// ==========================================================
+
+let runningWatchId = null;
+let runningTimerInterval = null;
+let runningStartTime = null;
+let runningElapsedSeconds = 0;
+let runningDistanceMeters = 0;
+let runningLastPosition = null;
+let runningIsPaused = false;
+
+function startRunning() {
+  if (!navigator.geolocation) {
+    alert("Seu dispositivo não oferece suporte ao GPS.");
+    return;
+  }
+
+  if (runningWatchId !== null) {
+    return;
+  }
+
+  runningIsPaused = false;
+  runningDistanceMeters = 0;
+  runningElapsedSeconds = 0;
+  runningLastPosition = null;
+  runningStartTime = Date.now();
+
+  const startBtn = document.getElementById("startRunningBtn");
+  const activeCard = document.getElementById("runningActiveCard");
+  const gpsStatus = document.getElementById("runningGpsStatus");
+  const activityStatus = document.getElementById("runningActivityStatus");
+
+  if (startBtn) {
+    startBtn.classList.add("hidden");
+  }
+
+  if (activeCard) {
+    activeCard.classList.remove("hidden");
+  }
+
+  if (gpsStatus) {
+    gpsStatus.textContent = "Obtendo localização...";
+  }
+
+  if (activityStatus) {
+    activityStatus.textContent = "Corrida em andamento";
+  }
+
+  runningTimerInterval = setInterval(() => {
+    if (!runningIsPaused) {
+      runningElapsedSeconds = Math.floor(
+        (Date.now() - runningStartTime) / 1000
+      );
+
+      updateRunningStats();
+    }
+  }, 1000);
+
+  runningWatchId = navigator.geolocation.watchPosition(
+    handleRunningPosition,
+    handleRunningGpsError,
+    {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 10000
+    }
+  );
+}
+
+function handleRunningPosition(position) {
+  const currentPosition = {
+    latitude: position.coords.latitude,
+    longitude: position.coords.longitude
+  };
+
+  const gpsStatus = document.getElementById("runningGpsStatus");
+
+  if (gpsStatus) {
+    gpsStatus.textContent = "GPS conectado";
+  }
+
+  if (!runningLastPosition) {
+    runningLastPosition = currentPosition;
+    return;
+  }
+
+  if (runningIsPaused) {
+    runningLastPosition = currentPosition;
+    return;
+  }
+
+  const distance = calculateRunningDistance(
+    runningLastPosition.latitude,
+    runningLastPosition.longitude,
+    currentPosition.latitude,
+    currentPosition.longitude
+  );
+
+  // Ignora pequenos erros naturais do GPS
+  if (distance >= 3 && distance <= 100) {
+    runningDistanceMeters += distance;
+  }
+
+  runningLastPosition = currentPosition;
+
+  updateRunningStats();
+}
+
+function handleRunningGpsError(error) {
+  const gpsStatus = document.getElementById("runningGpsStatus");
+
+  if (!gpsStatus) return;
+
+  if (error.code === 1) {
+    gpsStatus.textContent = "Permissão de localização negada";
+  } else if (error.code === 2) {
+    gpsStatus.textContent = "Localização indisponível";
+  } else if (error.code === 3) {
+    gpsStatus.textContent = "Tempo esgotado para obter GPS";
+  } else {
+    gpsStatus.textContent = "Erro ao obter GPS";
+  }
+}
+
+function calculateRunningDistance(lat1, lon1, lat2, lon2) {
+  const earthRadius = 6371000;
+
+  const lat1Rad = lat1 * Math.PI / 180;
+  const lat2Rad = lat2 * Math.PI / 180;
+
+  const deltaLat = (lat2 - lat1) * Math.PI / 180;
+  const deltaLon = (lon2 - lon1) * Math.PI / 180;
+
+  const a =
+    Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+    Math.cos(lat1Rad) *
+    Math.cos(lat2Rad) *
+    Math.sin(deltaLon / 2) *
+    Math.sin(deltaLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return earthRadius * c;
+}
+
+function updateRunningStats() {
+  const distanceKm = runningDistanceMeters / 1000;
+
+  const distanceEl = document.getElementById("runningDistance");
+  const timeEl = document.getElementById("runningTime");
+  const paceEl = document.getElementById("runningPace");
+  const speedEl = document.getElementById("runningSpeed");
+
+  if (distanceEl) {
+    distanceEl.textContent = distanceKm.toFixed(2) + " km";
+  }
+
+  if (timeEl) {
+    timeEl.textContent = formatRunningTime(runningElapsedSeconds);
+  }
+
+  if (distanceKm > 0 && runningElapsedSeconds > 0) {
+    const paceSecondsPerKm = runningElapsedSeconds / distanceKm;
+    const paceMinutes = Math.floor(paceSecondsPerKm / 60);
+    const paceSeconds = Math.floor(paceSecondsPerKm % 60);
+
+    if (paceEl) {
+      paceEl.textContent =
+        paceMinutes + ":" +
+        String(paceSeconds).padStart(2, "0") +
+        " /km";
+    }
+
+    const speedKmh = distanceKm / (runningElapsedSeconds / 3600);
+
+    if (speedEl) {
+      speedEl.textContent = speedKmh.toFixed(1) + " km/h";
+    }
+  } else {
+    if (paceEl) {
+      paceEl.textContent = "--:-- /km";
+    }
+
+    if (speedEl) {
+      speedEl.textContent = "0.0 km/h";
+    }
+  }
+}
+
+function formatRunningTime(totalSeconds) {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return (
+      String(hours).padStart(2, "0") + ":" +
+      String(minutes).padStart(2, "0") + ":" +
+      String(seconds).padStart(2, "0")
+    );
+  }
+
+  return (
+    String(minutes).padStart(2, "0") + ":" +
+    String(seconds).padStart(2, "0")
+  );
+}
+      
       function switchTab(tab) {
         const isAdmin = currentUser && currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
         if (tab === "admin" && !isAdmin) return;
