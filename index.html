@@ -3232,12 +3232,7 @@ const backgrounds = [
       "fixed inset-0 z-[60] bg-black/80 flex items-end justify-center p-4";
 
     const categories = [
-  "Tênis e pernas",
-  "Masculino em movimento",
-  "Feminino em movimento",
-  "Estradas",
-  "Trilhas e parques",
-  "Paisagens"
+  "Fundos para corrida"
 ];
 
     modal.innerHTML = `
@@ -3267,7 +3262,7 @@ const backgrounds = [
 
         ${categories.map(category => {
 
-          const categoryImages =
+          const categoryImages = backgrounds;
             backgrounds.filter(
               item => item.category === category
             );
