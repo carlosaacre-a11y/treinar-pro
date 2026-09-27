@@ -575,6 +575,34 @@ html.light .border-dark-600 {
               >
                 Personalizado
               </button>
+              <div
+  id="runningCustomDateRange"
+  class="hidden grid grid-cols-2 gap-2 pt-2"
+>
+  <div>
+    <label class="block text-[9px] text-zinc-500 mb-1">
+      Data inicial
+    </label>
+
+    <input
+      id="runningCustomStartDate"
+      type="date"
+      class="w-full bg-dark-800 border border-dark-700 text-white rounded-lg px-2 py-2 text-[10px]"
+    />
+  </div>
+
+  <div>
+    <label class="block text-[9px] text-zinc-500 mb-1">
+      Data final
+    </label>
+
+    <input
+      id="runningCustomEndDate"
+      type="date"
+      class="w-full bg-dark-800 border border-dark-700 text-white rounded-lg px-2 py-2 text-[10px]"
+    />
+  </div>
+</div>
 
             </div>
 
@@ -2728,28 +2756,106 @@ try {
   );
 }
 
-      function renderRunningHistory() {
+function renderRunningHistory() {
   const container = document.getElementById("runningActivitiesList");
 
   if (!container) return;
 
-  if (runningActivities.length === 0) {
+  let filteredActivities = [...runningActivities];
+
+  const selectedPeriod =
+    runningSelectedPeriod || "today";
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (selectedPeriod === "today") {
+    filteredActivities = filteredActivities.filter(activity => {
+      const date = new Date(activity.date);
+      date.setHours(0, 0, 0, 0);
+
+      return date.getTime() === today.getTime();
+    });
+  }
+
+  if (selectedPeriod === "week") {
+    const startOfWeek = new Date(today);
+    const day = startOfWeek.getDay();
+
+    const difference = day === 0 ? 6 : day - 1;
+
+    startOfWeek.setDate(
+      startOfWeek.getDate() - difference
+    );
+
+    filteredActivities = filteredActivities.filter(activity => {
+      const date = new Date(activity.date);
+
+      return date >= startOfWeek;
+    });
+  }
+
+  if (selectedPeriod === "month") {
+    const startOfMonth = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      1
+    );
+
+    filteredActivities = filteredActivities.filter(activity => {
+      const date = new Date(activity.date);
+
+      return date >= startOfMonth;
+    });
+  }
+
+  if (selectedPeriod === "custom") {
+    const startInput =
+      document.getElementById("runningCustomStartDate");
+
+    const endInput =
+      document.getElementById("runningCustomEndDate");
+
+    if (
+      startInput &&
+      endInput &&
+      startInput.value &&
+      endInput.value
+    ) {
+      const startDate = new Date(
+        startInput.value + "T00:00:00"
+      );
+
+      const endDate = new Date(
+        endInput.value + "T23:59:59"
+      );
+
+      filteredActivities = filteredActivities.filter(activity => {
+        const date = new Date(activity.date);
+
+        return date >= startDate && date <= endDate;
+      });
+    }
+  }
+
+  const sortedActivities = filteredActivities.sort(
+    (a, b) => new Date(b.date) - new Date(a.date)
+  );
+
+  if (sortedActivities.length === 0) {
     container.innerHTML = `
       <div class="text-center text-zinc-400 py-6">
-        Nenhuma corrida registrada ainda.
+        Nenhuma corrida registrada neste período.
       </div>
     `;
     return;
   }
 
-  const sortedActivities = [...runningActivities].sort(
-    (a, b) => new Date(b.date) - new Date(a.date)
-  );
-
   container.innerHTML = sortedActivities.map(activity => {
     const date = new Date(activity.date);
 
     const dateText = date.toLocaleDateString("pt-BR");
+
     const timeText = date.toLocaleTimeString("pt-BR", {
       hour: "2-digit",
       minute: "2-digit"
@@ -2759,14 +2865,17 @@ try {
       activity.paceSecondsPerKm > 0
         ? Math.floor(activity.paceSecondsPerKm / 60) +
           ":" +
-          String(activity.paceSecondsPerKm % 60).padStart(2, "0") +
+          String(
+            activity.paceSecondsPerKm % 60
+          ).padStart(2, "0") +
           " /km"
         : "--:-- /km";
 
     return `
       <div class="bg-zinc-900 rounded-xl p-4 mb-3 border border-zinc-800">
-        
+
         <div class="flex items-center justify-between mb-3">
+
           <div>
             <div class="font-semibold text-white">
               Corrida
@@ -2778,10 +2887,11 @@ try {
           </div>
 
           <i class="fa-solid fa-person-running text-primary-500 text-xl"></i>
+
         </div>
 
         <div class="grid grid-cols-2 gap-3">
-          
+
           <div>
             <div class="text-xs text-zinc-400">
               Distância
@@ -2828,10 +2938,20 @@ try {
   }).join("");
 }
 
-      function setupRunningFilters() {
+function setupRunningFilters() {
   const todayBtn = document.getElementById("runningFilterToday");
   const weekBtn = document.getElementById("runningFilterWeek");
   const monthBtn = document.getElementById("runningFilterMonth");
+  const customBtn = document.getElementById("runningFilterCustom");
+
+  const customRange =
+    document.getElementById("runningCustomDateRange");
+
+  const startDateInput =
+    document.getElementById("runningCustomStartDate");
+
+  const endDateInput =
+    document.getElementById("runningCustomEndDate");
 
   function selectFilter(period, label) {
     runningSelectedPeriod = period;
@@ -2843,7 +2963,12 @@ try {
       selectedPeriodEl.textContent = label;
     }
 
-    [todayBtn, weekBtn, monthBtn].forEach(button => {
+    [
+      todayBtn,
+      weekBtn,
+      monthBtn,
+      customBtn
+    ].forEach(button => {
       if (!button) return;
 
       button.className =
@@ -2855,11 +2980,21 @@ try {
         ? todayBtn
         : period === "week"
         ? weekBtn
-        : monthBtn;
+        : period === "month"
+        ? monthBtn
+        : customBtn;
 
     if (activeButton) {
       activeButton.className =
         "bg-primary-500 text-dark-950 font-bold py-2 rounded-lg text-[10px] transition";
+    }
+
+    if (customRange) {
+      if (period === "custom") {
+        customRange.classList.remove("hidden");
+      } else {
+        customRange.classList.add("hidden");
+      }
     }
 
     renderRunningHistory();
@@ -2882,6 +3017,37 @@ try {
     monthBtn.onclick = () => {
       selectFilter("month", "Mês");
     };
+  }
+
+  if (customBtn) {
+    customBtn.onclick = () => {
+      selectFilter("custom", "Personalizado");
+    };
+  }
+
+  function applyCustomFilter() {
+    if (
+      runningSelectedPeriod !== "custom" ||
+      !startDateInput ||
+      !endDateInput
+    ) {
+      return;
+    }
+
+    if (!startDateInput.value || !endDateInput.value) {
+      return;
+    }
+
+    renderRunningHistory();
+    updateRunningSummary();
+  }
+
+  if (startDateInput) {
+    startDateInput.onchange = applyCustomFilter;
+  }
+
+  if (endDateInput) {
+    endDateInput.onchange = applyCustomFilter;
   }
 }
 
