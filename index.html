@@ -2226,6 +2226,45 @@ if (newUser.status === "pending") {
 }       }
       }
 
+      async function loadRunningActivities() {
+  if (!currentUser || !currentUser.email) {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      API_URL +
+      "/api/running?email=" +
+      encodeURIComponent(currentUser.email)
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.ok) {
+      throw new Error(
+        result.error || "Não foi possível carregar as corridas."
+      );
+    }
+
+    runningActivities = Array.isArray(result.activities)
+      ? result.activities
+      : [];
+
+    renderRunningHistory();
+    updateRunningSummary();
+
+    console.log(
+      "Corridas carregadas da D1:",
+      runningActivities
+    );
+
+  } catch (error) {
+    console.error(
+      "Erro ao carregar corridas da D1:",
+      error
+    );
+  }
+}
       function initApp() {
         document.getElementById("loginScreen").classList.add("hidden");
         document.getElementById("mainApp").classList.remove("hidden");
@@ -2271,6 +2310,7 @@ if (newUser.status === "pending") {
         document.getElementById("profileEmail").textContent = currentUser.email;
         document.getElementById("editMyName").value = currentUser.name;
         document.getElementById("editMyAvatarFile").value = "";
+        loadRunningActivities();
         
         if (!isTeacher) {
   renderWorkouts();
