@@ -2549,6 +2549,73 @@ if (newUser.status === "pending") {
 
       document.body.appendChild(previewModal);
 
+      const sharePreviewBtn =
+  document.getElementById(
+    "shareRunningBackgroundPreviewBtn"
+  );
+
+if (sharePreviewBtn) {
+  sharePreviewBtn.onclick = async () => {
+
+    const shareText =
+      "🏃 Treinar Running\n\n" +
+      "Distância: " +
+      activity.distanceKm.toFixed(2) +
+      " km\n" +
+      "Tempo: " +
+      formatRunningTime(
+        activity.durationSeconds
+      ) +
+      "\n" +
+      "Ritmo médio: " +
+      paceText +
+      "\n" +
+      "Velocidade média: " +
+      activity.averageSpeedKmh.toFixed(1) +
+      " km/h";
+
+    try {
+
+      if (navigator.share) {
+
+        await navigator.share({
+          title: "Treinar Running",
+          text: shareText
+        });
+
+      } else {
+
+        await navigator.clipboard.writeText(
+          shareText
+        );
+
+        alert(
+          "Os dados da corrida foram copiados."
+        );
+
+      }
+
+    } catch (error) {
+
+      if (
+        error &&
+        error.name === "AbortError"
+      ) {
+        return;
+      }
+
+      console.error(
+        "Erro ao compartilhar corrida:",
+        error
+      );
+
+      alert(
+        "Não foi possível abrir o compartilhamento."
+      );
+    }
+  };
+}
+
       document
         .getElementById("closeRunningSharePreview")
         .onclick = () => {
@@ -2576,84 +2643,84 @@ if (newUser.status === "pending") {
   .onclick = () => {
 
     const backgrounds = [
-      {
-        category: "Homem",
-        image: "https://images.pexels.com/photos/33284135/pexels-photo-33284135.jpeg"
-      },
-      {
-        category: "Homem",
-        image: "https://images.pexels.com/photos/7869583/pexels-photo-7869583.jpeg"
-      },
-      {
-        category: "Homem",
-        image: "https://images.pexels.com/photos/17979537/pexels-photo-17979537.jpeg"
-      },
+  {
+    category: "Tênis e pernas",
+    image: "https://images.pexels.com/photos/33995258/pexels-photo-33995258.jpeg"
+  },
+  {
+    category: "Tênis e pernas",
+    image: "https://images.pexels.com/photos/4719924/pexels-photo-4719924.jpeg"
+  },
+  {
+    category: "Tênis e pernas",
+    image: "https://images.pexels.com/photos/4429104/pexels-photo-4429104.jpeg"
+  },
 
-      {
-        category: "Mulher",
-        image: "https://images.pexels.com/photos/26867395/pexels-photo-26867395.jpeg"
-      },
-      {
-        category: "Mulher",
-        image: "https://images.pexels.com/photos/7880276/pexels-photo-7880276.jpeg"
-      },
-      {
-        category: "Mulher",
-        image: "https://images.pexels.com/photos/17973749/pexels-photo-17973749.jpeg"
-      },
+  {
+    category: "Masculino em movimento",
+    image: "https://images.pexels.com/photos/36492599/pexels-photo-36492599.jpeg"
+  },
+  {
+    category: "Masculino em movimento",
+    image: "https://images.pexels.com/photos/11886766/pexels-photo-11886766.jpeg"
+  },
+  {
+    category: "Masculino em movimento",
+    image: "https://images.pexels.com/photos/12125332/pexels-photo-12125332.jpeg"
+  },
 
-      {
-        category: "Pernas e tênis",
-        image: "https://images.pexels.com/photos/36429550/pexels-photo-36429550.jpeg"
-      },
-      {
-        category: "Pernas e tênis",
-        image: "https://images.pexels.com/photos/36429551/pexels-photo-36429551.jpeg"
-      },
-      {
-        category: "Pernas e tênis",
-        image: "https://images.pexels.com/photos/7880214/pexels-photo-7880214.jpeg"
-      },
+  {
+    category: "Feminino em movimento",
+    image: "https://images.pexels.com/photos/7539806/pexels-photo-7539806.jpeg"
+  },
+  {
+    category: "Feminino em movimento",
+    image: "https://images.pexels.com/photos/13171453/pexels-photo-13171453.jpeg"
+  },
+  {
+    category: "Feminino em movimento",
+    image: "https://images.pexels.com/photos/7539818/pexels-photo-7539818.jpeg"
+  },
 
-      {
-        category: "Parque",
-        image: "https://images.pexels.com/photos/6039243/pexels-photo-6039243.jpeg"
-      },
-      {
-        category: "Parque",
-        image: "https://images.pexels.com/photos/17979552/pexels-photo-17979552.jpeg"
-      },
-      {
-        category: "Parque",
-        image: "https://images.pexels.com/photos/932832/pexels-photo-932832.jpeg"
-      },
+  {
+    category: "Estradas",
+    image: "https://images.pexels.com/photos/4386142/pexels-photo-4386142.jpeg"
+  },
+  {
+    category: "Estradas",
+    image: "https://images.pexels.com/photos/4249828/pexels-photo-4249828.jpeg"
+  },
+  {
+    category: "Estradas",
+    image: "https://images.pexels.com/photos/6194997/pexels-photo-6194997.jpeg"
+  },
 
-      {
-        category: "Trilha",
-        image: "https://images.pexels.com/photos/33284135/pexels-photo-33284135.jpeg"
-      },
-      {
-        category: "Trilha",
-        image: "https://images.pexels.com/photos/17979455/pexels-photo-17979455.jpeg"
-      },
-      {
-        category: "Trilha",
-        image: "https://images.pexels.com/photos/17979362/pexels-photo-17979362.jpeg"
-      },
+  {
+    category: "Trilhas e parques",
+    image: "https://images.pexels.com/photos/5967930/pexels-photo-5967930.jpeg"
+  },
+  {
+    category: "Trilhas e parques",
+    image: "https://images.pexels.com/photos/17706113/pexels-photo-17706113.jpeg"
+  },
+  {
+    category: "Trilhas e parques",
+    image: "https://images.pexels.com/photos/21328312/pexels-photo-21328312.jpeg"
+  },
 
-      {
-        category: "Estrada e paisagem",
-        image: "https://images.pexels.com/photos/17979552/pexels-photo-17979552.jpeg"
-      },
-      {
-        category: "Estrada e paisagem",
-        image: "https://images.pexels.com/photos/17979454/pexels-photo-17979454.jpeg"
-      },
-      {
-        category: "Estrada e paisagem",
-        image: "https://images.pexels.com/photos/17979448/pexels-photo-17979448.jpeg"
-      }
-    ];
+  {
+    category: "Paisagens",
+    image: "https://images.pexels.com/photos/11318192/pexels-photo-11318192.jpeg"
+  },
+  {
+    category: "Paisagens",
+    image: "https://images.pexels.com/photos/19912681/pexels-photo-19912681.jpeg"
+  },
+  {
+    category: "Paisagens",
+    image: "https://images.pexels.com/photos/7948527/pexels-photo-7948527.jpeg"
+  }
+];
 
     const existingModal =
       document.getElementById("runningBackgroundModal");
@@ -2670,13 +2737,13 @@ if (newUser.status === "pending") {
       "fixed inset-0 z-[60] bg-black/80 flex items-end justify-center p-4";
 
     const categories = [
-      "Homem",
-      "Mulher",
-      "Pernas e tênis",
-      "Parque",
-      "Trilha",
-      "Estrada e paisagem"
-    ];
+  "Tênis e pernas",
+  "Masculino em movimento",
+  "Feminino em movimento",
+  "Estradas",
+  "Trilhas e parques",
+  "Paisagens"
+];
 
     modal.innerHTML = `
       <div class="w-full max-w-md max-h-[90vh] overflow-y-auto bg-dark-900 border border-dark-700 rounded-2xl p-5">
@@ -2753,23 +2820,194 @@ if (newUser.status === "pending") {
       };
 
     modal
-      .querySelectorAll(".runningBackgroundChoice")
-      .forEach(button => {
+  .querySelectorAll(".runningBackgroundChoice")
+  .forEach(button => {
 
-        button.onclick = () => {
+    button.onclick = () => {
 
-          const imageUrl =
-            button.dataset.image;
+      const imageUrl =
+        button.dataset.image;
 
-          modal.remove();
+      modal.remove();
 
-          alert(
-            "Fundo selecionado. Agora vamos preparar a prévia com os dados da corrida."
-          );
+      const previewModal =
+        document.createElement("div");
 
+      previewModal.id =
+        "runningShareBackgroundPreviewModal";
+
+      previewModal.className =
+        "fixed inset-0 z-[70] bg-black/90 flex items-center justify-center p-4";
+
+      const paceText =
+        activity.paceSecondsPerKm > 0
+          ? Math.floor(
+              activity.paceSecondsPerKm / 60
+            ) +
+            ":" +
+            String(
+              activity.paceSecondsPerKm % 60
+            ).padStart(2, "0") +
+            " /km"
+          : "--:-- /km";
+
+      previewModal.innerHTML = `
+        <div class="w-full max-w-md">
+
+          <div class="flex items-center justify-between mb-3">
+
+            <h3 class="text-sm font-bold text-white">
+              Prévia do compartilhamento
+            </h3>
+
+            <button
+              type="button"
+              id="closeRunningBackgroundPreview"
+              class="text-zinc-400 hover:text-white text-xl"
+            >
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+
+          </div>
+
+          <div
+            class="relative w-full overflow-hidden rounded-2xl bg-black"
+          >
+
+            <img
+              src="${imageUrl}"
+              class="w-full block object-cover"
+              style="max-height:70vh;"
+            >
+
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent"
+            ></div>
+
+            <div
+              class="absolute bottom-0 left-0 right-0 p-5"
+            >
+
+              <div
+                class="text-white font-bold text-xl"
+              >
+                Treinar Running
+              </div>
+
+              <div
+                class="text-xs text-zinc-300 mt-1"
+              >
+                Minha corrida
+              </div>
+
+              <div
+                class="grid grid-cols-2 gap-4 mt-4"
+              >
+
+                <div>
+
+                  <div
+                    class="text-[9px] text-zinc-300 uppercase"
+                  >
+                    Distância
+                  </div>
+
+                  <div
+                    class="text-white font-bold text-lg"
+                  >
+                    ${activity.distanceKm.toFixed(2)} km
+                  </div>
+
+                </div>
+
+                <div>
+
+                  <div
+                    class="text-[9px] text-zinc-300 uppercase"
+                  >
+                    Tempo
+                  </div>
+
+                  <div
+                    class="text-white font-bold text-lg"
+                  >
+                    ${formatRunningTime(
+                      activity.durationSeconds
+                    )}
+                  </div>
+
+                </div>
+
+                <div>
+
+                  <div
+                    class="text-[9px] text-zinc-300 uppercase"
+                  >
+                    Ritmo médio
+                  </div>
+
+                  <div
+                    class="text-white font-bold"
+                  >
+                    ${paceText}
+                  </div>
+
+                </div>
+
+                <div>
+
+                  <div
+                    class="text-[9px] text-zinc-300 uppercase"
+                  >
+                    Velocidade média
+                  </div>
+
+                  <div
+                    class="text-white font-bold"
+                  >
+                    ${activity.averageSpeedKmh.toFixed(1)}
+                    km/h
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      `;
+
+      document.body.appendChild(
+        previewModal
+      );
+
+      document
+        .getElementById(
+          "closeRunningBackgroundPreview"
+        )
+        .onclick = () => {
+          previewModal.remove();
         };
 
-      });
+      previewModal.addEventListener(
+        "click",
+        event => {
+
+          if (
+            event.target === previewModal
+          ) {
+            previewModal.remove();
+          }
+
+        }
+      );
+
+    };
+
+  });
 
     modal.addEventListener("click", event => {
 
