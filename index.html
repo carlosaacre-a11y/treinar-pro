@@ -536,6 +536,7 @@ html.light .border-dark-600 {
 
               <button
                 id="finishRunningBtn"
+                onclick="finishRunning()"
                 class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-3 rounded-xl text-xs transition flex items-center justify-center gap-2"
               >
                 <i class="fa-solid fa-stop"></i>
@@ -2567,7 +2568,64 @@ function formatRunningTime(totalSeconds) {
     }
   }
 }
-            
+
+      function finishRunning() {
+  if (runningWatchId !== null) {
+    navigator.geolocation.clearWatch(runningWatchId);
+    runningWatchId = null;
+  }
+
+  if (runningTimerInterval !== null) {
+    clearInterval(runningTimerInterval);
+    runningTimerInterval = null;
+  }
+
+  const distanceKm = runningDistanceMeters / 1000;
+
+  const activity = {
+    id: "running_" + Date.now(),
+    date: new Date().toISOString(),
+    durationSeconds: runningElapsedSeconds,
+    distanceKm: Number(distanceKm.toFixed(2)),
+    distanceMeters: Math.round(runningDistanceMeters)
+  };
+
+  console.log("Corrida finalizada:", activity);
+
+  runningIsPaused = false;
+  runningStartTime = null;
+  runningElapsedSeconds = 0;
+  runningDistanceMeters = 0;
+  runningLastPosition = null;
+
+  const startBtn = document.getElementById("startRunningBtn");
+  const activeCard = document.getElementById("runningActiveCard");
+  const activityStatus = document.getElementById("runningActivityStatus");
+  const gpsStatus = document.getElementById("runningGpsStatus");
+
+  if (activeCard) {
+    activeCard.classList.add("hidden");
+  }
+
+  if (startBtn) {
+    startBtn.classList.remove("hidden");
+  }
+
+  if (activityStatus) {
+    activityStatus.textContent = "Nenhuma corrida em andamento";
+  }
+
+  if (gpsStatus) {
+    gpsStatus.textContent = "GPS desligado";
+  }
+
+  alert(
+    "Corrida finalizada!\n\n" +
+    "Distância: " + activity.distanceKm.toFixed(2) + " km\n" +
+    "Tempo: " + formatRunningTime(activity.durationSeconds)
+  );
+}
+      
       function switchTab(tab) {
         const isAdmin = currentUser && currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
         if (tab === "admin" && !isAdmin) return;
