@@ -2462,16 +2462,16 @@ document
         return;
       }
 
-      const previewModal =
+      const mapModal =
         document.createElement("div");
 
-      previewModal.id =
+      mapModal.id =
         "runningMapPreviewModal";
 
-      previewModal.className =
-        "fixed inset-0 z-[70] bg-black/90 flex items-center justify-center p-4 overflow-y-auto";
+      mapModal.className =
+        "fixed inset-0 z-[70] bg-black/90 flex items-center justify-center p-4";
 
-      previewModal.innerHTML = `
+      mapModal.innerHTML = `
         <div class="w-full max-w-md">
 
           <div class="flex items-center justify-between mb-3">
@@ -2490,526 +2490,266 @@ document
 
           </div>
 
-          <div
-            class="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800"
-          >
+          <div class="flex gap-2 mb-3">
 
-            <canvas
-              id="runningRouteCanvas"
-              width="1080"
-              height="1350"
-              class="w-full block"
-            ></canvas>
+            <button
+              type="button"
+              id="runningMapStreetBtn"
+              class="flex-1 bg-primary-500 text-white font-semibold py-2 rounded-xl text-sm"
+            >
+              <i class="fa-solid fa-map mr-1"></i>
+              Mapa
+            </button>
+
+            <button
+              type="button"
+              id="runningMapTerrainBtn"
+              class="flex-1 bg-zinc-800 text-white font-semibold py-2 rounded-xl text-sm"
+            >
+              <i class="fa-solid fa-mountain mr-1"></i>
+              Terreno
+            </button>
+
+            <button
+              type="button"
+              id="runningMapSatelliteBtn"
+              class="flex-1 bg-zinc-800 text-white font-semibold py-2 rounded-xl text-sm"
+            >
+              <i class="fa-solid fa-satellite mr-1"></i>
+              Satélite
+            </button>
 
           </div>
 
-          <button
-            type="button"
-            id="shareRunningMapImageBtn"
-            class="w-full mt-3 bg-primary-500 hover:bg-primary-400 text-white font-semibold py-3 rounded-xl"
+          <div
+            class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden"
           >
-            <i class="fa-solid fa-share-nodes mr-2"></i>
-            Compartilhar imagem
-          </button>
+            <div
+              id="runningMap"
+              class="w-full h-[60vh] min-h-[350px]"
+            ></div>
+          </div>
+
+          <div class="text-center text-xs text-zinc-500 mt-2">
+            © Esri — mapa, terreno e imagens de satélite
+          </div>
 
         </div>
       `;
 
-      document.body.appendChild(previewModal);
+      document.body.appendChild(mapModal);
 
-      const canvas =
-        document.getElementById(
-          "runningRouteCanvas"
+      const map =
+        L.map("runningMap", {
+          zoomControl: true
+        });
+
+      const routePoints =
+        points.map(point => [
+          Number(point.latitude),
+          Number(point.longitude)
+        ]);
+
+      const streetLayer =
+        L.tileLayer(
+          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+          {
+            maxZoom: 19,
+            attribution:
+              "© Esri"
+          }
         );
 
-      const ctx =
-        canvas.getContext("2d");
-
-      const width = canvas.width;
-      const height = canvas.height;
-
-      // Fundo
-      ctx.fillStyle = "#18181b";
-      ctx.fillRect(
-        0,
-        0,
-        width,
-        height
-      );
-
-      // Título
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 58px Arial";
-      ctx.fillText(
-        "Treinar Running",
-        60,
-        100
-      );
-
-      // Extrai coordenadas
-      const coordinates =
-        points.map(point => ({
-          lat: Number(point.latitude),
-          lng: Number(point.longitude)
-        }));
-
-      const latitudes =
-        coordinates.map(point => point.lat);
-
-      const longitudes =
-        coordinates.map(point => point.lng);
-
-      const minLat =
-        Math.min(...latitudes);
-
-      const maxLat =
-        Math.max(...latitudes);
-
-      const minLng =
-        Math.min(...longitudes);
-
-      const maxLng =
-        Math.max(...longitudes);
-
-      const mapLeft = 80;
-      const mapTop = 180;
-      const mapRight = 1000;
-      const mapBottom = 850;
-
-      const mapWidth =
-        mapRight - mapLeft;
-
-      const mapHeight =
-        mapBottom - mapTop;
-
-      const latRange =
-        maxLat - minLat || 0.0001;
-
-      const lngRange =
-        maxLng - minLng || 0.0001;
-
-      const scale =
-        Math.min(
-          mapWidth / lngRange,
-          mapHeight / latRange
+      const terrainLayer =
+        L.tileLayer(
+          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+          {
+            maxZoom: 19,
+            attribution:
+              "© Esri"
+          }
         );
 
-      const routeWidth =
-        lngRange * scale;
+      const satelliteLayer =
+        L.tileLayer(
+          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+          {
+            maxZoom: 19,
+            attribution:
+              "© Esri"
+          }
+        );
 
-      const routeHeight =
-        latRange * scale;
+      streetLayer.addTo(map);
 
-      const offsetX =
-        mapLeft +
-        (mapWidth - routeWidth) / 2;
+      const routeLine =
+        L.polyline(
+          routePoints,
+          {
+            color: "#22c55e",
+            weight: 5,
+            opacity: 0.95,
+            lineCap: "round",
+            lineJoin: "round"
+          }
+        ).addTo(map);
 
-      const offsetY =
-        mapTop +
-        (mapHeight - routeHeight) / 2;
-
-      function convertPoint(point) {
-
-        return {
-          x:
-            offsetX +
-            (point.lng - minLng) *
-              scale,
-
-          y:
-            offsetY +
-            (maxLat - point.lat) *
-              scale
-        };
-
-      }
-
-      // Área do mapa
-      ctx.fillStyle = "#27272a";
-
-      ctx.fillRect(
-        mapLeft,
-        mapTop,
-        mapWidth,
-        mapHeight
+      map.fitBounds(
+        routeLine.getBounds(),
+        {
+          padding: [30, 30]
+        }
       );
 
-      // Grade visual
-      ctx.strokeStyle =
-        "rgba(255,255,255,0.06)";
+      L.circleMarker(
+        routePoints[0],
+        {
+          radius: 9,
+          color: "#ffffff",
+          weight: 3,
+          fillColor: "#22c55e",
+          fillOpacity: 1
+        }
+      )
+        .addTo(map)
+        .bindPopup("Início da corrida");
 
-      ctx.lineWidth = 2;
+      L.circleMarker(
+        routePoints[routePoints.length - 1],
+        {
+          radius: 9,
+          color: "#ffffff",
+          weight: 3,
+          fillColor: "#ef4444",
+          fillOpacity: 1
+        }
+      )
+        .addTo(map)
+        .bindPopup("Fim da corrida");
 
-      for (
-        let x = mapLeft;
-        x <= mapRight;
-        x += 100
+      function activateMapLayer(
+        selectedLayer,
+        selectedButton
       ) {
 
-        ctx.beginPath();
-
-        ctx.moveTo(
-          x,
-          mapTop
+        map.removeLayer(
+          streetLayer
         );
 
-        ctx.lineTo(
-          x,
-          mapBottom
+        map.removeLayer(
+          terrainLayer
         );
 
-        ctx.stroke();
+        map.removeLayer(
+          satelliteLayer
+        );
+
+        selectedLayer.addTo(map);
+
+        document
+          .getElementById(
+            "runningMapStreetBtn"
+          )
+          .className =
+            "flex-1 bg-zinc-800 text-white font-semibold py-2 rounded-xl text-sm";
+
+        document
+          .getElementById(
+            "runningMapTerrainBtn"
+          )
+          .className =
+            "flex-1 bg-zinc-800 text-white font-semibold py-2 rounded-xl text-sm";
+
+        document
+          .getElementById(
+            "runningMapSatelliteBtn"
+          )
+          .className =
+            "flex-1 bg-zinc-800 text-white font-semibold py-2 rounded-xl text-sm";
+
+        selectedButton.className =
+          "flex-1 bg-primary-500 text-white font-semibold py-2 rounded-xl text-sm";
+
+        setTimeout(() => {
+          map.invalidateSize();
+        }, 200);
       }
 
-      for (
-        let y = mapTop;
-        y <= mapBottom;
-        y += 100
-      ) {
+      document
+        .getElementById(
+          "runningMapStreetBtn"
+        )
+        .onclick = () => {
 
-        ctx.beginPath();
-
-        ctx.moveTo(
-          mapLeft,
-          y
-        );
-
-        ctx.lineTo(
-          mapRight,
-          y
-        );
-
-        ctx.stroke();
-      }
-
-      // Rota
-      const firstPoint =
-        convertPoint(
-          coordinates[0]
-        );
-
-      ctx.beginPath();
-
-      ctx.moveTo(
-        firstPoint.x,
-        firstPoint.y
-      );
-
-      for (
-        let i = 1;
-        i < coordinates.length;
-        i++
-      ) {
-
-        const point =
-          convertPoint(
-            coordinates[i]
+          activateMapLayer(
+            streetLayer,
+            document.getElementById(
+              "runningMapStreetBtn"
+            )
           );
 
-        ctx.lineTo(
-          point.x,
-          point.y
-        );
-      }
+        };
 
-      ctx.strokeStyle =
-        "#22c55e";
+      document
+        .getElementById(
+          "runningMapTerrainBtn"
+        )
+        .onclick = () => {
 
-      ctx.lineWidth = 12;
+          activateMapLayer(
+            terrainLayer,
+            document.getElementById(
+              "runningMapTerrainBtn"
+            )
+          );
 
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
+        };
 
-      ctx.stroke();
+      document
+        .getElementById(
+          "runningMapSatelliteBtn"
+        )
+        .onclick = () => {
 
-      // Início
-      ctx.beginPath();
+          activateMapLayer(
+            satelliteLayer,
+            document.getElementById(
+              "runningMapSatelliteBtn"
+            )
+          );
 
-      ctx.arc(
-        firstPoint.x,
-        firstPoint.y,
-        20,
-        0,
-        Math.PI * 2
-      );
+        };
 
-      ctx.fillStyle =
-        "#22c55e";
+      setTimeout(() => {
 
-      ctx.fill();
+        map.invalidateSize();
 
-      // Fim
-      const lastPoint =
-        convertPoint(
-          coordinates[
-            coordinates.length - 1
-          ]
-        );
-
-      ctx.beginPath();
-
-      ctx.arc(
-        lastPoint.x,
-        lastPoint.y,
-        20,
-        0,
-        Math.PI * 2
-      );
-
-      ctx.fillStyle =
-        "#ef4444";
-
-      ctx.fill();
-
-      // Legendas
-      ctx.font =
-        "bold 30px Arial";
-
-      ctx.fillStyle =
-        "#ffffff";
-
-      ctx.fillText(
-        "INÍCIO",
-        firstPoint.x + 30,
-        firstPoint.y + 10
-      );
-
-      ctx.fillText(
-        "FIM",
-        lastPoint.x + 30,
-        lastPoint.y + 10
-      );
-
-      // Informações da corrida
-      ctx.fillStyle =
-        "#ffffff";
-
-      ctx.font =
-        "bold 34px Arial";
-
-      ctx.fillText(
-        "DISTÂNCIA",
-        80,
-        970
-      );
-
-      ctx.fillText(
-        "TEMPO",
-        400,
-        970
-      );
-
-      ctx.fillText(
-        "RITMO",
-        720,
-        970
-      );
-
-      ctx.font =
-        "bold 42px Arial";
-
-      ctx.fillText(
-        activity.distanceKm.toFixed(2) +
-          " km",
-        80,
-        1020
-      );
-
-      ctx.fillText(
-        formatRunningTime(
-          activity.durationSeconds
-        ),
-        400,
-        1020
-      );
-
-      const paceText =
-        activity.paceSecondsPerKm > 0
-          ? Math.floor(
-              activity.paceSecondsPerKm / 60
-            ) +
-            ":" +
-            String(
-              activity.paceSecondsPerKm % 60
-            ).padStart(2, "0") +
-            " /km"
-          : "--:-- /km";
-
-      ctx.fillText(
-        paceText,
-        720,
-        1020
-      );
-
-      // Rodapé
-      ctx.font =
-        "bold 30px Arial";
-
-      ctx.fillStyle =
-        "#a1a1aa";
-
-      ctx.fillText(
-        "Treinar Running",
-        80,
-        1250
-      );
+      }, 300);
 
       document
         .getElementById(
           "closeRunningMapPreview"
         )
         .onclick = () => {
-          previewModal.remove();
+
+          mapModal.remove();
+
         };
 
-      previewModal.addEventListener(
+      mapModal.addEventListener(
         "click",
         event => {
 
           if (
-            event.target ===
-            previewModal
+            event.target === mapModal
           ) {
-            previewModal.remove();
+
+            mapModal.remove();
+
           }
 
         }
       );
-
-      document
-        .getElementById(
-          "shareRunningMapImageBtn"
-        )
-        .onclick = async () => {
-
-          const shareButton =
-            document.getElementById(
-              "shareRunningMapImageBtn"
-            );
-
-          try {
-
-            shareButton.disabled = true;
-
-            shareButton.innerHTML =
-              '<i class="fa-solid fa-spinner fa-spin"></i> Preparando...';
-
-            const blob =
-              await new Promise(
-                resolve => {
-
-                  canvas.toBlob(
-                    resolve,
-                    "image/png",
-                    1
-                  );
-
-                }
-              );
-
-            if (!blob) {
-              throw new Error(
-                "Não foi possível criar a imagem."
-              );
-            }
-
-            const file =
-              new File(
-                [blob],
-                "treinar-running-mapa.png",
-                {
-                  type: "image/png"
-                }
-              );
-
-            if (
-              navigator.share &&
-              navigator.canShare &&
-              navigator.canShare({
-                files: [file]
-              })
-            ) {
-
-              await navigator.share({
-                title:
-                  "Treinar Running",
-                text:
-                  "Meu percurso no Treinar Running 🏃",
-                files: [file]
-              });
-
-            } else {
-
-              const downloadUrl =
-                URL.createObjectURL(
-                  blob
-                );
-
-              const link =
-                document.createElement(
-                  "a"
-                );
-
-              link.href =
-                downloadUrl;
-
-              link.download =
-                "treinar-running-mapa.png";
-
-              document.body.appendChild(
-                link
-              );
-
-              link.click();
-
-              link.remove();
-
-              URL.revokeObjectURL(
-                downloadUrl
-              );
-
-              alert(
-                "A imagem foi salva no celular. Agora você pode enviá-la pelo WhatsApp ou outro aplicativo."
-              );
-
-            }
-
-          } catch (error) {
-
-            if (
-              error &&
-              error.name ===
-                "AbortError"
-            ) {
-              return;
-            }
-
-            console.error(
-              "Erro ao compartilhar mapa:",
-              error
-            );
-
-            alert(
-              "ERRO: " +
-                (
-                  error &&
-                  error.message
-                    ? error.message
-                    : String(error)
-                )
-            );
-
-          } finally {
-
-            shareButton.disabled =
-              false;
-
-            shareButton.innerHTML =
-              '<i class="fa-solid fa-share-nodes mr-2"></i> Compartilhar imagem';
-
-          }
-
-        };
 
     };
 
