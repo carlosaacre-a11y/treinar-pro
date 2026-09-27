@@ -3047,63 +3047,42 @@ function renderRunningHistory() {
 
         <div class="flex items-start justify-between mb-4">
 
-  <div class="min-w-0">
-    <div class="font-semibold text-white">
-      Corrida
-    </div>
+          <div class="min-w-0">
 
-    <div class="text-xs text-zinc-400 mt-1">
-      ${dateText} às ${timeText}
-    </div>
-  </div>
+            <div class="flex items-center gap-2 font-semibold text-white">
+              <i class="fa-solid fa-person-running text-primary-500"></i>
+              Corrida
+            </div>
 
-  <div class="flex flex-col items-center gap-3 ml-4">
+            <div class="text-xs text-zinc-400 mt-1">
+              ${dateText} às ${timeText}
+            </div>
 
-    <button
-      type="button"
-      onclick="deleteRunningActivity('${activity.id}')"
-      class="text-red-400 hover:text-red-300 transition text-base"
-      title="Excluir corrida"
-    >
-      <i class="fa-solid fa-trash"></i>
-    </button>
+          </div>
 
-    <button
-      type="button"
-      onclick="shareRunningActivity('${activity.id}')"
-      class="text-primary-400 hover:text-primary-300 transition text-base"
-      title="Compartilhar corrida"
-    >
-      <i class="fa-solid fa-share-nodes"></i>
-    </button>
+          <div class="flex flex-col items-center gap-3 ml-4">
 
-  </div>
+            <button
+              type="button"
+              onclick="deleteRunningActivity('${activity.id}')"
+              class="text-red-400 hover:text-red-300 transition text-base"
+              title="Excluir corrida"
+            >
+              <i class="fa-solid fa-trash"></i>
+            </button>
 
-</div>
+            <button
+              type="button"
+              onclick="shareRunningActivity('${activity.id}')"
+              class="text-primary-400 hover:text-primary-300 transition text-base"
+              title="Compartilhar corrida"
+            >
+              <i class="fa-solid fa-share-nodes"></i>
+            </button>
 
-  <i class="fa-solid fa-person-running text-primary-500 text-xl"></i>
+          </div>
 
-  <button
-    type="button"
-    onclick="deleteRunningActivity('${activity.id}')"
-    class="text-red-400 hover:text-red-300 transition"
-    title="Excluir corrida"
-  >
-    <i class="fa-solid fa-trash"></i>
-  </button>
-
-  <button
-    type="button"
-    onclick="shareRunningActivity('${activity.id}')"
-    class="text-primary-400 hover:text-primary-300 transition"
-    title="Compartilhar corrida"
-  >
-    <i class="fa-solid fa-share-nodes"></i>
-  </button>
-
-</div>
-
-</div>
+        </div>
 
         <div class="grid grid-cols-2 gap-3">
 
@@ -3148,6 +3127,7 @@ function renderRunningHistory() {
           </div>
 
         </div>
+
       </div>
     `;
   }).join("");
