@@ -369,6 +369,323 @@ html.light .border-dark-600 {
           <div id="workoutContainer" class="space-y-3"></div>
         </div>
 
+        <!-- ABA: TREINAR RUNNING -->
+        <div id="tabRunning" class="tab-content space-y-5 hidden">
+
+          <!-- CABEÇALHO -->
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-person-running text-primary-500"></i>
+                Treinar Running
+              </h3>
+              <p class="text-[10px] text-zinc-500 mt-1">
+                Corrida, caminhada e histórico de atividades
+              </p>
+            </div>
+          </div>
+
+          <!-- ÁREA PRINCIPAL DA CORRIDA -->
+          <div
+            id="runningStartCard"
+            class="bg-dark-800 border border-primary-500/30 rounded-2xl p-5 text-center space-y-4"
+          >
+            <div
+              class="w-16 h-16 mx-auto rounded-full bg-primary-500/10 border border-primary-500/30 flex items-center justify-center"
+            >
+              <i class="fa-solid fa-person-running text-primary-500 text-2xl"></i>
+            </div>
+
+            <div>
+              <h4 class="text-sm font-bold text-white">
+                Pronto para começar?
+              </h4>
+              <p class="text-[10px] text-zinc-500 mt-1">
+                Inicie uma corrida para acompanhar distância, tempo e ritmo.
+              </p>
+            </div>
+
+            <button
+              id="startRunningBtn"
+              class="w-full bg-primary-500 hover:bg-primary-600 text-dark-950 font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2"
+            >
+              <i class="fa-solid fa-play"></i>
+              INICIAR CORRIDA
+            </button>
+          </div>
+
+          <!-- CORRIDA EM ANDAMENTO -->
+          <div
+            id="runningActiveCard"
+            class="hidden bg-dark-800 border border-primary-500/30 rounded-2xl p-4 space-y-4"
+          >
+            <div class="flex items-center justify-between">
+              <div>
+                <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                  Corrida em andamento
+                </h4>
+                <p class="text-[10px] text-zinc-500 mt-1">
+                  GPS ativo
+                </p>
+              </div>
+
+              <span
+                id="runningGpsStatus"
+                class="text-[10px] text-primary-400 font-semibold"
+              >
+                Aguardando GPS...
+              </span>
+            </div>
+
+            <!-- MAPA -->
+            <div
+              id="runningMap"
+              class="h-48 rounded-xl bg-dark-900 border border-dark-700 flex flex-col items-center justify-center text-center"
+            >
+              <i class="fa-solid fa-map-location-dot text-primary-500 text-2xl mb-2"></i>
+              <p class="text-xs text-zinc-400 font-semibold">
+                Mapa do percurso
+              </p>
+              <p class="text-[10px] text-zinc-600 mt-1">
+                O mapa será conectado ao GPS
+              </p>
+            </div>
+
+            <!-- ESTATÍSTICAS -->
+            <div class="grid grid-cols-3 gap-2">
+
+              <div class="bg-dark-900 border border-dark-700 rounded-xl p-3 text-center">
+                <p class="text-[9px] text-zinc-500 uppercase font-semibold">
+                  Distância
+                </p>
+                <p
+                  id="runningDistance"
+                  class="text-base font-bold text-white mt-1"
+                >
+                  0,00 km
+                </p>
+              </div>
+
+              <div class="bg-dark-900 border border-dark-700 rounded-xl p-3 text-center">
+                <p class="text-[9px] text-zinc-500 uppercase font-semibold">
+                  Tempo
+                </p>
+                <p
+                  id="runningTime"
+                  class="text-base font-bold text-white mt-1"
+                >
+                  00:00
+                </p>
+              </div>
+
+              <div class="bg-dark-900 border border-dark-700 rounded-xl p-3 text-center">
+                <p class="text-[9px] text-zinc-500 uppercase font-semibold">
+                  Ritmo
+                </p>
+                <p
+                  id="runningPace"
+                  class="text-base font-bold text-white mt-1"
+                >
+                  --:--
+                </p>
+              </div>
+
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+
+              <div class="bg-dark-900 border border-dark-700 rounded-xl p-3 text-center">
+                <p class="text-[9px] text-zinc-500 uppercase font-semibold">
+                  Velocidade
+                </p>
+                <p
+                  id="runningSpeed"
+                  class="text-sm font-bold text-primary-400 mt-1"
+                >
+                  0,0 km/h
+                </p>
+              </div>
+
+              <div class="bg-dark-900 border border-dark-700 rounded-xl p-3 text-center">
+                <p class="text-[9px] text-zinc-500 uppercase font-semibold">
+                  Status
+                </p>
+                <p
+                  id="runningActivityStatus"
+                  class="text-sm font-bold text-primary-400 mt-1"
+                >
+                  Correndo
+                </p>
+              </div>
+
+            </div>
+
+            <!-- CONTROLES -->
+            <div class="grid grid-cols-2 gap-2">
+
+              <button
+                id="pauseRunningBtn"
+                class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold py-3 rounded-xl text-xs transition flex items-center justify-center gap-2"
+              >
+                <i class="fa-solid fa-pause"></i>
+                PAUSAR
+              </button>
+
+              <button
+                id="finishRunningBtn"
+                class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-3 rounded-xl text-xs transition flex items-center justify-center gap-2"
+              >
+                <i class="fa-solid fa-stop"></i>
+                FINALIZAR
+              </button>
+
+            </div>
+          </div>
+
+          <!-- FILTROS -->
+          <div class="space-y-3">
+
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold text-white">
+                Histórico de atividades
+              </h4>
+
+              <span
+                id="runningSelectedPeriod"
+                class="text-[10px] text-primary-400 font-semibold"
+              >
+                Hoje
+              </span>
+            </div>
+
+            <div class="grid grid-cols-4 gap-1.5">
+
+              <button
+                id="runningFilterToday"
+                class="bg-primary-500 text-dark-950 font-bold py-2 rounded-lg text-[10px] transition"
+              >
+                Hoje
+              </button>
+
+              <button
+                id="runningFilterWeek"
+                class="bg-dark-800 text-zinc-400 border border-dark-700 font-bold py-2 rounded-lg text-[10px] transition"
+              >
+                Semana
+              </button>
+
+              <button
+                id="runningFilterMonth"
+                class="bg-dark-800 text-zinc-400 border border-dark-700 font-bold py-2 rounded-lg text-[10px] transition"
+              >
+                Mês
+              </button>
+
+              <button
+                id="runningFilterCustom"
+                class="bg-dark-800 text-zinc-400 border border-dark-700 font-bold py-2 rounded-lg text-[10px] transition"
+              >
+                Personalizado
+              </button>
+
+            </div>
+
+          </div>
+
+          <!-- RESUMO -->
+          <div class="bg-dark-800 border border-dark-700 rounded-2xl p-4">
+
+            <h4 class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-3">
+              Resumo do período
+            </h4>
+
+            <div class="grid grid-cols-3 gap-2">
+
+              <div class="text-center">
+                <p class="text-[9px] text-zinc-500 uppercase">
+                  Distância
+                </p>
+                <p
+                  id="runningSummaryDistance"
+                  class="text-sm font-bold text-white mt-1"
+                >
+                  0,00 km
+                </p>
+              </div>
+
+              <div class="text-center">
+                <p class="text-[9px] text-zinc-500 uppercase">
+                  Atividades
+                </p>
+                <p
+                  id="runningSummaryActivities"
+                  class="text-sm font-bold text-white mt-1"
+                >
+                  0
+                </p>
+              </div>
+
+              <div class="text-center">
+                <p class="text-[9px] text-zinc-500 uppercase">
+                  Tempo
+                </p>
+                <p
+                  id="runningSummaryTime"
+                  class="text-sm font-bold text-white mt-1"
+                >
+                  00:00
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- GRÁFICO -->
+          <div class="bg-dark-800 border border-dark-700 rounded-2xl p-4">
+
+            <h4 class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-3">
+              Distância por atividade
+            </h4>
+
+            <div
+              id="runningChart"
+              class="h-40 flex items-center justify-center text-center"
+            >
+              <div>
+                <i class="fa-solid fa-chart-column text-zinc-600 text-2xl mb-2"></i>
+                <p class="text-[10px] text-zinc-500">
+                  O gráfico será preenchido com suas atividades.
+                </p>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- LISTA INDIVIDUAL -->
+          <div class="space-y-3">
+
+            <h4 class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+              Atividades do período
+            </h4>
+
+            <div
+              id="runningActivitiesList"
+              class="space-y-2"
+            >
+              <div class="bg-dark-800 border border-dark-700 rounded-xl p-4 text-center">
+                <i class="fa-solid fa-person-running text-zinc-600 text-xl mb-2"></i>
+                <p class="text-xs text-zinc-500">
+                  Nenhuma atividade registrada neste período.
+                </p>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+        
         <!-- ABA 2: PERFIL -->
         <div id="tabProfile" class="tab-content space-y-5 hidden">
           <div
@@ -607,6 +924,16 @@ html.light .border-dark-600 {
           <i class="fa-solid fa-dumbbell text-base"></i>
           <span class="text-[10px] mt-1 font-medium">Treinos</span>
         </button>
+
+        <button
+          onclick="switchTab('running')"
+          id="navRunning"
+          class="flex flex-col items-center text-zinc-400 py-1 px-4 transition hover:text-white"
+        >
+          <i class="fa-solid fa-person-running text-base"></i>
+          <span class="text-[10px] mt-1 font-medium">Running</span>
+        </button>
+        
         <button
           onclick="switchTab('profile')"
           id="navProfile"
@@ -1997,7 +2324,7 @@ function toggleTheme() {
       function switchTab(tab) {
         const isAdmin = currentUser && currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
         if (tab === "admin" && !isAdmin) return;
-        ["workouts", "profile", "admin"].forEach((t) => {
+        ["workouts", "running", "profile", "admin"].forEach((t) => {
           const el = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
           if (el) el.classList.add("hidden");
           const btn = document.getElementById(`nav${t.charAt(0).toUpperCase() + t.slice(1)}`);
