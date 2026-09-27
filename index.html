@@ -2492,8 +2492,14 @@ function updateRunningStats() {
   const speedEl = document.getElementById("runningSpeed");
 
   if (distanceEl) {
-    distanceEl.textContent = distanceKm.toFixed(2) + " km";
+  if (distanceKm < 1) {
+    distanceEl.textContent =
+      Math.round(runningDistanceMeters) + " m";
+  } else {
+    distanceEl.textContent =
+      distanceKm.toFixed(2) + " km";
   }
+}
 
   if (timeEl) {
     timeEl.textContent = formatRunningTime(runningElapsedSeconds);
