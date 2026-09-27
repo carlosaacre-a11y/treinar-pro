@@ -2720,10 +2720,19 @@ if (sharePreviewBtn) {
       );
 
       ctx.fillText(
-        paceText,
-        700,
-        1210
-      );
+  activity.paceSecondsPerKm > 0
+    ? Math.floor(
+        activity.paceSecondsPerKm / 60
+      ) +
+      ":" +
+      String(
+        activity.paceSecondsPerKm % 60
+      ).padStart(2, "0") +
+      " /km"
+    : "--:-- /km",
+  700,
+  1210
+);
 
       /*
        * TRANSFORMA A PRÉVIA EM PNG
