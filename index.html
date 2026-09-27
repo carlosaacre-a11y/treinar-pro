@@ -3886,23 +3886,37 @@ runningStartTime = Date.now();
 }
 
 function handleRunningPosition(position) {
+  const accuracy = position.coords.accuracy;
+
   const currentPosition = {
     latitude: position.coords.latitude,
     longitude: position.coords.longitude
   };
 
-  if (!runningIsPaused) {
-  runningGpsPoints.push({
-    latitude: position.coords.latitude,
-    longitude: position.coords.longitude,
-    timestamp: Date.now()
-  });
-}
-
   const gpsStatus = document.getElementById("runningGpsStatus");
+
+  // Aguarda uma precisão mínima antes de começar a contar
+  if (accuracy > 30) {
+    if (gpsStatus) {
+      gpsStatus.textContent =
+        "Aguardando GPS preciso (" +
+        Math.round(accuracy) +
+        " m)";
+    }
+
+    return;
+  }
 
   if (gpsStatus) {
     gpsStatus.textContent = "GPS conectado";
+  }
+
+  if (!runningIsPaused) {
+    runningGpsPoints.push({
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+      timestamp: Date.now()
+    });
   }
 
   if (!runningLastPosition) {
@@ -3923,9 +3937,10 @@ function handleRunningPosition(position) {
   );
 
   // Ignora pequenos erros naturais do GPS
+  // e deslocamentos grandes demais entre duas posições.
   if (distance >= 1 && distance <= 200) {
-  runningDistanceMeters += distance;
-}
+    runningDistanceMeters += distance;
+  }
 
   runningLastPosition = currentPosition;
 
