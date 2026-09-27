@@ -2499,54 +2499,43 @@ if (newUser.status === "pending") {
   ></div>
 </div>
 
-        <div class="text-primary-400 text-4xl mb-3">
-          <i class="fa-solid fa-map-location-dot"></i>
-        </div>
-
-        <div class="text-white font-bold text-lg">
-          Percurso da corrida
-        </div>
-
-        <div class="text-zinc-400 text-xs mt-2">
-          ${points.length} pontos de GPS registrados
-        </div>
-
-        <div class="grid grid-cols-2 gap-3 mt-5 text-left">
-
-          <div>
-            <div class="text-[9px] text-zinc-400 uppercase">
-              Distância
-            </div>
-
-            <div class="text-white font-bold">
-              ${activity.distanceKm.toFixed(2)} km
-            </div>
-          </div>
-
-          <div>
-            <div class="text-[9px] text-zinc-400 uppercase">
-              Tempo
-            </div>
-
-            <div class="text-white font-bold">
-              ${formatRunningTime(activity.durationSeconds)}
-            </div>
-          </div>
-
-        </div>
-
-        <div class="mt-5 text-xs text-zinc-500">
-          O percurso será exibido no próximo passo.
-        </div>
-
-      </div>
-
-    </div>
-  `;
-
   document.body.appendChild(mapModal);
-    const map = L.map("runningMap");
+  const map = L.map("runningMap");
 
+L.tileLayer(
+  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  {
+    attribution: "&copy; OpenStreetMap contributors"
+  }
+).addTo(map);
+
+const routePoints = points.map(point => [
+  point.latitude,
+  point.longitude
+]);
+
+const routeLine = L.polyline(
+  routePoints,
+  {
+    color: "#22c55e",
+    weight: 5,
+    opacity: 0.9
+  }
+).addTo(map);
+
+map.fitBounds(routeLine.getBounds(), {
+  padding: [30, 30]
+});
+
+L.marker(routePoints[0])
+  .addTo(map)
+  .bindPopup("Início da corrida");
+
+L.marker(routePoints[routePoints.length - 1])
+  .addTo(map)
+  .bindPopup("Fim da corrida");
+
+  
 L.tileLayer(
   "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
   {
