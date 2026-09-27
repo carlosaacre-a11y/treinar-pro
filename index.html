@@ -2572,12 +2572,213 @@ if (newUser.status === "pending") {
   };
 
   document
-    .getElementById("shareBackgroundOption")
-    .onclick = () => {
-      alert(
-        "Os fundos do Treinar Running serão adicionados agora."
-      );
-    };
+  .getElementById("shareBackgroundOption")
+  .onclick = () => {
+
+    const backgrounds = [
+      {
+        category: "Homem",
+        image: "https://images.pexels.com/photos/33284135/pexels-photo-33284135.jpeg"
+      },
+      {
+        category: "Homem",
+        image: "https://images.pexels.com/photos/7869583/pexels-photo-7869583.jpeg"
+      },
+      {
+        category: "Homem",
+        image: "https://images.pexels.com/photos/17979537/pexels-photo-17979537.jpeg"
+      },
+
+      {
+        category: "Mulher",
+        image: "https://images.pexels.com/photos/26867395/pexels-photo-26867395.jpeg"
+      },
+      {
+        category: "Mulher",
+        image: "https://images.pexels.com/photos/7880276/pexels-photo-7880276.jpeg"
+      },
+      {
+        category: "Mulher",
+        image: "https://images.pexels.com/photos/17973749/pexels-photo-17973749.jpeg"
+      },
+
+      {
+        category: "Pernas e tênis",
+        image: "https://images.pexels.com/photos/36429550/pexels-photo-36429550.jpeg"
+      },
+      {
+        category: "Pernas e tênis",
+        image: "https://images.pexels.com/photos/36429551/pexels-photo-36429551.jpeg"
+      },
+      {
+        category: "Pernas e tênis",
+        image: "https://images.pexels.com/photos/7880214/pexels-photo-7880214.jpeg"
+      },
+
+      {
+        category: "Parque",
+        image: "https://images.pexels.com/photos/6039243/pexels-photo-6039243.jpeg"
+      },
+      {
+        category: "Parque",
+        image: "https://images.pexels.com/photos/17979552/pexels-photo-17979552.jpeg"
+      },
+      {
+        category: "Parque",
+        image: "https://images.pexels.com/photos/932832/pexels-photo-932832.jpeg"
+      },
+
+      {
+        category: "Trilha",
+        image: "https://images.pexels.com/photos/33284135/pexels-photo-33284135.jpeg"
+      },
+      {
+        category: "Trilha",
+        image: "https://images.pexels.com/photos/17979455/pexels-photo-17979455.jpeg"
+      },
+      {
+        category: "Trilha",
+        image: "https://images.pexels.com/photos/17979362/pexels-photo-17979362.jpeg"
+      },
+
+      {
+        category: "Estrada e paisagem",
+        image: "https://images.pexels.com/photos/17979552/pexels-photo-17979552.jpeg"
+      },
+      {
+        category: "Estrada e paisagem",
+        image: "https://images.pexels.com/photos/17979454/pexels-photo-17979454.jpeg"
+      },
+      {
+        category: "Estrada e paisagem",
+        image: "https://images.pexels.com/photos/17979448/pexels-photo-17979448.jpeg"
+      }
+    ];
+
+    const existingModal =
+      document.getElementById("runningBackgroundModal");
+
+    if (existingModal) {
+      existingModal.remove();
+    }
+
+    const modal = document.createElement("div");
+
+    modal.id = "runningBackgroundModal";
+
+    modal.className =
+      "fixed inset-0 z-[60] bg-black/80 flex items-end justify-center p-4";
+
+    const categories = [
+      "Homem",
+      "Mulher",
+      "Pernas e tênis",
+      "Parque",
+      "Trilha",
+      "Estrada e paisagem"
+    ];
+
+    modal.innerHTML = `
+      <div class="w-full max-w-md max-h-[90vh] overflow-y-auto bg-dark-900 border border-dark-700 rounded-2xl p-5">
+
+        <div class="flex items-center justify-between mb-5">
+
+          <div>
+            <h3 class="text-base font-bold text-white">
+              Fundos do Treinar Running
+            </h3>
+
+            <p class="text-xs text-zinc-400 mt-1">
+              Escolha uma imagem para sua corrida.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            id="closeRunningBackgroundModal"
+            class="text-zinc-400 hover:text-white text-xl"
+          >
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+
+        </div>
+
+        ${categories.map(category => {
+
+          const categoryImages =
+            backgrounds.filter(
+              item => item.category === category
+            );
+
+          return `
+            <div class="mb-5">
+
+              <h4 class="text-xs font-bold text-white mb-2">
+                ${category}
+              </h4>
+
+              <div class="grid grid-cols-3 gap-2">
+
+                ${categoryImages.map(item => `
+                  <button
+                    type="button"
+                    class="runningBackgroundChoice relative overflow-hidden rounded-xl aspect-[3/4] border border-dark-700 hover:border-primary-500 transition"
+                    data-image="${item.image}"
+                  >
+                    <img
+                      src="${item.image}"
+                      class="w-full h-full object-cover"
+                    >
+
+                    <div class="absolute inset-0 bg-black/10"></div>
+                  </button>
+                `).join("")}
+
+              </div>
+
+            </div>
+          `;
+
+        }).join("")}
+
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    document
+      .getElementById("closeRunningBackgroundModal")
+      .onclick = () => {
+        modal.remove();
+      };
+
+    modal
+      .querySelectorAll(".runningBackgroundChoice")
+      .forEach(button => {
+
+        button.onclick = () => {
+
+          const imageUrl =
+            button.dataset.image;
+
+          modal.remove();
+
+          alert(
+            "Fundo selecionado. Agora vamos preparar a prévia com os dados da corrida."
+          );
+
+        };
+
+      });
+
+    modal.addEventListener("click", event => {
+
+      if (event.target === modal) {
+        modal.remove();
+      }
+
+    });
+  };
 
   document
     .getElementById("shareMapOption")
