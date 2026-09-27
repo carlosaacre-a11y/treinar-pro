@@ -2558,7 +2558,7 @@ if (newUser.status === "pending") {
 
 document.body.appendChild(previewModal);
 
-      const sharePreviewBtn =
+const sharePreviewBtn =
   document.getElementById(
     "shareRunningBackgroundPreviewBtn"
   );
@@ -2566,42 +2566,234 @@ document.body.appendChild(previewModal);
 if (sharePreviewBtn) {
   sharePreviewBtn.onclick = async () => {
 
-    const shareText =
-      "🏃 Treinar Running\n\n" +
-      "Distância: " +
-      activity.distanceKm.toFixed(2) +
-      " km\n" +
-      "Tempo: " +
-      formatRunningTime(
-        activity.durationSeconds
-      ) +
-      "\n" +
-      "Ritmo médio: " +
-      paceText +
-      "\n" +
-      "Velocidade média: " +
-      activity.averageSpeedKmh.toFixed(1) +
-      " km/h";
-
     try {
 
-      if (navigator.share) {
+      sharePreviewBtn.disabled = true;
+
+      sharePreviewBtn.innerHTML =
+        '<i class="fa-solid fa-spinner fa-spin"></i> Preparando...';
+
+      const image = new Image();
+
+      image.crossOrigin = "anonymous";
+
+      image.src = imageUrl;
+
+      await new Promise((resolve, reject) => {
+
+        image.onload = resolve;
+
+        image.onerror = reject;
+
+      });
+
+      const canvas =
+        document.createElement("canvas");
+
+      const canvasWidth = 1080;
+      const canvasHeight = 1350;
+
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+
+      const ctx =
+        canvas.getContext("2d");
+
+      ctx.drawImage(
+        image,
+        0,
+        0,
+        canvasWidth,
+        canvasHeight
+      );
+
+      /*
+       * GRADIENTE ESCURO NA PARTE INFERIOR
+       */
+
+      const gradient =
+        ctx.createLinearGradient(
+          0,
+          canvasHeight * 0.55,
+          0,
+          canvasHeight
+        );
+
+      gradient.addColorStop(
+        0,
+        "rgba(0,0,0,0)"
+      );
+
+      gradient.addColorStop(
+        1,
+        "rgba(0,0,0,0.92)"
+      );
+
+      ctx.fillStyle = gradient;
+
+      ctx.fillRect(
+        0,
+        canvasHeight * 0.45,
+        canvasWidth,
+        canvasHeight * 0.55
+      );
+
+      /*
+       * TÍTULO
+       */
+
+      ctx.fillStyle = "#ffffff";
+
+      ctx.font =
+        "bold 58px Arial";
+
+      ctx.fillText(
+        "Treinar Running",
+        60,
+        1050
+      );
+
+      ctx.font =
+        "32px Arial";
+
+      ctx.fillStyle =
+        "rgba(255,255,255,0.75)";
+
+      ctx.fillText(
+        "Minha corrida",
+        60,
+        1095
+      );
+
+      /*
+       * DADOS
+       */
+
+      ctx.fillStyle = "#ffffff";
+
+      ctx.font =
+        "bold 34px Arial";
+
+      ctx.fillText(
+        "DISTÂNCIA",
+        60,
+        1165
+      );
+
+      ctx.fillText(
+        "TEMPO",
+        390,
+        1165
+      );
+
+      ctx.fillText(
+        "RITMO",
+        700,
+        1165
+      );
+
+      ctx.font =
+        "bold 42px Arial";
+
+      ctx.fillText(
+        activity.distanceKm.toFixed(2) + " km",
+        60,
+        1210
+      );
+
+      ctx.fillText(
+        formatRunningTime(
+          activity.durationSeconds
+        ),
+        390,
+        1210
+      );
+
+      ctx.fillText(
+        paceText,
+        700,
+        1210
+      );
+
+      /*
+       * CONVERTE PARA PNG
+       */
+
+      const blob =
+        await new Promise(resolve => {
+
+          canvas.toBlob(
+            resolve,
+            "image/png",
+            1
+          );
+
+        });
+
+      if (!blob) {
+        throw new Error(
+          "Não foi possível criar a imagem."
+        );
+      }
+
+      const file =
+        new File(
+          [blob],
+          "treinar-running.png",
+          {
+            type: "image/png"
+          }
+        );
+
+      /*
+       * COMPARTILHAMENTO NATIVO DO CELULAR
+       */
+
+      if (
+        navigator.share &&
+        navigator.canShare &&
+        navigator.canShare({
+          files: [file]
+        })
+      ) {
 
         await navigator.share({
           title: "Treinar Running",
-          text: shareText
+          text: "Minha corrida no Treinar Running 🏃",
+          files: [file]
         });
 
       } else {
 
-        await navigator.clipboard.writeText(
-          shareText
+        /*
+         * CASO O NAVEGADOR NÃO ACEITE
+         * COMPARTILHAMENTO DE ARQUIVOS
+         */
+
+        const downloadUrl =
+          URL.createObjectURL(blob);
+
+        const link =
+          document.createElement("a");
+
+        link.href = downloadUrl;
+
+        link.download =
+          "treinar-running.png";
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        link.remove();
+
+        URL.revokeObjectURL(
+          downloadUrl
         );
 
         alert(
-          "Os dados da corrida foram copiados."
+          "A imagem foi salva no celular. Agora você pode enviá-la pelo WhatsApp ou outro aplicativo."
         );
-
       }
 
     } catch (error) {
@@ -2614,17 +2806,25 @@ if (sharePreviewBtn) {
       }
 
       console.error(
-        "Erro ao compartilhar corrida:",
+        "Erro ao compartilhar imagem:",
         error
       );
 
       alert(
-        "Não foi possível abrir o compartilhamento."
+        "Não foi possível preparar a imagem para compartilhamento."
       );
+
+    } finally {
+
+      sharePreviewBtn.disabled = false;
+
+      sharePreviewBtn.innerHTML =
+        '<i class="fa-solid fa-share-nodes"></i> Compartilhar';
+
     }
+
   };
 }
-
       document
         .getElementById("closeRunningSharePreview")
         .onclick = () => {
