@@ -608,55 +608,7 @@ html.light .border-dark-600 {
 
           </div>
 
-          <!-- RESUMO -->
-          <div class="bg-dark-800 border border-dark-700 rounded-2xl p-4">
-
-            <h4 class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-3">
-              Resumo do período
-            </h4>
-
-            <div class="grid grid-cols-3 gap-2">
-
-              <div class="text-center">
-                <p class="text-[9px] text-zinc-500 uppercase">
-                  Distância
-                </p>
-                <p
-                  id="runningSummaryDistance"
-                  class="text-sm font-bold text-white mt-1"
-                >
-                  0,00 km
-                </p>
-              </div>
-
-              <div class="text-center">
-                <p class="text-[9px] text-zinc-500 uppercase">
-                  Atividades
-                </p>
-                <p
-                  id="runningSummaryActivities"
-                  class="text-sm font-bold text-white mt-1"
-                >
-                  0
-                </p>
-              </div>
-
-              <div class="text-center">
-                <p class="text-[9px] text-zinc-500 uppercase">
-                  Tempo
-                </p>
-                <p
-                  id="runningSummaryTime"
-                  class="text-sm font-bold text-white mt-1"
-                >
-                  00:00
-                </p>
-              </div>
-
-            </div>
-
-          </div>
-
+         
           <!-- GRÁFICO -->
           <div class="bg-dark-800 border border-dark-700 rounded-2xl p-4">
 
@@ -2876,19 +2828,34 @@ function renderRunningHistory() {
 
         <div class="flex items-center justify-between mb-3">
 
-          <div>
-            <div class="font-semibold text-white">
-              Corrida
-            </div>
+          <div class="flex items-center justify-between mb-3">
 
-            <div class="text-xs text-zinc-400 mt-1">
-              ${dateText} às ${timeText}
-            </div>
-          </div>
+  <div>
+    <div class="font-semibold text-white">
+      Corrida
+    </div>
 
-          <i class="fa-solid fa-person-running text-primary-500 text-xl"></i>
+    <div class="text-xs text-zinc-400 mt-1">
+      ${dateText} às ${timeText}
+    </div>
+  </div>
 
-        </div>
+  <div class="flex items-center gap-3">
+
+    <i class="fa-solid fa-person-running text-primary-500 text-xl"></i>
+
+    <button
+      type="button"
+      onclick="deleteRunningActivity('${activity.id}')"
+      class="text-red-400 hover:text-red-300 transition"
+      title="Excluir corrida"
+    >
+      <i class="fa-solid fa-trash"></i>
+    </button>
+
+  </div>
+
+</div>
 
         <div class="grid grid-cols-2 gap-3">
 
