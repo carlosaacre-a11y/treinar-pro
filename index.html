@@ -2437,9 +2437,9 @@ function handleRunningPosition(position) {
   );
 
   // Ignora pequenos erros naturais do GPS
-  if (distance >= 3 && distance <= 100) {
-    runningDistanceMeters += distance;
-  }
+  if (distance >= 1 && distance <= 200) {
+  runningDistanceMeters += distance;
+}
 
   runningLastPosition = currentPosition;
 
