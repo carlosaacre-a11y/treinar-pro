@@ -2460,94 +2460,103 @@ if (newUser.status === "pending") {
         "fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4";
 
       previewModal.innerHTML = `
-        <div class="w-full max-w-md">
+  <div class="w-full max-w-md">
 
-          <div class="flex items-center justify-between mb-3">
+    <div class="flex items-center justify-between mb-3">
 
-            <h3 class="text-sm font-bold text-white">
-              Prévia do compartilhamento
-            </h3>
+      <h3 class="text-sm font-bold text-white">
+        Prévia do compartilhamento
+      </h3>
 
-            <button
-              type="button"
-              id="closeRunningSharePreview"
-              class="text-zinc-400 hover:text-white text-xl"
-            >
-              <i class="fa-solid fa-xmark"></i>
-            </button>
+      <button
+        type="button"
+        id="closeRunningSharePreview"
+        class="text-zinc-400 hover:text-white text-xl"
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
 
-          </div>
+    </div>
 
-          <div
-            class="relative w-full overflow-hidden rounded-2xl bg-black"
-          >
+    <div
+      class="relative w-full overflow-hidden rounded-2xl bg-black"
+    >
 
-            <img
-              src="${imageUrl}"
-              class="w-full block object-cover"
-              style="max-height:70vh;"
-            >
+      <img
+        src="${imageUrl}"
+        class="w-full block object-cover"
+        style="max-height:70vh;"
+      >
 
-            <div
-              class="absolute bottom-0 left-0 right-0 p-5"
-              style="background:linear-gradient(transparent,rgba(0,0,0,.9));"
-            >
+      <div
+        class="absolute bottom-0 left-0 right-0 p-5"
+        style="background:linear-gradient(transparent,rgba(0,0,0,.9));"
+      >
 
-              <div class="text-white font-bold text-xl">
-                Treinar Running
-              </div>
+        <div class="text-white font-bold text-xl">
+          Treinar Running
+        </div>
 
-              <div class="grid grid-cols-3 gap-3 mt-3">
+        <div class="grid grid-cols-3 gap-3 mt-3">
 
-                <div>
-                  <div class="text-[9px] text-zinc-300 uppercase">
-                    Distância
-                  </div>
-
-                  <div class="text-white font-bold">
-                    ${activity.distanceKm.toFixed(2)} km
-                  </div>
-                </div>
-
-                <div>
-                  <div class="text-[9px] text-zinc-300 uppercase">
-                    Tempo
-                  </div>
-
-                  <div class="text-white font-bold">
-                    ${formatRunningTime(activity.durationSeconds)}
-                  </div>
-                </div>
-
-                <div>
-                  <div class="text-[9px] text-zinc-300 uppercase">
-                    Ritmo
-                  </div>
-
-                  <div class="text-white font-bold">
-                    ${
-                      activity.paceSecondsPerKm > 0
-                        ? Math.floor(activity.paceSecondsPerKm / 60) +
-                          ":" +
-                          String(
-                            activity.paceSecondsPerKm % 60
-                          ).padStart(2, "0") +
-                          " /km"
-                        : "--:-- /km"
-                    }
-                  </div>
-                </div>
-
-              </div>
-
+          <div>
+            <div class="text-[9px] text-zinc-300 uppercase">
+              Distância
             </div>
 
+            <div class="text-white font-bold">
+              ${activity.distanceKm.toFixed(2)} km
+            </div>
+          </div>
+
+          <div>
+            <div class="text-[9px] text-zinc-300 uppercase">
+              Tempo
+            </div>
+
+            <div class="text-white font-bold">
+              ${formatRunningTime(activity.durationSeconds)}
+            </div>
+          </div>
+
+          <div>
+            <div class="text-[9px] text-zinc-300 uppercase">
+              Ritmo
+            </div>
+
+            <div class="text-white font-bold">
+              ${
+                activity.paceSecondsPerKm > 0
+                  ? Math.floor(activity.paceSecondsPerKm / 60) +
+                    ":" +
+                    String(
+                      activity.paceSecondsPerKm % 60
+                    ).padStart(2, "0") +
+                    " /km"
+                  : "--:-- /km"
+              }
+            </div>
           </div>
 
         </div>
-      `;
 
-      document.body.appendChild(previewModal);
+      </div>
+
+    </div>
+
+    <button
+      type="button"
+      id="shareRunningBackgroundPreviewBtn"
+      class="w-full mt-4 bg-primary-500 hover:bg-primary-600 text-dark-950 font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2"
+    >
+      <i class="fa-solid fa-share-nodes"></i>
+      Compartilhar
+    </button>
+
+  </div>
+`;
+
+document.body.appendChild(previewModal);
 
       const sharePreviewBtn =
   document.getElementById(
