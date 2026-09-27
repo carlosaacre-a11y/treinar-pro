@@ -4356,13 +4356,13 @@ function renderRunningHistory() {
         : "--:-- /km";
 
     return `
-      <div class="bg-zinc-900 rounded-xl p-4 mb-3 border border-zinc-800">
+      <div class="bg-dark-800 border border-dark-700 rounded-xl p-4 mb-3">
 
         <div class="flex items-start justify-between mb-4">
 
           <div class="min-w-0">
 
-            <div class="flex items-center gap-2 font-semibold text-white">
+            <div class="flex items-center gap-2 font-semibold text-zinc-100">
               <i class="fa-solid fa-person-running text-primary-500"></i>
               Corrida
             </div>
@@ -4404,7 +4404,7 @@ function renderRunningHistory() {
               Distância
             </div>
 
-            <div class="text-white font-semibold">
+            <div class="text-zinc-100 font-semibold">
               ${activity.distanceKm.toFixed(2)} km
             </div>
           </div>
@@ -4414,7 +4414,7 @@ function renderRunningHistory() {
               Tempo
             </div>
 
-            <div class="text-white font-semibold">
+            <div class="text-zinc-100 font-semibold">
               ${formatRunningTime(activity.durationSeconds)}
             </div>
           </div>
@@ -4424,7 +4424,7 @@ function renderRunningHistory() {
               Ritmo médio
             </div>
 
-            <div class="text-white font-semibold">
+            <div class="text-zinc-100 font-semibold">
               ${paceText}
             </div>
           </div>
@@ -4434,7 +4434,7 @@ function renderRunningHistory() {
               Velocidade média
             </div>
 
-            <div class="text-white font-semibold">
+            <div class="text-zinc-100 font-semibold">
               ${activity.averageSpeedKmh.toFixed(1)} km/h
             </div>
           </div>
