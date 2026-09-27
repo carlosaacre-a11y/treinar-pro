@@ -112,6 +112,20 @@ html.light .border-dark-600 {
   }
 })();
 </script>
+
+    </script>
+
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+></script>
+
+</head>
+    
   </head>
   <body class="bg-dark-950 min-h-screen flex flex-col justify-between">
 
@@ -2476,9 +2490,14 @@ if (newUser.status === "pending") {
 
       </div>
 
-      <div
-        class="bg-dark-900 border border-dark-700 rounded-2xl p-5 text-center"
-      >
+     <div
+  class="bg-dark-900 border border-dark-700 rounded-2xl overflow-hidden"
+>
+  <div
+    id="runningMap"
+    class="w-full h-[60vh] min-h-[350px]"
+  ></div>
+</div>
 
         <div class="text-primary-400 text-4xl mb-3">
           <i class="fa-solid fa-map-location-dot"></i>
@@ -2526,6 +2545,40 @@ if (newUser.status === "pending") {
   `;
 
   document.body.appendChild(mapModal);
+    const map = L.map("runningMap");
+
+L.tileLayer(
+  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  {
+    attribution: "&copy; OpenStreetMap contributors"
+  }
+).addTo(map);
+
+const routePoints = points.map(point => [
+  point.latitude,
+  point.longitude
+]);
+
+const routeLine = L.polyline(
+  routePoints,
+  {
+    color: "#22c55e",
+    weight: 5,
+    opacity: 0.9
+  }
+).addTo(map);
+
+map.fitBounds(routeLine.getBounds(), {
+  padding: [30, 30]
+});
+
+L.marker(routePoints[0])
+  .addTo(map)
+  .bindPopup("Início da corrida");
+
+L.marker(routePoints[routePoints.length - 1])
+  .addTo(map)
+  .bindPopup("Fim da corrida");
 
   document
     .getElementById("closeRunningMapPreview")
