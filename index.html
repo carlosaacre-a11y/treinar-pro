@@ -5807,6 +5807,17 @@ async function saveStudentModal() {
             height = maxSize;
           }
 
+          const paceText =
+  activity.paceSecondsPerKm > 0
+    ? Math.floor(
+        activity.paceSecondsPerKm / 60
+      ) +
+      ":" +
+      String(
+        activity.paceSecondsPerKm % 60
+      ).padStart(2, "0") +
+      " /km"
+    : "--:-- /km";
           const canvas = document.createElement("canvas");
           canvas.width = width;
           canvas.height = height;
