@@ -2206,6 +2206,7 @@ if (newUser.status === "pending") {
 }       }
       }
 
+      
       async function loadRunningActivities() {
   if (!currentUser || !currentUser.email) {
     return;
@@ -2245,6 +2246,65 @@ if (newUser.status === "pending") {
     );
   }
 }
+
+      async function deleteRunningActivity(activityId) {
+  if (!activityId) {
+    return;
+  }
+
+  const confirmed = confirm(
+    "Deseja excluir esta corrida?\n\n" +
+    "Esta atividade será removida permanentemente do histórico."
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      API_URL + "/api/running",
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: currentUser.email,
+          activityId: activityId
+        })
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.ok) {
+      throw new Error(
+        result.error || "Não foi possível excluir a corrida."
+      );
+    }
+
+    runningActivities = runningActivities.filter(
+      activity => activity.id !== activityId
+    );
+
+    renderRunningHistory();
+
+    alert("Corrida excluída com sucesso.");
+
+  } catch (error) {
+    console.error(
+      "Erro ao excluir corrida:",
+      error
+    );
+
+    alert(
+      "Não foi possível excluir a corrida.\n\n" +
+      "Verifique sua conexão e tente novamente."
+    );
+  }
+}
+      
       function initApp() {
         document.getElementById("loginScreen").classList.add("hidden");
         document.getElementById("mainApp").classList.remove("hidden");
