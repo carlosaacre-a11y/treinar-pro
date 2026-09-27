@@ -3190,6 +3190,231 @@ if (sharePreviewBtn) {
 
 document.body.appendChild(previewModal);
 
+const sharePreviewBtn =
+  document.getElementById(
+    "shareRunningBackgroundPreviewBtn"
+  );
+
+if (sharePreviewBtn) {
+
+  sharePreviewBtn.onclick = async () => {
+
+    try {
+
+      sharePreviewBtn.disabled = true;
+
+      sharePreviewBtn.innerHTML =
+        '<i class="fa-solid fa-spinner fa-spin"></i> Preparando...';
+
+      const image = new Image();
+
+      image.crossOrigin = "anonymous";
+      image.src = imageUrl;
+
+      await new Promise((resolve, reject) => {
+
+        image.onload = resolve;
+        image.onerror = reject;
+
+      });
+
+      const canvas =
+        document.createElement("canvas");
+
+      canvas.width = 1080;
+      canvas.height = 1350;
+
+      const ctx =
+        canvas.getContext("2d");
+
+      ctx.drawImage(
+        image,
+        0,
+        0,
+        1080,
+        1350
+      );
+
+      const gradient =
+        ctx.createLinearGradient(
+          0,
+          650,
+          0,
+          1350
+        );
+
+      gradient.addColorStop(
+        0,
+        "rgba(0,0,0,0)"
+      );
+
+      gradient.addColorStop(
+        1,
+        "rgba(0,0,0,0.92)"
+      );
+
+      ctx.fillStyle = gradient;
+
+      ctx.fillRect(
+        0,
+        600,
+        1080,
+        750
+      );
+
+      ctx.fillStyle = "#ffffff";
+
+      ctx.font = "bold 58px Arial";
+
+      ctx.fillText(
+        "Treinar Running",
+        60,
+        1050
+      );
+
+      ctx.font = "bold 34px Arial";
+
+      ctx.fillText(
+        "DISTÂNCIA",
+        60,
+        1165
+      );
+
+      ctx.fillText(
+        "TEMPO",
+        390,
+        1165
+      );
+
+      ctx.fillText(
+        "RITMO",
+        700,
+        1165
+      );
+
+      ctx.font = "bold 42px Arial";
+
+      ctx.fillText(
+        activity.distanceKm.toFixed(2) + " km",
+        60,
+        1210
+      );
+
+      ctx.fillText(
+        formatRunningTime(
+          activity.durationSeconds
+        ),
+        390,
+        1210
+      );
+
+      ctx.fillText(
+        paceText,
+        700,
+        1210
+      );
+
+      const blob =
+        await new Promise(resolve => {
+
+          canvas.toBlob(
+            resolve,
+            "image/png",
+            1
+          );
+
+        });
+
+      if (!blob) {
+        throw new Error(
+          "Não foi possível criar a imagem."
+        );
+      }
+
+      const file =
+        new File(
+          [blob],
+          "treinar-running.png",
+          {
+            type: "image/png"
+          }
+        );
+
+      if (
+        navigator.share &&
+        navigator.canShare &&
+        navigator.canShare({
+          files: [file]
+        })
+      ) {
+
+        await navigator.share({
+          title: "Treinar Running",
+          text: "Minha corrida no Treinar Running 🏃",
+          files: [file]
+        });
+
+      } else {
+
+        const downloadUrl =
+          URL.createObjectURL(blob);
+
+        const link =
+          document.createElement("a");
+
+        link.href = downloadUrl;
+        link.download = "treinar-running.png";
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        link.remove();
+
+        URL.revokeObjectURL(downloadUrl);
+
+        alert(
+          "A imagem foi salva no celular. Agora você pode enviá-la pelo WhatsApp ou outro aplicativo."
+        );
+      }
+
+    } catch (error) {
+
+      if (
+        error &&
+        error.name === "AbortError"
+      ) {
+        return;
+      }
+
+      console.error(
+        "Erro ao compartilhar imagem:",
+        error
+      );
+
+      alert(
+        "ERRO: " +
+        (
+          error &&
+          error.message
+            ? error.message
+            : String(error)
+        )
+      );
+
+    } finally {
+
+      sharePreviewBtn.disabled = false;
+
+      sharePreviewBtn.innerHTML =
+        '<i class="fa-solid fa-share-nodes"></i> Compartilhar';
+
+    }
+
+  };
+
+}
+      
       document
         .getElementById(
           "closeRunningBackgroundPreview"
