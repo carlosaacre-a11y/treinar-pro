@@ -4253,6 +4253,209 @@ function calculateRunningDistance(lat1, lon1, lat2, lon2) {
   `;
 } 
 
+      function openRunningActivityDetails(activityId) {
+  const activity = runningActivities.find(
+    item => item.id === activityId
+  );
+
+  if (!activity) {
+    return;
+  }
+
+  const splits = calculateRunningSplits(activity);
+
+  const averagePace =
+    activity.paceSecondsPerKm > 0
+      ? activity.paceSecondsPerKm
+      : 0;
+
+  const splitTimes = splits.map(
+    split => split.seconds
+  );
+
+  const maxSplitTime =
+    splitTimes.length > 0
+      ? Math.max(...splitTimes)
+      : 0;
+
+  const splitRows = splits.length
+    ? splits.map(split => {
+        let icon = "fa-person-running";
+        let iconLabel = "Ritmo normal";
+
+        if (
+          averagePace > 0 &&
+          split.seconds <= averagePace * 0.97
+        ) {
+          icon = "fa-bolt";
+          iconLabel = "Trecho mais rápido";
+        } else if (
+          averagePace > 0 &&
+          split.seconds >= averagePace * 1.08
+        ) {
+          icon = "fa-turtle";
+          iconLabel = "Trecho mais lento";
+        }
+
+        const barWidth =
+          maxSplitTime > 0
+            ? Math.max(
+                20,
+                Math.round(
+                  (split.seconds / maxSplitTime) * 100
+                )
+              )
+            : 20;
+
+        return `
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-[10px]">
+              <span class="font-bold text-zinc-300">
+                Km ${split.kilometer}
+              </span>
+
+              <span class="font-bold text-white">
+                ${formatRunningSplitTime(split.seconds)}
+              </span>
+            </div>
+
+            <div class="h-8 bg-dark-900 border border-dark-700 rounded-lg overflow-hidden">
+              <div
+                class="h-full bg-primary-500/20 border-r border-primary-500/40 rounded-lg flex items-center px-2"
+                style="width: ${barWidth}%"
+                title="${iconLabel}"
+              >
+                <i class="fa-solid ${icon} text-primary-400 text-xs"></i>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("")
+    : `
+      <div class="text-center text-[10px] text-zinc-500 py-4">
+        Esta atividade ainda não possui
+        quilômetros completos para mostrar.
+      </div>
+    `;
+
+  const date = new Date(activity.date);
+
+  const overlay = document.createElement("div");
+
+  overlay.id = "runningActivityDetailsModal";
+
+  overlay.className =
+    "fixed inset-0 z-[100] bg-black/70 flex items-center justify-center p-4";
+
+  overlay.innerHTML = `
+    <div
+      class="bg-dark-800 border border-dark-700 rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto p-5"
+    >
+
+      <div class="flex items-start justify-between mb-5">
+
+        <div>
+          <div class="flex items-center gap-2 text-sm font-bold text-white">
+            <i class="fa-solid fa-person-running text-primary-500"></i>
+            Detalhes da corrida
+          </div>
+
+          <p class="text-[10px] text-zinc-500 mt-1">
+            ${date.toLocaleDateString("pt-BR")} às
+            ${date.toLocaleTimeString("pt-BR", {
+              hour: "2-digit",
+              minute: "2-digit"
+            })}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onclick="document.getElementById('runningActivityDetailsModal')?.remove()"
+          class="text-zinc-400 hover:text-white text-lg"
+          title="Fechar"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 mb-5">
+
+        <div class="bg-dark-900 border border-dark-700 rounded-xl p-3 text-center">
+          <p class="text-[9px] text-zinc-500 uppercase font-semibold">
+            Distância
+          </p>
+
+          <p class="text-sm font-bold text-white mt-1">
+            ${activity.distanceKm.toFixed(2)} km
+          </p>
+        </div>
+
+        <div class="bg-dark-900 border border-dark-700 rounded-xl p-3 text-center">
+          <p class="text-[9px] text-zinc-500 uppercase font-semibold">
+            Tempo
+          </p>
+
+          <p class="text-sm font-bold text-white mt-1">
+            ${formatRunningTime(activity.durationSeconds)}
+          </p>
+        </div>
+
+        <div class="bg-dark-900 border border-dark-700 rounded-xl p-3 text-center">
+          <p class="text-[9px] text-zinc-500 uppercase font-semibold">
+            Ritmo médio
+          </p>
+
+          <p class="text-sm font-bold text-white mt-1">
+            ${averagePace > 0
+              ? formatRunningSplitTime(averagePace)
+              : "--:--"} /km
+          </p>
+        </div>
+
+        <div class="bg-dark-900 border border-dark-700 rounded-xl p-3 text-center">
+          <p class="text-[9px] text-zinc-500 uppercase font-semibold">
+            Velocidade
+          </p>
+
+          <p class="text-sm font-bold text-primary-400 mt-1">
+            ${activity.averageSpeedKmh.toFixed(1)} km/h
+          </p>
+        </div>
+
+      </div>
+
+      <div>
+
+        <div class="flex items-center justify-between mb-3">
+          <h5 class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+            Tempo por quilômetro
+          </h5>
+
+          <span class="text-[9px] text-zinc-600">
+            ⚡ Mais rápido · 🐢 Mais lento
+          </span>
+        </div>
+
+        <div class="space-y-2">
+          ${splitRows}
+        </div>
+
+      </div>
+
+    </div>
+  `;
+
+  overlay.addEventListener("click", event => {
+    if (event.target === overlay) {
+      overlay.remove();
+    }
+  });
+
+  document.body.appendChild(overlay);
+}
+
 function updateRunningStats() {
   const distanceKm = runningDistanceMeters / 1000;
 
