@@ -4062,6 +4062,33 @@ function calculateRunningDistance(lat1, lon1, lat2, lon2) {
     previousTime = currentTime;
   }
 
+  const remainingDistance =
+    cumulativeDistance - (splits.length * 1000);
+
+  if (
+    remainingDistance >= 100 &&
+    remainingDistance < 1000
+  ) {
+    const lastPoint = points[points.length - 1];
+    const lastTime =
+      Number(lastPoint.timestamp) || previousTime;
+
+    const remainingSeconds =
+      Math.max(
+        0,
+        Math.round(
+          (lastTime - splitStartTime) / 1000
+        )
+      );
+
+    splits.push({
+      kilometer: splits.length + 1,
+      seconds: remainingSeconds,
+      partial: true,
+      distanceMeters: Math.round(remainingDistance)
+    });
+  }
+
   return splits;
 }
 
