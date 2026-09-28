@@ -3982,6 +3982,87 @@ function calculateRunningDistance(lat1, lon1, lat2, lon2) {
   return earthRadius * c;
 }
 
+      function calculateRunningSplits(activity) {
+  const points = Array.isArray(activity.gpsPoints)
+    ? activity.gpsPoints
+    : [];
+
+  if (points.length < 2) {
+    return [];
+  }
+
+  const splits = [];
+  let cumulativeDistance = 0;
+  let previousPoint = points[0];
+  let previousTime = Number(previousPoint.timestamp) || 0;
+  let splitStartTime = previousTime;
+  let nextKilometer = 1000;
+
+  for (let i = 1; i < points.length; i++) {
+    const currentPoint = points[i];
+
+    const currentTime =
+      Number(currentPoint.timestamp) || previousTime;
+
+    const segmentDistance = calculateRunningDistance(
+      Number(previousPoint.latitude),
+      Number(previousPoint.longitude),
+      Number(currentPoint.latitude),
+      Number(currentPoint.longitude)
+    );
+
+    if (!Number.isFinite(segmentDistance) || segmentDistance <= 0) {
+      previousPoint = currentPoint;
+      previousTime = currentTime;
+      continue;
+    }
+
+    const segmentStartDistance = cumulativeDistance;
+    const segmentEndDistance =
+      cumulativeDistance + segmentDistance;
+
+    while (segmentEndDistance >= nextKilometer) {
+      const distanceIntoSegment =
+        nextKilometer - segmentStartDistance;
+
+      const ratio =
+        Math.max(
+          0,
+          Math.min(
+            1,
+            distanceIntoSegment / segmentDistance
+          )
+        );
+
+      const crossingTime =
+        previousTime +
+        (currentTime - previousTime) * ratio;
+
+      const splitSeconds =
+        Math.max(
+          0,
+          Math.round(
+            (crossingTime - splitStartTime) / 1000
+          )
+        );
+
+      splits.push({
+        kilometer: splits.length + 1,
+        seconds: splitSeconds
+      });
+
+      splitStartTime = crossingTime;
+      nextKilometer += 1000;
+    }
+
+    cumulativeDistance = segmentEndDistance;
+    previousPoint = currentPoint;
+    previousTime = currentTime;
+  }
+
+  return splits;
+}
+
 function updateRunningStats() {
   const distanceKm = runningDistanceMeters / 1000;
 
