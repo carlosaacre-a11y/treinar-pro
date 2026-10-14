@@ -725,6 +725,89 @@ border-top-color: #e4e4e7 !important;
                 class="w-full bg-dark-900 border border-dark-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-primary-500"
               />
             </div>
+
+<div>
+  <label class="block text-xs font-medium text-zinc-400 mb-1">
+    Data de Nascimento
+  </label>
+  <input
+    type="date"
+    id="editMyBirthDate"
+    class="w-full bg-dark-900 border border-dark-700 rounded-xl px-3.5 py-2.5 text-xs text-white"
+  />
+</div>
+
+<div>
+  <label class="block text-xs font-medium text-zinc-400 mb-1">
+    Sexo
+  </label>
+  <select
+    id="editMyGender"
+    class="w-full bg-dark-900 border border-dark-700 rounded-xl px-3.5 py-2.5 text-xs text-white"
+  >
+    <option value="">Não informado</option>
+    <option value="Masculino">Masculino</option>
+    <option value="Feminino">Feminino</option>
+    <option value="Outro">Outro</option>
+    <option value="Prefiro não informar">Prefiro não informar</option>
+  </select>
+</div>
+
+<div>
+  <label class="block text-xs font-medium text-zinc-400 mb-1">
+    Altura (cm)
+  </label>
+  <input
+    type="number"
+    id="editMyHeight"
+    min="1"
+    step="0.1"
+    placeholder="Ex.: 175"
+    class="w-full bg-dark-900 border border-dark-700 rounded-xl px-3.5 py-2.5 text-xs text-white"
+  />
+</div>
+
+<div>
+  <label class="block text-xs font-medium text-zinc-400 mb-1">
+    Peso (kg)
+  </label>
+  <input
+    type="number"
+    id="editMyWeight"
+    min="1"
+    step="0.1"
+    placeholder="Ex.: 72,5"
+    class="w-full bg-dark-900 border border-dark-700 rounded-xl px-3.5 py-2.5 text-xs text-white"
+  />
+</div>
+
+<div>
+  <label class="block text-xs font-medium text-zinc-400 mb-1">
+    CPF
+  </label>
+  <input
+    type="text"
+    id="editMyDocument"
+    inputmode="numeric"
+    maxlength="14"
+    placeholder="000.000.000-00"
+    class="w-full bg-dark-900 border border-dark-700 rounded-xl px-3.5 py-2.5 text-xs text-white"
+  />
+</div>
+
+<div>
+  <label class="block text-xs font-medium text-zinc-400 mb-1">
+    Celular
+  </label>
+  <input
+    type="tel"
+    id="editMyPhone"
+    inputmode="tel"
+    placeholder="(00) 00000-0000"
+    class="w-full bg-dark-900 border border-dark-700 rounded-xl px-3.5 py-2.5 text-xs text-white"
+  />
+</div>
+            
             <div>
               <label class="block text-xs font-medium text-zinc-400 mb-1"
                 >Alterar Foto de Perfil (Galeria)</label
@@ -3837,6 +3920,23 @@ if (sharePreviewBtn) {
         document.getElementById("profileEmail").textContent = currentUser.email;
         document.getElementById("editMyName").value = currentUser.name;
         document.getElementById("editMyAvatarFile").value = "";
+        document.getElementById("editMyBirthDate").value =
+  currentUser.birthDate || "";
+
+document.getElementById("editMyGender").value =
+  currentUser.gender || "";
+
+document.getElementById("editMyHeight").value =
+  currentUser.heightCm ?? "";
+
+document.getElementById("editMyWeight").value =
+  currentUser.weightKg ?? "";
+
+document.getElementById("editMyDocument").value =
+  currentUser.documentNumber || "";
+
+document.getElementById("editMyPhone").value =
+  currentUser.phone || "";
         loadRunningActivities();
         setupRunningFilters();
         
@@ -5624,18 +5724,54 @@ function closeProfilePhoto() {
       }
 
 async function saveMyProfile() {
-  const newName = document.getElementById("editMyName").value.trim();
-  const fileInput = document.getElementById("editMyAvatarFile");
+  const newName =
+    document.getElementById("editMyName").value.trim();
+
+  const fileInput =
+    document.getElementById("editMyAvatarFile");
 
   const savedUser = globalState.users.find(
     (user) =>
-      user.email.toLowerCase() === currentUser.email.toLowerCase()
+      user.email.toLowerCase() ===
+      currentUser.email.toLowerCase()
   );
 
   const savedTeacher = globalState.teachers?.find(
     (teacher) =>
-      teacher.email.toLowerCase() === currentUser.email.toLowerCase()
+      teacher.email.toLowerCase() ===
+      currentUser.email.toLowerCase()
   );
+
+  const birthDate =
+    document.getElementById("editMyBirthDate").value;
+
+  const gender =
+    document.getElementById("editMyGender").value;
+
+  const heightText =
+    document.getElementById("editMyHeight").value;
+
+  const weightText =
+    document.getElementById("editMyWeight").value;
+
+  const documentNumber =
+    document.getElementById("editMyDocument").value.trim();
+
+  const phone =
+    document.getElementById("editMyPhone").value.trim();
+
+  const heightCm = heightText === "" ? "" : Number(heightText);
+  const weightKg = weightText === "" ? "" : Number(weightText);
+
+  if (
+    (heightText !== "" &&
+      (!Number.isFinite(heightCm) || heightCm <= 0)) ||
+    (weightText !== "" &&
+      (!Number.isFinite(weightKg) || weightKg <= 0))
+  ) {
+    alert("Confira os valores de altura e peso.");
+    return;
+  }
 
   let newAvatar = currentUser.avatar || "";
 
@@ -5643,10 +5779,7 @@ async function saveMyProfile() {
     newAvatar = await new Promise((resolve, reject) => {
       const reader = new FileReader();
 
-      reader.onload = function (e) {
-        resolve(e.target.result);
-      };
-
+      reader.onload = (e) => resolve(e.target.result);
       reader.onerror = reject;
       reader.readAsDataURL(fileInput.files[0]);
     });
@@ -5661,7 +5794,13 @@ async function saveMyProfile() {
       body: JSON.stringify({
         email: currentUser.email,
         name: newName || currentUser.name,
-        avatar: newAvatar
+        avatar: newAvatar,
+        birthDate,
+        gender,
+        heightCm,
+        weightKg,
+        documentNumber,
+        phone
       })
     });
 
@@ -5675,10 +5814,24 @@ async function saveMyProfile() {
 
     currentUser.name = newName || currentUser.name;
     currentUser.avatar = newAvatar;
+    currentUser.birthDate = birthDate;
+    currentUser.gender = gender;
+    currentUser.heightCm = heightCm;
+    currentUser.weightKg = weightKg;
+    currentUser.documentNumber = documentNumber;
+    currentUser.phone = phone;
 
     if (savedUser) {
-      savedUser.name = currentUser.name;
-      savedUser.avatar = currentUser.avatar;
+      Object.assign(savedUser, {
+        name: currentUser.name,
+        avatar: currentUser.avatar,
+        birthDate,
+        gender,
+        heightCm,
+        weightKg,
+        documentNumber,
+        phone
+      });
     }
 
     if (savedTeacher) {
@@ -5698,7 +5851,7 @@ async function saveMyProfile() {
     document.getElementById("profileAvatar").src =
       currentUser.avatar;
 
-    alert("Perfil e foto atualizados com sucesso!");
+    alert("Perfil e dados pessoais atualizados com sucesso!");
   } catch (error) {
     console.error("Erro ao salvar perfil:", error);
 
