@@ -685,11 +685,13 @@ border-top-color: #e4e4e7 !important;
             <div
               class="absolute inset-x-0 top-0 h-16 bg-gradient-to-r from-primary-500/20 to-emerald-500/0"
             ></div>
-            <img
-              id="profileAvatar"
-              src=""
-              class="w-20 h-20 rounded-full object-cover mx-auto mb-3 border-2 border-primary-500 shadow-lg relative z-10"
-            />
+           <img
+  id="profileAvatar"
+  src=""
+  onclick="openProfilePhoto()"
+  title="Toque para ampliar a foto"
+  class="w-20 h-20 rounded-full object-cover mx-auto mb-3 border-2 border-primary-500 shadow-lg relative z-10 cursor-pointer hover:opacity-90 transition"
+/>
             <h3
               id="profileName"
               class="text-lg font-bold text-white relative z-10 break-words"
