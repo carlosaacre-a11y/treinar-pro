@@ -954,6 +954,29 @@ border-top-color: #e4e4e7 !important;
 <!-- JANELAS E MODAIS DO APLICATIVO                            -->
 <!-- ========================================================== -->
 
+<!-- MODAL PARA AMPLIAR A FOTO DO PERFIL -->
+<div
+  id="profilePhotoModal"
+  class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[110] hidden items-center justify-center p-4"
+  onclick="if(event.target === this) closeProfilePhoto()"
+>
+  <button
+    type="button"
+    onclick="closeProfilePhoto()"
+    class="absolute top-5 right-5 text-white text-3xl font-bold px-3 py-1"
+    aria-label="Fechar foto"
+  >
+    &times;
+  </button>
+
+  <img
+    id="profilePhotoLarge"
+    src=""
+    alt="Foto ampliada do perfil"
+    class="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl"
+  />
+</div>
+    
 <!-- MODAL DE VÍDEO DO EXERCÍCIO --><div
   id="exerciseVideoModal"
   class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden items-center justify-center p-3"
@@ -5356,6 +5379,29 @@ const frame = document.getElementById("exerciseVideoFrame");
 frame.src = "";
 modal.classList.add("hidden");
 modal.classList.remove("flex");
+}
+
+function openProfilePhoto() {
+  const profileAvatar = document.getElementById("profileAvatar");
+  const modal = document.getElementById("profilePhotoModal");
+  const largePhoto = document.getElementById("profilePhotoLarge");
+
+  if (!profileAvatar || !profileAvatar.src) {
+    return;
+  }
+
+  largePhoto.src = profileAvatar.src;
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function closeProfilePhoto() {
+  const modal = document.getElementById("profilePhotoModal");
+  const largePhoto = document.getElementById("profilePhotoLarge");
+
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+  largePhoto.src = "";
 }
       
       function renderWorkouts() {
