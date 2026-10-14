@@ -7212,6 +7212,36 @@ async function saveStudentModal() {
   const newDueDate = document.getElementById("mStudentDueDate").value;
   const newNotice = document.getElementById("mStudentNotice").value;
   const newTeacher = document.getElementById("mStudentTeacher").value.trim();
+  const birthDate =
+  document.getElementById("mStudentBirthDate").value;
+
+const gender =
+  document.getElementById("mStudentGender").value;
+
+const heightText =
+  document.getElementById("mStudentHeight").value;
+
+const weightText =
+  document.getElementById("mStudentWeight").value;
+
+const heightCm = heightText === "" ? "" : Number(heightText);
+const weightKg = weightText === "" ? "" : Number(weightText);
+
+const documentNumber =
+  document.getElementById("mStudentDocument").value.trim();
+
+const phone =
+  document.getElementById("mStudentPhone").value.trim();
+
+if (
+  (heightText !== "" &&
+    (!Number.isFinite(heightCm) || heightCm <= 0)) ||
+  (weightText !== "" &&
+    (!Number.isFinite(weightKg) || weightKg <= 0))
+) {
+  alert("Confira os valores de altura e peso.");
+  return;
+}
 
   let newAvatar = user.avatar || "";
 
@@ -7281,7 +7311,13 @@ async function saveStudentModal() {
         dueDate: newDueDate,
         notice: newNotice,
         teacher: newTeacher,
-        avatar: newAvatar
+        avatar: newAvatar,
+birthDate: birthDate,
+gender: gender,
+heightCm: heightCm,
+weightKg: weightKg,
+documentNumber: documentNumber,
+phone: phone
       })
     });
 
@@ -7297,6 +7333,12 @@ async function saveStudentModal() {
     user.notice = newNotice;
     user.teacher = newTeacher;
     user.avatar = newAvatar;
+    user.birthDate = birthDate;
+user.gender = gender;
+user.heightCm = heightCm;
+user.weightKg = weightKg;
+user.documentNumber = documentNumber;
+user.phone = phone;
 
     if (user.dueDate !== newDueDate) {
       user.dismissedDueDate = false;
