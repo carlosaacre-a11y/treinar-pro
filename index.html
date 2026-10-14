@@ -211,10 +211,12 @@ border-top-color: #e4e4e7 !important;
       >
         <div class="flex items-center space-x-3 overflow-hidden">
           <img
-            id="headerAvatar"
-            src=""
-            class="w-10 h-10 rounded-full object-cover border border-primary-500 shadow-sm shrink-0"
-          />
+  id="headerAvatar"
+  src=""
+  onclick="switchTab('profile')"
+  title="Abrir meu perfil"
+  class="w-10 h-10 rounded-full object-cover border border-primary-500 shadow-sm shrink-0 cursor-pointer hover:opacity-80 transition"
+/>
           <div class="min-w-0 flex-1">
             <h2
               id="headerName"
