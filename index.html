@@ -5671,24 +5671,61 @@ async function loadStudentAssessments(email) {
       return;
     }
 
-    history.innerHTML = data.assessments.map(assessment => `
-      <div class="bg-dark-800 border border-dark-700 rounded-2xl p-4">
-        <h3 class="font-bold text-white">
-          Avaliação de ${String(assessment.assessment_date || "").replace(/</g, "&lt;")}
-        </h3>
-        <p class="text-xs text-zinc-400 mt-1">
-          Avaliador: ${String(assessment.evaluator_name || "Não informado").replace(/</g, "&lt;")}
-        </p>
-        <div class="mt-3 space-y-2">
-          ${Object.entries(assessment.values || {}).map(([key, value]) => `
-            <div class="flex justify-between gap-3 border-b border-dark-700 pb-2">
-              <span class="text-xs text-zinc-400">${String(key).replace(/</g, "&lt;")}</span>
-              <span class="text-sm text-white text-right">${String(value ?? "").replace(/</g, "&lt;")}</span>
+    history.innerHTML = data.assessments.map((assessment, index) => {
+      const date = String(assessment.assessment_date || "")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+      const evaluator = String(assessment.evaluator_name || "Não informado")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+      const protocol = String(assessment.protocol || "Não informado")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+      const values = Object.entries(assessment.values || {});
+
+      const details = values.length
+        ? values.map(([key, value]) => `
+            <div class="flex justify-between gap-3 border-b border-dark-700 py-2">
+              <span class="text-xs text-zinc-400">
+                ${String(key).replace(/</g, "&lt;").replace(/>/g, "&gt;")}
+              </span>
+              <span class="text-sm text-white text-right">
+                ${String(value ?? "").replace(/</g, "&lt;").replace(/>/g, "&gt;")}
+              </span>
             </div>
-          `).join("")}
-        </div>
-      </div>
-    `).join("");
+          `).join("")
+        : `<p class="text-sm text-zinc-400 py-3">
+             Nenhuma medida foi preenchida nesta avaliação.
+           </p>`;
+
+      return `
+        <details class="bg-dark-800 border border-dark-700 rounded-2xl overflow-hidden">
+          <summary class="p-4 cursor-pointer list-none">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <h3 class="font-bold text-white">Avaliação de ${date}</h3>
+                <p class="text-xs text-zinc-400 mt-1">
+                  Avaliador: ${evaluator}
+                </p>
+              </div>
+              <span class="text-primary-500 text-sm">Ver detalhes ▾</span>
+            </div>
+          </summary>
+
+          <div class="px-4 pb-4 space-y-3">
+            <div class="text-xs text-zinc-400">
+              Protocolo: ${protocol}
+            </div>
+            <div class="space-y-1">
+              ${details}
+            </div>
+          </div>
+        </details>
+      `;
+    }).join("");
   } catch (error) {
     history.innerHTML = `
       <div class="bg-dark-800 border border-red-500/30 rounded-2xl p-4 text-sm text-red-300">
