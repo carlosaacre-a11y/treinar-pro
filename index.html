@@ -5809,20 +5809,56 @@ async function loadStudentAssessments(email) {
 
       const values = Object.entries(assessment.values || {});
 
-      const details = values.length
-        ? values.map(([key, value]) => `
-            <div class="flex justify-between gap-3 border-b border-dark-700 py-2">
-              <span class="text-xs text-zinc-400">
-                ${String(key).replace(/</g, "&lt;").replace(/>/g, "&gt;")}
-              </span>
-              <span class="text-sm text-white text-right">
-                ${String(value ?? "").replace(/</g, "&lt;").replace(/>/g, "&gt;")}
-              </span>
-            </div>
-          `).join("")
-        : `<p class="text-sm text-zinc-400 py-3">
-             Nenhuma medida foi preenchida nesta avaliação.
-           </p>`;
+const fieldLabels = {
+neck: "Pescoço",
+shoulders: "Ombros",
+chest_relaxed: "Tórax / Busto relaxado",
+arm_relaxed_right: "Braço relaxado direito",
+arm_relaxed_left: "Braço relaxado esquerdo",
+arm_flexed_right: "Braço contraído direito",
+arm_flexed_left: "Braço contraído esquerdo",
+forearm_right: "Antebraço direito",
+forearm_left: "Antebraço esquerdo",
+waist: "Cintura",
+abdomen: "Circunferência abdominal",
+hips: "Quadril",
+thigh_prox_right: "Coxa proximal direita",
+thigh_prox_left: "Coxa proximal esquerda",
+thigh_mid_right: "Coxa média direita",
+thigh_mid_left: "Coxa média esquerda",
+thigh_dist_right: "Coxa distal direita",
+thigh_dist_left: "Coxa distal esquerda",
+calf_right: "Panturrilha direita",
+calf_left: "Panturrilha esquerda",
+perimetry_total: "Total de perimetria",
+fold_abdominal: "Abdominal",
+fold_suprailiac: "Supra-ilíaca",
+fold_chest: "Peitoral",
+fold_triceps: "Tríceps",
+fold_thigh: "Coxa média",
+fold_subscapular: "Subescapular",
+fold_midaxillary: "Axilar média",
+fold_total: "Total de dobras cutâneas",
+lean_mass: "Massa magra",
+fat_mass: "Massa gorda",
+height: "Altura",
+weight: "Peso",
+body_fat_percentage: "Percentual de gordura",
+cardiovascular_risk: "Risco cardiovascular",
+ectomorphy: "Ectomorfia",
+assessment_protocol: "Protocolo utilizado",
+evaluator_observations: "Observações do avaliador"
+};
+
+const escapeHTML = value =>
+String(value ?? "")
+.replace(/&/g, "&")
+.replace(/</g, "<")
+.replace(/>/g, ">");
+
+const details = values.length
+? values.map(([key, value]) => "<div class="flex justify-between gap-3 border-b border-dark-700 py-2"> <span class="text-xs text-zinc-400"> ${escapeHTML(fieldLabels[key] || key)} </span> <span class="text-sm text-white text-right"> ${escapeHTML(value)} </span> </div>").join("")
+: "<p class="text-sm text-zinc-400 py-3"> Nenhuma medida foi preenchida nesta avaliação. </p>";
 
       const safeId = String(assessment.id || "")
         .replace(/[^a-zA-Z0-9_-]/g, "");
