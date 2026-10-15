@@ -5429,11 +5429,12 @@ async function openAssessments() {
         String(currentUser.email || "").toLowerCase();
     });
 
-    content.innerHTML = `
+   content.innerHTML = `
       <div class="bg-dark-800 border border-dark-700 rounded-2xl p-4">
         <label class="block text-sm font-medium text-zinc-300 mb-2">
           Selecionar aluno
         </label>
+
         <select id="assessmentStudentSelect"
           onchange="loadStudentAssessments(this.value)"
           class="w-full bg-dark-900 border border-dark-700 rounded-xl px-3 py-3 text-sm text-white">
@@ -5442,9 +5443,21 @@ async function openAssessments() {
             `<option value="${String(user.email).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}">${String(user.name || user.email).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</option>`
           ).join("")}
         </select>
+
+        <button
+          type="button"
+          onclick="newPhysicalAssessment()"
+          class="w-full mt-3 bg-primary-500 hover:bg-primary-600 text-dark-950 font-bold py-3 rounded-xl text-sm">
+          + Nova avaliação
+        </button>
       </div>
+
+      <div id="assessmentForm" class="hidden"></div>
+
       <div id="assessmentHistory" class="space-y-3">
-        <p class="text-sm text-zinc-400">Selecione um aluno para consultar o histórico.</p>
+        <p class="text-sm text-zinc-400">
+          Selecione um aluno para consultar o histórico.
+        </p>
       </div>
     `;
 
