@@ -1277,8 +1277,8 @@ border-top-color: #e4e4e7 !important;
 </select>
 </div>
 
-  <div class="grid grid-cols-6 gap-2">
-  <div class="col-span-6 min-w-0">
+  <div class="grid grid-cols-12 gap-2">
+  <div class="col-span-12 min-w-0">
     <label class="block text-[10px] text-zinc-400 mb-1">
       Data de Nascimento
     </label>
@@ -1289,7 +1289,7 @@ border-top-color: #e4e4e7 !important;
     />
   </div>
 
-  <div class="col-span-2 min-w-0">
+  <div class="col-span-5 min-w-0">
     <label class="block text-[10px] text-zinc-400 mb-1">
       Sexo
     </label>
@@ -1305,7 +1305,7 @@ border-top-color: #e4e4e7 !important;
     </select>
   </div>
 
-  <div class="col-span-2 min-w-0">
+  <div class="col-span-3 min-w-0">
     <label class="block text-[10px] text-zinc-400 mb-1">
       Altura (m)
     </label>
@@ -1318,7 +1318,7 @@ border-top-color: #e4e4e7 !important;
     />
   </div>
 
-  <div class="col-span-2 min-w-0">
+  <div class="col-span-4 min-w-0">
     <label class="block text-[10px] text-zinc-400 mb-1">
       Peso (kg)
     </label>
@@ -1332,7 +1332,7 @@ border-top-color: #e4e4e7 !important;
     />
   </div>
 
-  <div class="col-span-6 grid grid-cols-2 gap-2">
+  <div class="col-span-12 grid grid-cols-2 gap-2">
     <div class="min-w-0">
       <label class="block text-[10px] text-zinc-400 mb-1">
         CPF
@@ -7379,6 +7379,30 @@ user.phone = phone;
     alert("Não foi possível salvar os dados do aluno.");
   }
 }
+
+function formatStudentPhone(value) {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+
+  if (digits.length === 0) return "";
+  if (digits.length <= 2) return "(" + digits;
+  if (digits.length <= 7) {
+    return "(" + digits.slice(0, 2) + ") " + digits.slice(2);
+  }
+
+  return (
+    "(" +
+    digits.slice(0, 2) +
+    ") " +
+    digits.slice(2, 7) +
+    "-" +
+    digits.slice(7)
+  );
+}
+
+document.getElementById("mStudentPhone").addEventListener("input", function () {
+  this.value = formatStudentPhone(this.value);
+});
+      
       
       async function deleteStudent() {
   const user = globalState.users[editingStudentIndex];
