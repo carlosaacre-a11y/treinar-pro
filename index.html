@@ -5500,6 +5500,7 @@ function newPhysicalAssessment(assessment = null) {
   const date = assessment?.assessment_date || today;
   const evaluator = assessment?.evaluator_name || currentUser.name || "";
   const protocol = assessment?.protocol || "";
+  const assessmentName = assessment?.assessment_name || "";
 
   const escapeHTML = value =>
     String(value ?? "")
@@ -5518,6 +5519,14 @@ function newPhysicalAssessment(assessment = null) {
         <label class="block text-xs text-zinc-400 mb-1">Data da avaliação</label>
         <input id="assessmentDate" type="date"
           value="${escapeHTML(date)}"
+          class="w-full bg-dark-900 border border-dark-700 rounded-xl px-3 py-2 text-sm text-white">
+      </div>
+
+      <div>
+        <label class="block text-xs text-zinc-400 mb-1">Nome da avaliação</label>
+        <input id="assessmentName" type="text"
+          value="${escapeHTML(assessmentName)}"
+          placeholder="Ex.: Avaliação inicial"
           class="w-full bg-dark-900 border border-dark-700 rounded-xl px-3 py-2 text-sm text-white">
       </div>
 
@@ -5709,6 +5718,7 @@ values[input.dataset.assessmentField] = input.value.trim();
   const payload = {
     student_email: email,
     assessment_date: date,
+    assessment_name: document.getElementById("assessmentName").value.trim(),
     evaluator_email: currentUser.email,
     evaluator_name: document.getElementById("assessmentEvaluator").value.trim(),
     protocol: document.getElementById("assessmentProtocol").value.trim(),
