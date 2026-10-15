@@ -5694,11 +5694,9 @@ async function saveNewPhysicalAssessment() {
 
   const values = {};
 
-  document.querySelectorAll("[data-assessment-field]").forEach(input => {
-    if (input.value.trim() !== "") {
-      values[input.dataset.assessmentField] = input.value.trim();
-    }
-  });
+document.querySelectorAll("[data-assessment-field]").forEach(input => {
+values[input.dataset.assessmentField] = input.value.trim();
+});
 
   const payload = {
     student_email: email,
