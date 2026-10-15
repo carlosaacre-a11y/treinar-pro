@@ -5587,7 +5587,7 @@ async function loadPhysicalAssessmentFields(existingValues = {}) {
           ${fields.map(field => `
             <div>
               <label class="block text-xs text-zinc-400 mb-1">
-                ${escapeHTML(field.label)}
+                ${escapeHTML(field.label || field.field_key)}
                 ${field.unit ? `(${escapeHTML(field.unit)})` : ""}
               </label>
 
