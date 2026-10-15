@@ -5363,24 +5363,45 @@ function setupRunningFilters() {
   }
 }
       
-      function switchTab(tab) {
-        const isAdmin = currentUser && currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
-        if (tab === "admin" && !isAdmin) return;
-        ["workouts", "running", "profile", "admin"].forEach((t) => {
-          const el = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
-          if (el) el.classList.add("hidden");
-          const btn = document.getElementById(`nav${t.charAt(0).toUpperCase() + t.slice(1)}`);
-          if (btn) {
-            btn.className = "flex flex-col items-center text-zinc-400 py-1 px-4 transition hover:text-white";
-          }
-        });
-        const activeEl = document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
-        if (activeEl) activeEl.classList.remove("hidden");
-        const activeBtn = document.getElementById(`nav${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
-        if (activeBtn) {
-          activeBtn.className = "flex flex-col items-center text-primary-500 py-1 px-4 transition";
-        }
-      }
+    function switchTab(tab) {
+  const isAdmin =
+    currentUser &&
+    currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+
+  if (tab === "admin" && !isAdmin) return;
+
+  ["workouts", "running", "profile", "statistics", "admin"].forEach((t) => {
+    const el = document.getElementById(
+      `tab${t.charAt(0).toUpperCase() + t.slice(1)}`
+    );
+
+    if (el) el.classList.add("hidden");
+
+    const btn = document.getElementById(
+      `nav${t.charAt(0).toUpperCase() + t.slice(1)}`
+    );
+
+    if (btn) {
+      btn.className =
+        "flex flex-col items-center text-zinc-400 py-1 px-4 transition hover:text-white";
+    }
+  });
+
+  const activeEl = document.getElementById(
+    `tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`
+  );
+
+  if (activeEl) activeEl.classList.remove("hidden");
+
+  const activeBtn = document.getElementById(
+    `nav${tab.charAt(0).toUpperCase() + tab.slice(1)}`
+  );
+
+  if (activeBtn) {
+    activeBtn.className =
+      "flex flex-col items-center text-primary-500 py-1 px-4 transition";
+  }
+}
 
       function checkDueDateAndNotice() {
         const banner = document.getElementById("dueDateAlertBanner");
