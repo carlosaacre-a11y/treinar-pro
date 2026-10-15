@@ -5462,11 +5462,13 @@ async function openAssessments() {
     `;
 
     if (!isAdmin && !isTeacher) {
-      const select = document.getElementById("assessmentStudentSelect");
-      select.value = currentUser.email;
-      select.disabled = true;
-      await loadStudentAssessments(currentUser.email);
-    }
+  const select = document.getElementById("assessmentStudentSelect");
+
+  // Esconde o cartão que contém o seletor e o botão de nova avaliação.
+  select.closest(".bg-dark-800").classList.add("hidden");
+
+  await loadStudentAssessments(currentUser.email);
+}
   } catch (error) {
     content.innerHTML = `
       <div class="bg-dark-800 border border-red-500/30 rounded-2xl p-4 text-sm text-red-300">
