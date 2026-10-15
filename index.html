@@ -4074,6 +4074,12 @@ document.getElementById("editMyPhone").value =
       function logout() {
         localStorage.removeItem("treinarPro_loggedEmail");
         currentUser = null;
+        const assessmentsContent =
+  document.getElementById("assessmentsContent");
+
+if (assessmentsContent) {
+  assessmentsContent.innerHTML = "";
+}
         document.getElementById("mainApp").classList.add("hidden");
         document.getElementById("loginScreen").classList.remove("hidden");
         document.getElementById("loginEmail").value = "";
@@ -5430,7 +5436,7 @@ async function openAssessments() {
     });
 
    content.innerHTML = `
-      <div class="bg-dark-800 border border-dark-700 rounded-2xl p-4">
+      <div id="assessmentStudentControls" class="bg-dark-800 border border-dark-700 rounded-2xl p-4">
         <label class="block text-sm font-medium text-zinc-300 mb-2">
           Selecionar aluno
         </label>
@@ -5462,13 +5468,13 @@ async function openAssessments() {
     `;
 
     if (!isAdmin && !isTeacher) {
-  const select = document.getElementById("assessmentStudentSelect");
-
-  // Esconde o cartão que contém o seletor e o botão de nova avaliação.
-  select.closest(".bg-dark-800").classList.add("hidden");
+  document
+    .getElementById("assessmentStudentControls")
+    .classList.add("hidden");
 
   await loadStudentAssessments(currentUser.email);
 }
+    
   } catch (error) {
     content.innerHTML = `
       <div class="bg-dark-800 border border-red-500/30 rounded-2xl p-4 text-sm text-red-300">
