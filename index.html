@@ -5875,17 +5875,39 @@ async function loadStudentAssessments(email) {
         .replace(/[^a-zA-Z0-9_-]/g, "");
 
       const editButton =
-        canEdit && safeId
-          ? `
-            <button
-              type="button"
-              onclick="editPhysicalAssessment('${safeId}', decodeURIComponent('${encodeURIComponent(email)}'))"
-              class="w-full mt-3 bg-primary-600 hover:bg-primary-500 text-white font-bold py-3 px-4 rounded-xl"
-            >
-              Editar avaliação
-            </button>
-          `
-          : "";
+    canEdit && safeId
+      ? `
+        <button
+          type="button"
+          onclick="editPhysicalAssessment('${safeId}', decodeURIComponent('${encodeURIComponent(email)}'))"
+          class="flex-1 mt-3 bg-primary-600 hover:bg-primary-500 text-white font-bold py-3 px-4 rounded-xl"
+        >
+          Editar avaliação
+        </button>
+      `
+      : "";
+
+  const deleteButton =
+    canEdit && safeId
+      ? `
+        <button
+          type="button"
+          onclick="deletePhysicalAssessment('${safeId}', decodeURIComponent('${encodeURIComponent(email)}'))"
+          class="flex-1 mt-3 bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-4 rounded-xl"
+        >
+          Excluir avaliação
+        </button>
+      `
+      : "";
+
+  const assessmentActions = editButton || deleteButton
+    ? `
+      <div class="flex flex-col sm:flex-row gap-2">
+        ${editButton}
+        ${deleteButton}
+      </div>
+    `
+    : "";
 
       return `
         <details class="bg-dark-800 border border-dark-700 rounded-2xl overflow-hidden">
@@ -5908,7 +5930,7 @@ async function loadStudentAssessments(email) {
             <div class="space-y-1">
               ${details}
             </div>
-            ${editButton}
+            ${assessmentActions}
           </div>
         </details>
       `;
@@ -5923,6 +5945,44 @@ async function loadStudentAssessments(email) {
     `;
   }
 }
+
+async function deletePhysicalAssessment(id, email) {
+if (!id || !email) {
+alert("Não foi possível identificar a avaliação.");
+return;
+}
+
+const confirmed = confirm(
+"Tem certeza de que deseja excluir esta avaliação física? Esta ação não pode ser desfeita."
+);
+
+if (!confirmed) return;
+
+try {
+const response = await fetch(
+"https://treinarpro-api.carlosaacre.workers.dev/api/assessments?id=" +
+encodeURIComponent(id),
+{
+method: "DELETE"
+}
+);
+
+const data = await response.json();
+
+if (!response.ok || !data.ok) {
+  throw new Error("Falha ao excluir avaliação");
+}
+
+alert("Avaliação física excluída com sucesso.");
+
+await loadStudentAssessments(email);
+
+} catch (error) {
+console.error("Erro ao excluir avaliação:", error);
+alert("Não foi possível excluir a avaliação. Tente novamente.");
+}
+}
+
       
       function checkDueDateAndNotice() {
         const banner = document.getElementById("dueDateAlertBanner");
