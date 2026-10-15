@@ -829,6 +829,40 @@ border-top-color: #e4e4e7 !important;
           </div>
         </div>
 
+        <!-- TELA DE ESTATÍSTICAS -->
+<div id="tabStatistics" class="tab-content space-y-5 hidden">
+
+  <div class="bg-dark-800 border border-dark-700 rounded-2xl p-5">
+    <h2 class="text-lg font-bold text-white">
+      Estatísticas
+    </h2>
+    <p class="text-sm text-zinc-400 mt-1">
+      Acompanhe suas avaliações físicas.
+    </p>
+  </div>
+
+  <div class="bg-dark-800 border border-dark-700 rounded-2xl p-5">
+    <h3 class="text-base font-bold text-white mb-2">
+      Avaliações físicas
+    </h3>
+    <p class="text-sm text-zinc-400 mb-4">
+      Consulte o histórico de avaliações corporais registradas.
+    </p>
+
+    <button
+      id="btnOpenAssessments"
+      onclick="openAssessments()"
+      class="w-full bg-primary-500 hover:bg-primary-600 text-dark-950 font-bold py-3 rounded-xl text-sm transition"
+    >
+      Abrir avaliações
+    </button>
+  </div>
+
+  <div id="assessmentsContent" class="space-y-4 hidden"></div>
+
+</div>
+<!-- FIM DA TELA DE ESTATÍSTICAS -->
+
         <!-- ABA 3: ADMINISTRADOR -->
         <div id="tabAdmin" class="tab-content space-y-5 hidden">
           <div
