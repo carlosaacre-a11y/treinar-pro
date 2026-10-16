@@ -5813,9 +5813,26 @@ async function loadStudentAssessments(email) {
     }
 
     history.innerHTML = data.assessments.map(assessment => {
-      const date = String(assessment.assessment_date || "")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
+      const rawDate = String(assessment.assessment_date || "");
+const dateParts = rawDate.split("-");
+
+const formattedDate = dateParts.length === 3
+  ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`
+  : rawDate;
+
+const date = formattedDate
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;");
+
+const rawAssessmentName = String(
+  assessment.assessment_name || `Avaliação de ${formattedDate}`
+).trim();
+
+const assessmentName = rawAssessmentName
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;");
 
       const evaluator = String(assessment.evaluator_name || "Não informado")
         .replace(/</g, "&lt;")
@@ -5932,7 +5949,8 @@ async function loadStudentAssessments(email) {
           <summary class="p-4 cursor-pointer list-none">
             <div class="flex items-center justify-between gap-3">
               <div>
-                <h3 class="font-bold text-white">Avaliação de ${date}</h3>
+                <h3 class="font-bold text-white">${assessmentName}</h3>
+<p class="text-xs text-zinc-400 mt-1">Data: ${date}</p>
                 <p class="text-xs text-zinc-400 mt-1">
                   Avaliador: ${evaluator}
                 </p>
