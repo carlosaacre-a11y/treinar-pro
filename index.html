@@ -5928,77 +5928,293 @@ const assessmentName = rawAssessmentName
           "composition_result"
         );
 
+      const readAssessmentField = (...keys) => {
+        for (const key of keys) {
+          const value = assessmentValues[key];
+          if (
+            value !== null &&
+            value !== undefined &&
+            String(value).trim() !== ""
+          ) {
+            return value;
+          }
+        }
+        return null;
+      };
+
+      const summaryEscape = value =>
+        String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+
+      const summaryItems = [
+        {
+          label: "ALTURA",
+          key: "height",
+          unit: "cm",
+          color: "#38bdf8"
+        },
+        {
+          label: "PESO",
+          key: "weight",
+          unit: "kg",
+          color: "#a78bfa"
+        }
+      ].map(item => ({
+        ...item,
+        value: readAssessmentField(item.key)
+      })).filter(item => item.value !== null);
+
+      const compositionItems = [
+        {
+          label: "Gordura corporal",
+          key: "body_fat_percentage",
+          unit: "%",
+          color: "#fb923c"
+        }
+      ].map(item => ({
+        ...item,
+        value: readAssessmentField(item.key)
+      })).filter(item =>
+        item.value !== null &&
+        Number.isFinite(
+          Number(String(item.value).replace(",", "."))
+        )
+      );
+
+      const massItems = [
+        {
+          label: "Massa magra",
+          key: "lean_mass",
+          color: "#4ade80"
+        },
+        {
+          label: "Massa gorda",
+          key: "fat_mass",
+          color: "#fb923c"
+        }
+      ].map(item => ({
+        ...item,
+        value: readAssessmentField(item.key)
+      })).filter(item => item.value !== null);
+
+      const abdominalValue = readAssessmentField("abdomen");
+      const cardiovascularRisk =
+        readAssessmentField("cardiovascular_risk");
+
       const assessmentSummary = `
-        <div class="mt-3 mb-2 rounded-xl bg-dark-900 border border-dark-700 p-3 space-y-3">
+        <div style="
+          margin-top:14px;
+          padding:14px;
+          border-radius:16px;
+          background:linear-gradient(145deg,#172033,#111827);
+          border:1px solid #334155;
+          box-shadow:0 5px 18px rgba(0,0,0,.18);
+        ">
+
+          <div style="
+            display:flex;
+            align-items:center;
+            gap:7px;
+            margin-bottom:12px;
+          ">
+            <span style="
+              display:inline-block;
+              width:4px;
+              height:18px;
+              border-radius:4px;
+              background:#38bdf8;
+            "></span>
+            <span style="
+              color:#f8fafc;
+              font-size:12px;
+              font-weight:800;
+              letter-spacing:1px;
+            ">RESUMO DA AVALIAÇÃO</span>
+          </div>
 
           ${summaryItems.length ? `
-            <div class="grid grid-cols-3 gap-2">
+            <div style="
+              display:grid;
+              grid-template-columns:repeat(2,minmax(0,1fr));
+              gap:9px;
+              margin-bottom:13px;
+            ">
               ${summaryItems.map(item => `
-                <div class="min-w-0">
-                  <p class="text-xs text-zinc-400">${item.label}</p>
-                  <p class="text-sm font-bold text-white break-words">
-                    ${summaryEscape(item.value)}${item.unit ? " " + item.unit : ""}
-                  </p>
+                <div style="
+                  min-width:0;
+                  padding:11px;
+                  border-radius:12px;
+                  background:#0f172a;
+                  border:1px solid #334155;
+                ">
+                  <div style="
+                    font-size:10px;
+                    font-weight:700;
+                    letter-spacing:.7px;
+                    color:${item.color};
+                    margin-bottom:5px;
+                  ">${item.label}</div>
+                  <div style="
+                    color:#ffffff;
+                    font-size:19px;
+                    font-weight:800;
+                    overflow-wrap:anywhere;
+                  ">
+                    ${summaryEscape(item.value)}
+                    <span style="font-size:11px;color:#cbd5e1">
+                      ${item.unit}
+                    </span>
+                  </div>
                 </div>
               `).join("")}
             </div>
           ` : ""}
 
-          ${bmiResult ? `
-            <p class="text-xs text-zinc-300">
-              Resultado IMC: ${summaryEscape(bmiResult)}
-            </p>
+          ${compositionItems.length ? `
+            <div style="
+              padding:12px;
+              border-radius:12px;
+              background:#0f172a;
+              border:1px solid #334155;
+              margin-bottom:10px;
+            ">
+              <div style="
+                color:#f8fafc;
+                font-size:12px;
+                font-weight:800;
+                margin-bottom:12px;
+              ">COMPOSIÇÃO CORPORAL</div>
+
+              ${compositionItems.map(item => {
+                const numericValue = Number(
+                  String(item.value).replace(",", ".")
+                );
+                const width = Math.max(0, Math.min(100, numericValue));
+
+                return `
+                  <div style="margin-bottom:10px">
+                    <div style="
+                      display:flex;
+                      justify-content:space-between;
+                      gap:8px;
+                      margin-bottom:5px;
+                    ">
+                      <span style="font-size:11px;color:#cbd5e1">
+                        ${item.label}
+                      </span>
+                      <strong style="
+                        color:${item.color};
+                        font-size:12px;
+                      ">
+                        ${summaryEscape(item.value)}${item.unit}
+                      </strong>
+                    </div>
+
+                    <div style="
+                      height:7px;
+                      border-radius:10px;
+                      background:#334155;
+                      overflow:hidden;
+                    ">
+                      <div style="
+                        height:100%;
+                        width:${width}%;
+                        border-radius:10px;
+                        background:${item.color};
+                      "></div>
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
           ` : ""}
 
-          ${compositionItems.length ? `
-            <div>
-              <p class="text-xs font-bold text-white mb-2">
-                Composição corporal
-              </p>
+          ${massItems.length ? `
+            <div style="
+              display:grid;
+              grid-template-columns:repeat(2,minmax(0,1fr));
+              gap:9px;
+              margin-bottom:10px;
+            ">
+              ${massItems.map(item => `
+                <div style="
+                  min-width:0;
+                  padding:10px;
+                  border-radius:12px;
+                  background:#0f172a;
+                  border:1px solid #334155;
+                ">
+                  <div style="
+                    font-size:10px;
+                    color:${item.color};
+                    font-weight:700;
+                    margin-bottom:5px;
+                  ">${item.label}</div>
+                  <div style="
+                    color:#ffffff;
+                    font-size:17px;
+                    font-weight:800;
+                    overflow-wrap:anywhere;
+                  ">
+                    ${summaryEscape(item.value)}
+                    <span style="font-size:11px;color:#cbd5e1">kg</span>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          ` : ""}
 
-              <div class="space-y-2">
-                ${compositionItems.map(item => {
-                  const numericValue = Number(
-                    String(item.value).replace(",", ".")
-                  );
-                  const width = Math.max(0, Math.min(100, numericValue));
+          ${(abdominalValue !== null || cardiovascularRisk !== null) ? `
+            <div style="
+              padding:11px;
+              border-radius:12px;
+              background:#0f172a;
+              border:1px solid #334155;
+            ">
+              ${abdominalValue !== null ? `
+                <div style="
+                  display:flex;
+                  justify-content:space-between;
+                  align-items:center;
+                  gap:8px;
+                  margin-bottom:${cardiovascularRisk !== null ? "8px" : "0"};
+                ">
+                  <span style="font-size:11px;color:#cbd5e1">
+                    Circunferência abdominal
+                  </span>
+                  <strong style="font-size:13px;color:#38bdf8">
+                    ${summaryEscape(abdominalValue)} cm
+                  </strong>
+                </div>
+              ` : ""}
 
-                  return `
-                    <div>
-                      <div class="flex justify-between gap-2 mb-1">
-                        <span class="text-xs text-zinc-300">${item.label}</span>
-                        <span class="text-xs font-medium text-white">
-                          ${summaryEscape(item.value)}%
-                        </span>
-                      </div>
-                      <div class="h-1.5 w-full rounded-full bg-dark-700 overflow-hidden">
-                        <div
-                          class="h-full rounded-full"
-                          style="width:${width}%;background-color:${item.color}"
-                        ></div>
-                      </div>
-                    </div>
-                  `;
-                }).join("")}
-              </div>
-
-              ${compositionResult ? `
-                <p class="text-xs text-zinc-400 mt-2">
-                  Resultado: ${summaryEscape(compositionResult)}
-                </p>
+              ${cardiovascularRisk !== null ? `
+                <div style="
+                  display:flex;
+                  justify-content:space-between;
+                  align-items:center;
+                  gap:8px;
+                  flex-wrap:wrap;
+                ">
+                  <span style="font-size:11px;color:#cbd5e1">
+                    Risco cardiovascular
+                  </span>
+                  <strong style="
+                    font-size:12px;
+                    color:#fbbf24;
+                    overflow-wrap:anywhere;
+                  ">
+                    ${summaryEscape(cardiovascularRisk)}
+                  </strong>
+                </div>
               ` : ""}
             </div>
           ` : ""}
 
-          ${abdominalValue !== null ? `
-            <div class="text-xs text-zinc-300">
-              Circunferência abdominal:
-              <strong class="text-white">${summaryEscape(abdominalValue)} cm</strong>
-            </div>
-          ` : ""}
         </div>
       `;
-
   const fieldLabels = {
     neck: "Pescoço",
     shoulders: "Ombros",
