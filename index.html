@@ -5843,6 +5843,87 @@ const assessmentName = rawAssessmentName
         .replace(/>/g, "&gt;");
 
       const values = Object.entries(assessment.values || {});
+      const assessmentValues = assessment.values || {};
+
+      const chartFields = [
+        {
+          key: "lean_mass",
+          label: "Massa magra",
+          color: "#22c55e",
+          unit: "kg"
+        },
+        {
+          key: "fat_mass",
+          label: "Massa gorda",
+          color: "#f97316",
+          unit: "kg"
+        },
+        {
+          key: "weight",
+          label: "Peso",
+          color: "#3b82f6",
+          unit: "kg"
+        },
+        {
+          key: "body_fat_percentage",
+          label: "Percentual de gordura",
+          color: "#a855f7",
+          unit: "%"
+        }
+      ];
+
+      const chartData = chartFields
+        .filter(field => {
+          const value = assessmentValues[field.key];
+          return value !== null &&
+            value !== undefined &&
+            String(value).trim() !== "" &&
+            Number.isFinite(Number(value));
+        })
+        .map(field => ({
+          ...field,
+          value: Number(assessmentValues[field.key]),
+          displayValue: String(assessmentValues[field.key])
+        }));
+
+      const assessmentChart = chartData.length
+        ? `
+          <div class="bg-dark-900 border border-dark-700 rounded-xl p-4">
+            <h4 class="text-sm font-bold text-white mb-4">
+              Composição corporal
+            </h4>
+
+            <div class="space-y-4">
+              ${chartData.map(field => {
+                const barWidth = Math.max(
+                  2,
+                  Math.min(100, field.value)
+                );
+
+                return `
+                  <div>
+                    <div class="flex justify-between items-center gap-3 mb-1">
+                      <span class="text-xs text-zinc-300">
+                        ${field.label}
+                      </span>
+                      <span class="text-xs font-bold text-white">
+                        ${field.displayValue} ${field.unit}
+                      </span>
+                    </div>
+
+                    <div class="w-full bg-dark-700 rounded-full h-3 overflow-hidden">
+                      <div
+                        style="width: ${barWidth}%; background-color: ${field.color};"
+                        class="h-3 rounded-full"
+                      ></div>
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        `
+        : "";
 
   const fieldLabels = {
     neck: "Pescoço",
@@ -5960,14 +6041,18 @@ const assessmentName = rawAssessmentName
           </summary>
 
           <div class="px-4 pb-4 space-y-3">
-            <div class="text-xs text-zinc-400">
-              Protocolo: ${protocol}
-            </div>
-            <div class="space-y-1">
-              ${details}
-            </div>
-            ${assessmentActions}
-          </div>
+  <div class="text-xs text-zinc-400">
+    Protocolo: ${protocol}
+  </div>
+
+  ${assessmentChart}
+
+  <div class="space-y-1">
+    ${details}
+  </div>
+
+  ${assessmentActions}
+</div>
         </details>
       `;
     }).join("");
