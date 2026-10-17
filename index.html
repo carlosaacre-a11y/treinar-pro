@@ -5846,85 +5846,158 @@ const assessmentName = rawAssessmentName
       const values = Object.entries(assessment.values || {});
       const assessmentValues = assessment.values || {};
 
-      const chartFields = [
-        {
-          key: "lean_mass",
-          label: "Massa magra",
-          color: "#22c55e",
-          unit: "kg"
-        },
-        {
-          key: "fat_mass",
-          label: "Massa gorda",
-          color: "#f97316",
-          unit: "kg"
-        },
-        {
-          key: "weight",
-          label: "Peso",
-          color: "#3b82f6",
-          unit: "kg"
-        },
-        {
-          key: "body_fat_percentage",
-          label: "Percentual de gordura",
-          color: "#a855f7",
-          unit: "%"
-        }
-      ];
-
-      const chartData = chartFields
-        .filter(field => {
-          const value = assessmentValues[field.key];
-          return value !== null &&
+      const readAssessmentField = (...keys) => {
+        for (const key of keys) {
+          const value = assessmentValues[key];
+          if (
+            value !== null &&
             value !== undefined &&
-            String(value).trim() !== "" &&
-            Number.isFinite(Number(value));
-        })
-        .map(field => ({
-          ...field,
-          value: Number(assessmentValues[field.key]),
-          displayValue: String(assessmentValues[field.key])
-        }));
+            String(value).trim() !== ""
+          ) {
+            return value;
+          }
+        }
+        return null;
+      };
 
-      const assessmentChart = chartData.length
-        ? `
-          <div class="bg-dark-900 border border-dark-700 rounded-xl p-4">
-            <h4 class="text-sm font-bold text-white mb-4">
-              Composição corporal
-            </h4>
+      const summaryEscape = value =>
+        String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
 
-            <div class="space-y-4">
-              ${chartData.map(field => {
-                const barWidth = Math.max(
-                  2,
-                  Math.min(100, field.value)
-                );
+      const summaryItems = [
+        {
+          label: "IMC",
+          keys: ["imc", "bmi"],
+          unit: ""
+        },
+        {
+          label: "Altura",
+          keys: ["height"],
+          unit: "m"
+        },
+        {
+          label: "Peso",
+          keys: ["weight"],
+          unit: "kg"
+        }
+      ].map(item => ({
+        ...item,
+        value: readAssessmentField(...item.keys)
+      })).filter(item => item.value !== null);
 
-                return `
-                  <div>
-                    <div class="flex justify-between items-center gap-3 mb-1">
-                      <span class="text-xs text-zinc-300">
-                        ${field.label}
-                      </span>
-                      <span class="text-xs font-bold text-white">
-                        ${field.displayValue} ${field.unit}
-                      </span>
-                    </div>
+      const compositionItems = [
+        {
+          label: "Gordura",
+          keys: ["body_fat_percentage", "fat_percentage"],
+          color: "#f97316"
+        },
+        {
+          label: "Resíduos",
+          keys: ["residual_percentage", "residual_mass_percentage", "residuals"],
+          color: "#a78bfa"
+        },
+        {
+          label: "Ossos",
+          keys: ["bone_percentage", "bone_mass_percentage", "bones"],
+          color: "#94a3b8"
+        },
+        {
+          label: "Músculos",
+          keys: ["muscle_percentage", "muscle_mass_percentage", "muscles"],
+          color: "#22c55e"
+        }
+      ].map(item => ({
+        ...item,
+        value: readAssessmentField(...item.keys)
+      })).filter(item =>
+        item.value !== null &&
+        Number.isFinite(Number(String(item.value).replace(",", ".")))
+      );
 
-                    <div class="w-full bg-dark-700 rounded-full h-3 overflow-hidden">
-                      <div
-                        style="width: ${barWidth}%; background-color: ${field.color};"
-                        class="h-3 rounded-full"
-                      ></div>
-                    </div>
-                  </div>
-                `;
-              }).join("")}
+      const abdominalValue =
+        readAssessmentField("abdomen", "waist");
+
+      const bmiResult =
+        readAssessmentField("imc_result", "bmi_result");
+
+      const compositionResult =
+        readAssessmentField(
+          "body_composition_result",
+          "composition_result"
+        );
+
+      const assessmentSummary = `
+        <div class="mt-3 mb-2 rounded-xl bg-dark-900 border border-dark-700 p-3 space-y-3">
+
+          ${summaryItems.length ? `
+            <div class="grid grid-cols-3 gap-2">
+              ${summaryItems.map(item => `
+                <div class="min-w-0">
+                  <p class="text-xs text-zinc-400">${item.label}</p>
+                  <p class="text-sm font-bold text-white break-words">
+                    ${summaryEscape(item.value)}${item.unit ? " " + item.unit : ""}
+                  </p>
+                </div>
+              `).join("")}
             </div>
-          </div>
-        `
-        : "";
+          ` : ""}
+
+          ${bmiResult ? `
+            <p class="text-xs text-zinc-300">
+              Resultado IMC: ${summaryEscape(bmiResult)}
+            </p>
+          ` : ""}
+
+          ${compositionItems.length ? `
+            <div>
+              <p class="text-xs font-bold text-white mb-2">
+                Composição corporal
+              </p>
+
+              <div class="space-y-2">
+                ${compositionItems.map(item => {
+                  const numericValue = Number(
+                    String(item.value).replace(",", ".")
+                  );
+                  const width = Math.max(0, Math.min(100, numericValue));
+
+                  return `
+                    <div>
+                      <div class="flex justify-between gap-2 mb-1">
+                        <span class="text-xs text-zinc-300">${item.label}</span>
+                        <span class="text-xs font-medium text-white">
+                          ${summaryEscape(item.value)}%
+                        </span>
+                      </div>
+                      <div class="h-1.5 w-full rounded-full bg-dark-700 overflow-hidden">
+                        <div
+                          class="h-full rounded-full"
+                          style="width:${width}%;background-color:${item.color}"
+                        ></div>
+                      </div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+
+              ${compositionResult ? `
+                <p class="text-xs text-zinc-400 mt-2">
+                  Resultado: ${summaryEscape(compositionResult)}
+                </p>
+              ` : ""}
+            </div>
+          ` : ""}
+
+          ${abdominalValue !== null ? `
+            <div class="text-xs text-zinc-300">
+              Circunferência abdominal:
+              <strong class="text-white">${summaryEscape(abdominalValue)} cm</strong>
+            </div>
+          ` : ""}
+        </div>
+      `;
 
   const fieldLabels = {
     neck: "Pescoço",
@@ -6036,6 +6109,7 @@ const assessmentName = rawAssessmentName
                 <p class="text-xs text-zinc-400 mt-1">
                   Avaliador: ${evaluator}
                 </p>
+                ${assessmentSummary}
               </div>
               <span class="text-primary-500 text-sm">Ver detalhes ▾</span>
             </div>
@@ -6046,8 +6120,7 @@ const assessmentName = rawAssessmentName
     Protocolo: ${protocol}
   </div>
 
-  ${assessmentChart}
-
+ 
   <div class="space-y-1">
     ${details}
   </div>
