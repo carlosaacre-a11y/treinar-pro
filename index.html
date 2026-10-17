@@ -6238,17 +6238,21 @@ const assessmentName = rawAssessmentName
       return `
         <details class="bg-dark-800 border border-dark-700 rounded-2xl overflow-hidden">
           <summary class="p-4 cursor-pointer list-none">
-            <div class="flex items-center justify-between gap-3">
-              <div>
-                <h3 class="font-bold text-white">${assessmentName}</h3>
-<p class="text-xs text-zinc-400 mt-1">Data: ${date}</p>
-                <p class="text-xs text-zinc-400 mt-1">
-                  Avaliador: ${evaluator}
-                </p>
-                ${assessmentSummary}
-              </div>
-              <span class="text-primary-500 text-sm">Ver detalhes ▾</span>
-            </div>
+            <div class="w-full min-w-0">
+  <h3 class="font-bold text-white">${assessmentName}</h3>
+
+  <p class="text-xs text-zinc-400 mt-1">
+    Data: ${date}
+  </p>
+
+  <p class="text-xs text-zinc-400 mt-1">
+    Avaliador: ${evaluator}
+  </p>
+
+  <div class="w-full">
+    ${assessmentSummary}
+  </div>
+</div>
           </summary>
 
           <div class="px-4 pb-4 space-y-3">
