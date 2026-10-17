@@ -5899,7 +5899,7 @@ const assessmentName = rawAssessmentName
       })).filter(item =>
         item.value !== null &&
         Number.isFinite(
-          Number(String(item.value).replace(",", "."))
+          Number(String(item.value).trim().replace("%", "").replace(",", "."))
         )
       );
 
@@ -6009,7 +6009,7 @@ const assessmentName = rawAssessmentName
 
               ${compositionItems.map(item => {
                 const numericValue = Number(
-                  String(item.value).replace(",", ".")
+                  String(item.value).trim().replace("%", "").replace(",", ".")
                 );
                 const width = Math.max(0, Math.min(100, numericValue));
 
