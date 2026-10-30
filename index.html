@@ -1989,6 +1989,105 @@ Observações: Descer lentamente"
 // ==========================================================
 
 let workoutStatsPeriod = "month";
+      let workoutStatsRecordsByDate = {};
+
+function showWorkoutDayPopup(date, anchor) {
+  const workouts = workoutStatsRecordsByDate[date] || [];
+
+  if (!workouts.length) return;
+
+  // Remove uma janela anterior, caso exista
+  const oldPopup = document.getElementById("workoutStatsDayPopup");
+  if (oldPopup) oldPopup.remove();
+
+  // Cria a camada transparente que fecha ao tocar fora
+  const overlay = document.createElement("div");
+  overlay.id = "workoutStatsDayPopup";
+
+  overlay.style.cssText = `
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: transparent;
+  `;
+
+  // Cria a janela flutuante
+  const popup = document.createElement("div");
+
+  popup.style.cssText = `
+    position: absolute;
+    width: max-content;
+    min-width: 170px;
+    max-width: min(260px, calc(100vw - 24px));
+    padding: 12px;
+    border-radius: 12px;
+    background: #27272a;
+    color: white;
+    border: 1px solid #52525b;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.35);
+  `;
+
+  // Impede que tocar dentro da janela a feche
+  popup.addEventListener("click", function(event) {
+    event.stopPropagation();
+  });
+
+  const [year, month, day] = date.split("-");
+  const dateLabel = `${day}/${month}/${year}`;
+
+  const heading = document.createElement("div");
+  heading.textContent = `Treinos de ${dateLabel}`;
+  heading.style.cssText = `
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 9px;
+    color: #a3e635;
+  `;
+
+  popup.appendChild(heading);
+
+  workouts.forEach(function(workoutName) {
+    const item = document.createElement("div");
+    item.textContent = workoutName;
+
+    item.style.cssText = `
+      font-size: 13px;
+      padding: 5px 0;
+      border-top: 1px solid #3f3f46;
+    `;
+
+    popup.appendChild(item);
+  });
+
+  overlay.appendChild(popup);
+  document.body.appendChild(overlay);
+
+  // Posiciona a janela perto do dia selecionado
+  const rect = anchor.getBoundingClientRect();
+  const popupRect = popup.getBoundingClientRect();
+
+  let left = rect.left;
+  let top = rect.bottom + 7;
+
+  if (left + popupRect.width > window.innerWidth - 12) {
+    left = window.innerWidth - popupRect.width - 12;
+  }
+
+  if (top + popupRect.height > window.innerHeight - 12) {
+    top = rect.top - popupRect.height - 7;
+  }
+
+  if (top < 12) top = 12;
+  if (left < 12) left = 12;
+
+  popup.style.left = `${left}px`;
+  popup.style.top = `${top}px`;
+
+  // Fecha ao tocar fora da janela
+  overlay.addEventListener("click", function() {
+    overlay.remove();
+  });
+}
 
 function statsLocalDate(date) {
   const year = date.getFullYear();
@@ -2148,6 +2247,19 @@ async function loadWorkoutStatistics() {
 }
 
 function renderWorkoutStatistics(activities, startDate, endDate) {
+  // Organiza os treinos por data para abrir a janela de detalhes
+  workoutStatsRecordsByDate = {};
+
+  activities.forEach(function(activity) {
+    const date = activity.trainingDate;
+
+    if (!workoutStatsRecordsByDate[date]) {
+      workoutStatsRecordsByDate[date] = [];
+    }
+
+    workoutStatsRecordsByDate[date].push(activity.workoutName);
+  });
+  
   const start = statsParseDate(startDate);
   const end = statsParseDate(endDate);
 
@@ -2215,25 +2327,34 @@ function renderWorkoutStatistics(activities, startDate, endDate) {
   }
 
   for (let i = 0; i < periodDays; i++) {
-    const date = statsLocalDate(statsAddDays(start, i));
-    const trained = trainedDates.has(date);
-    const dayNumber = statsAddDays(start, i).getDate();
+  const date = statsLocalDate(statsAddDays(start, i));
+  const trained = trainedDates.has(date);
+  const dayNumber = statsAddDays(start, i).getDate();
 
+  if (trained) {
+    daysHTML += `
+      <button
+        type="button"
+        title="${date} - Ver treinos realizados"
+        onclick="showWorkoutDayPopup('${date}', this)"
+        class="h-8 rounded-md flex items-center justify-center text-[11px] font-bold bg-primary-500 text-dark-950 cursor-pointer hover:opacity-80"
+      >
+        ${dayNumber}
+      </button>
+    `;
+  } else {
     daysHTML += `
       <div
-        title="${date}${trained ? " - Treino realizado" : " - Sem marcação"}"
-        class="h-8 rounded-md flex items-center justify-center text-[11px] font-bold ${
-          trained
-            ? "bg-primary-500 text-dark-950"
-            : "bg-dark-700 text-zinc-400"
-        }"
+        title="${date} - Sem marcação"
+        class="h-8 rounded-md flex items-center justify-center text-[11px] font-bold bg-dark-700 text-zinc-400"
       >
         ${dayNumber}
       </div>
     `;
   }
+}
 
-  daysContainer.innerHTML = daysHTML;
+daysContainer.innerHTML = daysHTML;
 
   // Gráfico circular de distribuição de todos os treinos
   const colors = [
