@@ -2318,12 +2318,12 @@ function renderWorkoutStatistics(activities, startDate, endDate) {
 
   // Monta os dias do período
   const daysContainer = document.getElementById("statsTrainingDays");
-  const firstWeekday = (start.getDay() + 6) % 7;
+  const firstWeekday = start.getDay();
 
   let daysHTML = "";
 
   // Cabeçalho com os dias da semana
-  const weekDays = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+  const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
   weekDays.forEach(function(day) {
     daysHTML += `
