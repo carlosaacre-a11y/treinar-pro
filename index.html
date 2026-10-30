@@ -348,10 +348,35 @@ border-top-color: #e4e4e7 !important;
             <p id="teacherNoticeText" class="text-xs text-zinc-200 whitespace-pre-wrap leading-relaxed"></p>
           </div>
 
+            <!-- MARCADOR DE TREINOS REALIZADOS -->
+<div id="workoutLogPanel" class="hidden bg-dark-800 border border-dark-700 rounded-xl px-3 py-3 space-y-2">
+
+  <div class="flex items-center justify-between gap-2">
+    <span class="text-xs font-bold text-zinc-300">
+      Marcar treino realizado
+    </span>
+
+    <input
+      type="date"
+      id="workoutLogDate"
+      onchange="changeWorkoutLogDate(this.value)"
+      class="bg-dark-900 border border-dark-700 rounded-lg text-[11px] text-zinc-300 px-2 py-1.5 max-w-[145px] min-w-0"
+    >
+  </div>
+
+  <div
+    id="workoutLogButtons"
+    class="grid grid-cols-5 gap-2"
+  ></div>
+
+</div>
+          
           <div class="flex items-center justify-between mb-1">
+
+
             <h3 class="text-base font-bold text-white flex items-center gap-2">
-              <i class="fa-solid fa-dumbbell text-primary-500"></i> Fichas de
-              Treino
+              <i class="fa-solid fa-dumbbell text-primary-500"></i> 
+              Fichas de Treino
             </h3>
             <button
               id="newWorkoutBtn"
@@ -368,7 +393,7 @@ border-top-color: #e4e4e7 !important;
           ></div>
           <!-- Ações da Ficha Atual -->
           <div
-            class="flex items-center justify-between bg-dark-800 border border-dark-700 rounded-xl px-3 py-2.5"
+            class="hidden"
           >
             <div class="flex items-center gap-2 min-w-0 flex-1">
               <span
@@ -1775,6 +1800,161 @@ Observações: Descer lentamente"
 
       let currentUser = null;
       let activeWorkoutKey = null;
+      let workoutLogDate = "";
+let workoutLogsForDate = new Set();
+
+function getWorkoutLocalDate() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function renderWorkoutMarkers() {
+  const panel = document.getElementById("workoutLogPanel");
+  const buttonsContainer = document.getElementById("workoutLogButtons");
+  const dateInput = document.getElementById("workoutLogDate");
+
+  if (!panel || !buttonsContainer || !currentUser) return;
+
+  const keys = Object.keys(currentUser.workouts || {})
+    .sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
+
+  if (keys.length === 0) {
+    panel.classList.add("hidden");
+    return;
+  }
+
+  panel.classList.remove("hidden");
+
+  if (!workoutLogDate) {
+    workoutLogDate = getWorkoutLocalDate();
+  }
+
+  dateInput.value = workoutLogDate;
+  buttonsContainer.innerHTML = "";
+
+  keys.forEach((key) => {
+    const selected = workoutLogsForDate.has(key);
+    const button = document.createElement("button");
+
+    button.type = "button";
+    button.textContent = key.replace(/^Treino\s*/i, "");
+    button.title = key;
+
+    button.className = selected
+      ? "w-full min-w-0 py-2.5 rounded-xl text-sm font-bold bg-primary-500 text-dark-950 shadow-md shadow-primary-500/20 transition"
+      : "w-full min-w-0 py-2.5 rounded-xl text-sm font-bold bg-dark-900 text-zinc-400 border border-dark-700 transition";
+
+    button.onclick = () => toggleWorkoutLog(key);
+
+    buttonsContainer.appendChild(button);
+  });
+}
+
+async function loadWorkoutLogsForDate() {
+  if (!currentUser || !currentUser.email) return;
+
+  const requestedDate = workoutLogDate || getWorkoutLocalDate();
+
+  try {
+    const params = new URLSearchParams({
+      email: currentUser.email,
+      start: requestedDate,
+      end: requestedDate
+    });
+
+    const response = await fetch(
+      API_URL + "/api/workout-log?" + params.toString()
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || "Erro ao carregar os treinos.");
+    }
+
+    if (workoutLogDate !== requestedDate) return;
+
+    workoutLogsForDate = new Set(
+      (data.activities || []).map(item => item.workoutName)
+    );
+
+    renderWorkoutMarkers();
+
+  } catch (error) {
+    console.error("Erro ao carregar registros de treino:", error);
+  }
+}
+
+async function changeWorkoutLogDate(date) {
+  if (!date) return;
+
+  workoutLogDate = date;
+  workoutLogsForDate.clear();
+
+  renderWorkoutMarkers();
+
+  await loadWorkoutLogsForDate();
+}
+
+async function toggleWorkoutLog(workoutName) {
+  if (!currentUser || !workoutLogDate) return;
+
+  const selectedDate = workoutLogDate;
+  const wasMarked = workoutLogsForDate.has(workoutName);
+
+  const buttons = document.querySelectorAll(
+    "#workoutLogButtons button"
+  );
+
+  buttons.forEach(button => button.disabled = true);
+
+  try {
+    const response = await fetch(
+      API_URL + "/api/workout-log",
+      {
+        method: wasMarked ? "DELETE" : "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: currentUser.email,
+          workoutName: workoutName,
+          trainingDate: selectedDate
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || "Não foi possível salvar o treino.");
+    }
+
+    if (workoutLogDate !== selectedDate) return;
+
+    if (wasMarked) {
+      workoutLogsForDate.delete(workoutName);
+    } else {
+      workoutLogsForDate.add(workoutName);
+    }
+
+    renderWorkoutMarkers();
+
+  } catch (error) {
+    alert(error.message);
+    console.error("Erro ao registrar treino:", error);
+
+    if (workoutLogDate === selectedDate) {
+      await loadWorkoutLogsForDate();
+    }
+  } finally {
+    buttons.forEach(button => button.disabled = false);
+  }
+}
       let editingStudentIndex = null;
       let editingAdminWorkoutKey = null;
       let editingTeacherId = null;
@@ -6570,6 +6750,8 @@ function closeProfilePhoto() {
       
       function renderWorkouts() {
         checkDueDateAndNotice();
+        renderWorkoutMarkers();
+        loadWorkoutLogsForDate();
         const tabsContainer = document.getElementById("workoutTabsList");
         tabsContainer.innerHTML = "";
         
