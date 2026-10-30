@@ -2322,39 +2322,52 @@ function renderWorkoutStatistics(activities, startDate, endDate) {
 
   let daysHTML = "";
 
+  // Cabeçalho com os dias da semana
+  const weekDays = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+
+  weekDays.forEach(function(day) {
+    daysHTML += `
+      <div class="h-6 flex items-center justify-center text-[10px] font-semibold text-zinc-400">
+        ${day}
+      </div>
+    `;
+  });
+
+  // Espaços antes do primeiro dia do período
   for (let i = 0; i < firstWeekday; i++) {
     daysHTML += '<div></div>';
   }
 
+  // Números dos dias do período
   for (let i = 0; i < periodDays; i++) {
-  const date = statsLocalDate(statsAddDays(start, i));
-  const trained = trainedDates.has(date);
-  const dayNumber = statsAddDays(start, i).getDate();
+    const date = statsLocalDate(statsAddDays(start, i));
+    const trained = trainedDates.has(date);
+    const dayNumber = statsAddDays(start, i).getDate();
 
-  if (trained) {
-    daysHTML += `
-      <button
-        type="button"
-        title="${date} - Ver treinos realizados"
-        onclick="showWorkoutDayPopup('${date}', this)"
-        class="h-8 rounded-md flex items-center justify-center text-[11px] font-bold bg-primary-500 text-dark-950 cursor-pointer hover:opacity-80"
-      >
-        ${dayNumber}
-      </button>
-    `;
-  } else {
-    daysHTML += `
-      <div
-        title="${date} - Sem marcação"
-        class="h-8 rounded-md flex items-center justify-center text-[11px] font-bold bg-dark-700 text-zinc-400"
-      >
-        ${dayNumber}
-      </div>
-    `;
+    if (trained) {
+      daysHTML += `
+        <button
+          type="button"
+          title="${date} - Ver treinos realizados"
+          onclick="showWorkoutDayPopup('${date}', this)"
+          class="h-8 rounded-md flex items-center justify-center text-[11px] font-bold bg-primary-500 text-dark-950 cursor-pointer hover:opacity-80"
+        >
+          ${dayNumber}
+        </button>
+      `;
+    } else {
+      daysHTML += `
+        <div
+          title="${date} - Sem marcação"
+          class="h-8 rounded-md flex items-center justify-center text-[11px] font-bold bg-dark-700 text-zinc-400"
+        >
+          ${dayNumber}
+        </div>
+      `;
+    }
   }
-}
 
-daysContainer.innerHTML = daysHTML;
+  daysContainer.innerHTML = daysHTML;
 
   // Gráfico circular de distribuição de todos os treinos
   const colors = [
