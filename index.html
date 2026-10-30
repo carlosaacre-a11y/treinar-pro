@@ -2191,13 +2191,10 @@ async function loadWorkoutStatistics() {
     if (!weekInput.value) return;
 
     const selected = statsParseDate(weekInput.value);
-    const weekday = selected.getDay();
-    const mondayOffset = weekday === 0 ? -6 : 1 - weekday;
+   const sunday = statsAddDays(selected, -selected.getDay());
 
-    const monday = statsAddDays(selected, mondayOffset);
-
-    startDate = statsLocalDate(monday);
-    endDate = statsLocalDate(statsAddDays(monday, 6));
+startDate = statsLocalDate(sunday);
+endDate = statsLocalDate(statsAddDays(sunday, 6));
 
   } else {
     if (!startInput.value || !endInput.value) return;
