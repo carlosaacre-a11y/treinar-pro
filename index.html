@@ -2206,7 +2206,7 @@ function renderWorkoutStatistics(activities, startDate, endDate) {
 
   // Monta os dias do período
   const daysContainer = document.getElementById("statsTrainingDays");
-  const firstWeekday = (start.getDay() + 6) % 7;
+  const firstWeekday = start.getDay();
 
   let daysHTML = "";
 
