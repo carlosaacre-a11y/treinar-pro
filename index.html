@@ -2067,6 +2067,15 @@ async function loadWorkoutStatistics() {
   const weekInput = document.getElementById("statsWeekDate");
   const startInput = document.getElementById("statsStartDate");
   const endInput = document.getElementById("statsEndDate");
+  const today = statsLocalDate(new Date());
+
+  if (!monthInput.value) {
+    monthInput.value = today.substring(0, 7);
+  }
+
+  if (!weekInput.value) {
+    weekInput.value = today;
+  }
 
   let startDate;
   let endDate;
