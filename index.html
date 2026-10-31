@@ -366,7 +366,7 @@ border-top-color: #e4e4e7 !important;
 
   <div
     id="workoutLogButtons"
-    class="grid grid-cols-5 gap-2"
+    class="grid grid-cols-5 gap-2 justify-items-center"
   ></div>
 
 </div>
@@ -2543,8 +2543,8 @@ function renderWorkoutMarkers() {
     button.title = key;
 
     button.className = selected
-      ? "w-full min-w-0 py-1.5 rounded-lg text-xs font-bold bg-primary-500 text-dark-950 shadow-md shadow-primary-500/20 transition"
-      : "w-full min-w-0 py-1.5 rounded-lg text-xs font-bold bg-dark-900 text-zinc-400 border border-dark-700 transition";
+  ? "w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-xs font-bold bg-primary-500 text-dark-950 shadow-md shadow-primary-500/20 transition"
+  : "w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-xs font-bold bg-dark-900 text-zinc-400 border border-dark-700 transition";
 
     button.onclick = () => toggleWorkoutLog(key);
 
