@@ -1043,6 +1043,17 @@ border-top-color: #e4e4e7 !important;
           Sem marcação
         </span>
       </div>
+      
+<!-- FERIADOS DO PERÍODO -->
+      <div id="statsHolidaysSection" class="hidden mt-3 pt-3 border-t border-dark-700">
+        <h5 class="text-xs font-bold text-white mb-2">
+          
+          Feriados neste período
+        </h5>
+
+        <div id="statsHolidaysList" class="space-y-2"></div>
+      </div>
+      
     </div>
 
     <!-- DISTRIBUIÇÃO DOS TREINOS -->
@@ -2237,6 +2248,124 @@ endDate = statsLocalDate(statsAddDays(sunday, 6));
   }
 }
 
+// ==========================================================
+// FERIADOS E DATAS IMPORTANTES DE FEIJÓ E DO ACRE
+// ==========================================================
+
+function getFeijoHolidays(year) {
+  const holidays = [];
+
+  function addHoliday(month, day, name, category) {
+    const date =
+      year + "-" +
+      String(month).padStart(2, "0") + "-" +
+      String(day).padStart(2, "0");
+
+    holidays.push({
+      date: date,
+      name: name,
+      category: category
+    });
+  }
+
+  // Calcula a data da Páscoa para qualquer ano
+  function calculateEaster(y) {
+    const a = y % 19;
+    const b = Math.floor(y / 100);
+    const c = y % 100;
+    const d = Math.floor(b / 4);
+    const e = b % 4;
+    const f = Math.floor((b + 8) / 25);
+    const g = Math.floor((b - f + 1) / 3);
+    const h = (19 * a + b - d - g + 15) % 30;
+    const i = Math.floor(c / 4);
+    const k = c % 4;
+    const l = (32 + 2 * e + 2 * i - h - k) % 7;
+    const m = Math.floor((a + 11 * h + 22 * l) / 451);
+    const month = Math.floor((h + l - 7 * m + 114) / 31);
+    const day = ((h + l - 7 * m + 114) % 31) + 1;
+
+    return new Date(Date.UTC(y, month - 1, day));
+  }
+
+  function dateOffset(baseDate, offset) {
+    const result = new Date(baseDate);
+    result.setUTCDate(result.getUTCDate() + offset);
+
+    return {
+      month: result.getUTCMonth() + 1,
+      day: result.getUTCDate()
+    };
+  }
+
+  const easter = calculateEaster(year);
+
+  // FERIADOS NACIONAIS
+  addHoliday(1, 1, "Confraternização Universal", "Feriado nacional");
+  addHoliday(4, 21, "Tiradentes", "Feriado nacional");
+  addHoliday(5, 1, "Dia Mundial do Trabalho", "Feriado nacional");
+  addHoliday(9, 7, "Independência do Brasil", "Feriado nacional");
+  addHoliday(10, 12, "Nossa Senhora Aparecida", "Feriado nacional");
+  addHoliday(11, 2, "Finados", "Feriado nacional");
+  addHoliday(11, 15, "Proclamação da República", "Feriado nacional");
+  addHoliday(11, 20, "Dia da Consciência Negra", "Feriado nacional");
+  addHoliday(12, 25, "Natal", "Feriado nacional");
+
+  // PAIXÃO DE CRISTO — sexta-feira antes da Páscoa
+  const goodFriday = dateOffset(easter, -2);
+  addHoliday(
+    goodFriday.month,
+    goodFriday.day,
+    "Paixão de Cristo",
+    "Feriado reconhecido em Feijó"
+  );
+
+  // FERIADOS ESTADUAIS DO ACRE
+  addHoliday(1, 20, "Dia do Católico", "Feriado estadual");
+  addHoliday(1, 23, "Dia do Evangélico", "Feriado estadual");
+  addHoliday(3, 8, "Dia Internacional da Mulher", "Feriado estadual");
+  addHoliday(6, 15, "Aniversário do Estado do Acre", "Feriado estadual");
+  addHoliday(9, 5, "Dia da Amazônia", "Feriado estadual");
+  addHoliday(11, 17, "Tratado de Petrópolis", "Feriado estadual");
+
+  // PONTO FACULTATIVO ESTADUAL
+  addHoliday(
+    8,
+    6,
+    "Início da Revolução Acreana",
+    "Ponto facultativo estadual"
+  );
+
+  // FERIADOS MUNICIPAIS DE FEIJÓ
+  const maundyThursday = dateOffset(easter, -3);
+
+  addHoliday(
+    maundyThursday.month,
+    maundyThursday.day,
+    "Quinta-feira Santa",
+    "Feriado municipal de Feijó"
+  );
+
+  addHoliday(
+    6,
+    27,
+    "Nossa Senhora do Perpétuo Socorro",
+    "Feriado municipal de Feijó"
+  );
+
+  addHoliday(
+    12,
+    21,
+    "Aniversário do Município de Feijó",
+    "Feriado municipal de Feijó"
+  );
+
+  // Organiza as datas em ordem cronológica
+  holidays.sort((a, b) => a.date.localeCompare(b.date));
+
+  return holidays;
+}
+      
 function renderWorkoutStatistics(activities, startDate, endDate) {
   // Organiza os treinos por data para abrir a janela de detalhes
   workoutStatsRecordsByDate = {};
@@ -2329,17 +2458,69 @@ function renderWorkoutStatistics(activities, startDate, endDate) {
     daysHTML += '<div></div>';
   }
 
+  // Busca os feriados e datas importantes de todos os anos do período
+  const holidaysByDate = {};
+
+  for (
+    let year = start.getFullYear();
+    year <= end.getFullYear();
+    year++
+  ) {
+    getFeijoHolidays(year).forEach(holiday => {
+      if (holiday.date >= startDate && holiday.date <= endDate) {
+        holidaysByDate[holiday.date] = holiday;
+      }
+    });
+  }
+
+  // Atualiza a lista de feriados e datas importantes
+  const holidaysSection = document.getElementById("statsHolidaysSection");
+  const holidaysList = document.getElementById("statsHolidaysList");
+
+  const periodHolidays = Object.values(holidaysByDate);
+
+  if (periodHolidays.length > 0) {
+    holidaysSection.classList.remove("hidden");
+
+    holidaysList.innerHTML = periodHolidays.map(holiday => {
+      const parts = holiday.date.split("-");
+      const formattedDate = parts[2] + "/" + parts[1];
+
+      return `
+        <span
+  class="text-xs font-semibold"
+  style="color: ${document.documentElement.classList.contains("light") ? "#b45309" : "#fbbf24"};"
+>
+  ${formattedDate} — ${holiday.name}
+</span>
+        </div>
+      `;
+    }).join("");
+  } else {
+    holidaysSection.classList.add("hidden");
+    holidaysList.innerHTML = "";
+  }
+
   // Números dos dias do período
+  const isLightTheme = document.documentElement.classList.contains("light");
+  const holidayNumberColor = isLightTheme ? "#b45309" : "#fbbf24";
+
   for (let i = 0; i < periodDays; i++) {
-    const date = statsLocalDate(statsAddDays(start, i));
+    const currentDate = statsAddDays(start, i);
+    const date = statsLocalDate(currentDate);
     const trained = trainedDates.has(date);
-    const dayNumber = statsAddDays(start, i).getDate();
+    const holiday = holidaysByDate[date];
+    const dayNumber = currentDate.getDate();
+
+    const holidayTitle = holiday
+      ? ` — ${holiday.name} (${holiday.category})`
+      : "";
 
     if (trained) {
       daysHTML += `
         <button
           type="button"
-          title="${date} - Ver treinos realizados"
+          title="${date} - Ver treinos realizados${holidayTitle}"
           onclick="showWorkoutDayPopup('${date}', this)"
           class="h-8 rounded-md flex items-center justify-center text-[11px] font-bold bg-primary-500 text-dark-950 cursor-pointer hover:opacity-80"
         >
@@ -2349,8 +2530,9 @@ function renderWorkoutStatistics(activities, startDate, endDate) {
     } else {
       daysHTML += `
         <div
-          title="${date} - Sem marcação"
-          class="h-8 rounded-md flex items-center justify-center text-[11px] font-bold bg-dark-700 text-zinc-400"
+          title="${date} - ${holiday ? holiday.name + " (" + holiday.category + ")" : "Sem marcação"}"
+          class="h-8 rounded-md flex items-center justify-center text-[11px] font-bold bg-dark-700"
+          style="color: ${holiday ? holidayNumberColor : ""};"
         >
           ${dayNumber}
         </div>
