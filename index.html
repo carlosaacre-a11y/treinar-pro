@@ -2841,6 +2841,7 @@ async function registerWorkoutFromPrompt(workoutName) {
 }
 
 // VERIFICAR SE PRECISA MOSTRAR A JANELA
+      
 async function showWorkoutPromptIfNeeded() {
   if (!currentUser || !currentUser.email) return;
 
@@ -2877,8 +2878,7 @@ async function showWorkoutPromptIfNeeded() {
     button.title = key;
 
     button.className =
-      "w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold bg-dark-900 text-zinc-300 border border-dark-700 hover:border-primary-500 transition";
-
+  "w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold bg-primary-500/15 text-primary-400 border-2 border-primary-500 shadow-md shadow-primary-500/20 hover:bg-primary-500 hover:text-dark-950 transition";
     button.onclick = () => registerWorkoutFromPrompt(key);
 
     container.appendChild(button);
