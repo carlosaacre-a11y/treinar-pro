@@ -7983,29 +7983,123 @@ function renderWorkoutLibrary() {
     const item = document.createElement("div");
 
     item.className =
-      "flex items-center justify-between gap-2 bg-dark-900 border border-dark-700 rounded-lg px-3 py-2";
+      "bg-dark-900 border border-dark-700 rounded-lg p-3 space-y-3";
 
-    item.innerHTML = `
-      <span class="text-xs font-bold text-zinc-300 truncate">
-        <i class="fa-solid fa-box-archive text-blue-400 mr-2"></i>
-        ${key}
-      </span>
-      <button
-        class="shrink-0 text-[10px] font-bold text-primary-400 border border-primary-500/30 rounded-lg px-2.5 py-1.5 hover:bg-primary-500/10"
-      >
-        <i class="fa-solid fa-rotate-left mr-1"></i>
-        Restaurar
-      </button>
-    `;
+    const header = document.createElement("div");
+    header.className =
+      "flex items-center justify-between gap-2";
 
-    item.querySelector("button").onclick = () => {
+    const title = document.createElement("span");
+    title.className =
+      "text-xs font-bold text-zinc-300 truncate";
+    title.innerHTML =
+      '<i class="fa-solid fa-box-archive text-blue-400 mr-2"></i>';
+    title.appendChild(document.createTextNode(key));
+
+    const actions = document.createElement("div");
+    actions.className = "flex items-center gap-2 shrink-0";
+
+    const viewBtn = document.createElement("button");
+    viewBtn.className =
+      "text-[10px] font-bold text-blue-400 border border-blue-500/30 rounded-lg px-2.5 py-1.5";
+    viewBtn.innerHTML =
+      '<i class="fa-solid fa-eye mr-1"></i> Ver exercícios';
+
+    const restoreBtn = document.createElement("button");
+    restoreBtn.className =
+      "text-[10px] font-bold text-primary-400 border border-primary-500/30 rounded-lg px-2.5 py-1.5";
+    restoreBtn.innerHTML =
+      '<i class="fa-solid fa-rotate-left mr-1"></i> Restaurar';
+
+    const details = document.createElement("div");
+    details.className =
+      "hidden border-t border-dark-700 pt-3 space-y-2";
+
+    const exercises = currentUser.workouts[key] || [];
+
+    if (exercises.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "text-xs text-zinc-500 text-center py-2";
+      empty.textContent = "Nenhum exercício nesta ficha.";
+      details.appendChild(empty);
+    } else {
+      exercises.forEach((ex, index) => {
+        const card = document.createElement("div");
+        card.className =
+          "bg-dark-800 border border-dark-700 rounded-lg p-3 space-y-2";
+
+        const number = document.createElement("p");
+        number.className =
+          "text-[10px] font-bold text-primary-400";
+        number.textContent = `EXERCÍCIO ${index + 1}`;
+        card.appendChild(number);
+
+        if (ex.customLabel) {
+          const label = document.createElement("p");
+          label.className =
+            "text-[10px] font-bold text-primary-400";
+          label.textContent = ex.customLabel;
+          card.appendChild(label);
+        }
+
+        const name = document.createElement("p");
+        name.className = "text-xs font-bold text-white";
+        name.textContent = ex.name || "Exercício sem nome";
+        card.appendChild(name);
+
+        const info = document.createElement("p");
+        info.className = "text-[10px] text-zinc-400";
+        info.textContent =
+          `Séries / Reps: ${ex.sets || "-"} | Carga: ${ex.load || "-"}`;
+        card.appendChild(info);
+
+        if (ex.obs) {
+          const obs = document.createElement("p");
+          obs.className = "text-[10px] text-zinc-400";
+          obs.textContent = `Observações: ${ex.obs}`;
+          card.appendChild(obs);
+        }
+
+        if (ex.video) {
+          const videoBtn = document.createElement("button");
+          videoBtn.className =
+            "text-[10px] font-bold text-primary-400";
+          videoBtn.innerHTML =
+            '<i class="fa-solid fa-play mr-1"></i> Ver vídeo';
+          videoBtn.onclick = () => {
+            openExerciseVideo(encodeURIComponent(ex.video));
+          };
+          card.appendChild(videoBtn);
+        }
+
+        details.appendChild(card);
+      });
+    }
+
+    viewBtn.onclick = () => {
+      const isHidden = details.classList.toggle("hidden");
+
+      viewBtn.innerHTML = isHidden
+        ? '<i class="fa-solid fa-eye mr-1"></i> Ver exercícios'
+        : '<i class="fa-solid fa-eye-slash mr-1"></i> Fechar ficha';
+    };
+
+    restoreBtn.onclick = () => {
       restoreWorkoutFromLibrary(key);
     };
+
+    actions.appendChild(viewBtn);
+    actions.appendChild(restoreBtn);
+
+    header.appendChild(title);
+    header.appendChild(actions);
+
+    item.appendChild(header);
+    item.appendChild(details);
 
     container.appendChild(item);
   });
 }
-
       function archiveCurrentWorkout() {
   if (!currentUser || !activeWorkoutKey) return;
 
