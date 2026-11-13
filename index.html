@@ -370,6 +370,27 @@ border-top-color: #e4e4e7 !important;
   ></div>
 
 </div>
+
+          <div class="mb-3">
+  <button
+    id="workoutLibraryBtn"
+    onclick="toggleWorkoutLibrary()"
+    class="w-full flex items-center justify-between bg-blue-500/10 border border-blue-500/30 rounded-xl px-3 py-2.5 text-xs font-bold text-blue-400 hover:bg-blue-500/15 transition"
+  >
+    <span class="flex items-center gap-2">
+      <i class="fa-solid fa-box-archive"></i>
+      Biblioteca de Fichas
+    </span>
+    <i class="fa-solid fa-chevron-down"></i>
+  </button>
+
+  <div
+    id="workoutLibraryPanel"
+    class="hidden mt-2 bg-dark-800 border border-dark-700 rounded-xl p-3"
+  >
+    <div id="workoutLibraryList" class="space-y-2"></div>
+  </div>
+</div>
           
           <div class="flex items-center justify-between mb-1">
 
@@ -383,8 +404,19 @@ border-top-color: #e4e4e7 !important;
               onclick="openNewWorkoutModal()"
               class="hidden bg-primary-500/10 text-primary-400 border border-primary-500/30 text-xs px-3 py-1.5 rounded-lg hover:bg-primary-500/20 transition font-medium flex items-center gap-1"
             >
-              <i class="fa-solid fa-plus text-[10px]"></i> Nova Ficha
+              <i class="fa-solid fa-plus text-[10px]"></i> 
+              Nova Ficha
             </button>
+
+<button
+  id="archiveWorkoutBtn"
+  onclick="archiveCurrentWorkout()"
+  class="hidden text-blue-400 border border-blue-500/30 text-xs px-3 py-1.5 rounded-lg hover:bg-blue-500/10 transition font-medium items-center gap-1"
+>
+  <i class="fa-solid fa-box-archive text-[10px]"></i>
+  Arquivar
+</button>
+            
           </div>
           <!-- Seletor de Fichas -->
           <div
@@ -2740,7 +2772,8 @@ function renderWorkoutMarkers() {
   if (!panel || !buttonsContainer || !currentUser) return;
 
   const keys = Object.keys(currentUser.workouts || {})
-    .sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
+  .filter(key => !currentUser.workoutMeta?.[key]?.isArchived)
+  .sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
 
   if (keys.length === 0) {
     panel.classList.add("hidden");
@@ -7761,7 +7794,8 @@ function closeProfilePhoto() {
         const tabsContainer = document.getElementById("workoutTabsList");
         tabsContainer.innerHTML = "";
         
-        let keys = Object.keys(currentUser.workouts || {});
+        let keys = Object.keys(currentUser.workouts || {})
+  .filter(key => !currentUser.workoutMeta?.[key]?.isArchived);
         keys.sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
 
         if (keys.length === 0) {
@@ -7769,22 +7803,54 @@ function closeProfilePhoto() {
             '<p class="text-xs text-zinc-500 text-center py-8">Nenhuma ficha cadastrada.</p>';
           document.getElementById("currentWorkoutTitle").textContent = "Sem Ficha";
           document.getElementById("editWorkoutNameBtn").classList.add("hidden");
+          const archiveBtn = document.getElementById("archiveWorkoutBtn");
+
+if (archiveBtn) {
+  archiveBtn.classList.add("hidden");
+  archiveBtn.classList.remove("flex");
+}
           return;
         }
-        if (!activeWorkoutKey || !currentUser.workouts[activeWorkoutKey]) {
-          activeWorkoutKey = keys[0];
-        }
+        if (!activeWorkoutKey || !keys.includes(activeWorkoutKey)) {
+  const selectedKey = keys.find(
+    key => currentUser.workoutMeta?.[key]?.isSelected
+  );
+
+  activeWorkoutKey = selectedKey || keys[0];
+}
         keys.forEach((key) => {
           const btn = document.createElement("button");
           btn.className = `px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${activeWorkoutKey === key ? "bg-primary-500 text-dark-950 shadow-md shadow-primary-500/20" : "bg-dark-800 text-zinc-400 border border-dark-700 hover:text-white"}`;
           btn.textContent = key;
           btn.onclick = () => {
-            activeWorkoutKey = key;
-            renderWorkouts();
-          };
+  activeWorkoutKey = key;
+
+  currentUser.workoutMeta = currentUser.workoutMeta || {};
+
+  Object.keys(currentUser.workouts || {}).forEach(name => {
+    currentUser.workoutMeta[name] =
+      currentUser.workoutMeta[name] || {};
+
+    currentUser.workoutMeta[name].isSelected = name === key;
+  });
+
+  saveDB();
+  renderWorkouts();
+};
           tabsContainer.appendChild(btn);
         });
         document.getElementById("currentWorkoutTitle").textContent = `Ficha: ${activeWorkoutKey}`;
+        const archiveBtn = document.getElementById("archiveWorkoutBtn");
+
+if (archiveBtn) {
+  if (currentUser.role !== "teacher" && activeWorkoutKey) {
+    archiveBtn.classList.remove("hidden");
+    archiveBtn.classList.add("flex");
+  } else {
+    archiveBtn.classList.add("hidden");
+    archiveBtn.classList.remove("flex");
+  }
+}
         const isAdmin = false;
         const editNameBtn = document.getElementById("editWorkoutNameBtn");
         if (isAdmin) {
@@ -7881,6 +7947,126 @@ function closeProfilePhoto() {
         });
       }
 
+function toggleWorkoutLibrary() {
+  const panel = document.getElementById("workoutLibraryPanel");
+
+  if (!panel) return;
+
+  panel.classList.toggle("hidden");
+
+  if (!panel.classList.contains("hidden")) {
+    renderWorkoutLibrary();
+  }
+}
+
+function renderWorkoutLibrary() {
+  const container = document.getElementById("workoutLibraryList");
+
+  if (!container || !currentUser) return;
+
+  const archivedKeys = Object.keys(currentUser.workouts || {})
+    .filter(key => currentUser.workoutMeta?.[key]?.isArchived)
+    .sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
+
+  if (archivedKeys.length === 0) {
+    container.innerHTML = `
+      <p class="text-xs text-zinc-500 text-center py-3">
+        Nenhuma ficha arquivada.
+      </p>
+    `;
+    return;
+  }
+
+  container.innerHTML = "";
+
+  archivedKeys.forEach(key => {
+    const item = document.createElement("div");
+
+    item.className =
+      "flex items-center justify-between gap-2 bg-dark-900 border border-dark-700 rounded-lg px-3 py-2";
+
+    item.innerHTML = `
+      <span class="text-xs font-bold text-zinc-300 truncate">
+        <i class="fa-solid fa-box-archive text-blue-400 mr-2"></i>
+        ${key}
+      </span>
+      <button
+        class="shrink-0 text-[10px] font-bold text-primary-400 border border-primary-500/30 rounded-lg px-2.5 py-1.5 hover:bg-primary-500/10"
+      >
+        <i class="fa-solid fa-rotate-left mr-1"></i>
+        Restaurar
+      </button>
+    `;
+
+    item.querySelector("button").onclick = () => {
+      restoreWorkoutFromLibrary(key);
+    };
+
+    container.appendChild(item);
+  });
+}
+
+      function archiveCurrentWorkout() {
+  if (!currentUser || !activeWorkoutKey) return;
+
+  const key = activeWorkoutKey;
+
+  if (!confirm(`Deseja arquivar a ficha "${key}"?`)) {
+    return;
+  }
+
+  currentUser.workoutMeta = currentUser.workoutMeta || {};
+
+  currentUser.workoutMeta[key] =
+    currentUser.workoutMeta[key] || {};
+
+  currentUser.workoutMeta[key].isArchived = true;
+  currentUser.workoutMeta[key].isSelected = false;
+
+  const remainingKeys = Object.keys(currentUser.workouts || {})
+    .filter(name => !currentUser.workoutMeta[name]?.isArchived)
+    .sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
+
+  remainingKeys.forEach(name => {
+    currentUser.workoutMeta[name] =
+      currentUser.workoutMeta[name] || {};
+
+    currentUser.workoutMeta[name].isSelected = false;
+  });
+
+  activeWorkoutKey = remainingKeys[0] || null;
+
+  if (activeWorkoutKey) {
+    currentUser.workoutMeta[activeWorkoutKey].isSelected = true;
+  }
+
+  saveDB();
+  renderWorkouts();
+  renderWorkoutLibrary();
+}
+
+      function restoreWorkoutFromLibrary(key) {
+  if (!currentUser || !currentUser.workouts?.[key]) return;
+
+  currentUser.workoutMeta = currentUser.workoutMeta || {};
+
+  Object.keys(currentUser.workouts).forEach(name => {
+    currentUser.workoutMeta[name] =
+      currentUser.workoutMeta[name] || {};
+
+    currentUser.workoutMeta[name].isSelected = false;
+  });
+
+  currentUser.workoutMeta[key].isArchived = false;
+  currentUser.workoutMeta[key].isSelected = true;
+
+  activeWorkoutKey = key;
+
+  saveDB();
+  renderWorkouts();
+  renderWorkoutLibrary();
+}
+      
       function updateExercise(idx, field, val) {
         currentUser.workouts[activeWorkoutKey][idx][field] = val;
         saveDB();
@@ -7907,20 +8093,36 @@ function closeProfilePhoto() {
         const name = prompt("Nome da nova ficha (Ex: Treino C, Pernas, Abdômen...):");
         if (!name) return;
         if (!currentUser.workouts[name]) {
-          currentUser.workouts[name] = [
-            {
-              customLabel: "",
-              name: "Novo Exercício",
-              sets: "3x12",
-              load: "10 Kg",
-              video: "",
-              obs: ""
-            }
-          ];
-          activeWorkoutKey = name;
-          saveDB();
-          renderWorkouts();
-        }
+  currentUser.workouts[name] = [
+    {
+      customLabel: "",
+      name: "Novo Exercício",
+      sets: "3x12",
+      load: "10 Kg",
+      video: "",
+      obs: ""
+    }
+  ];
+
+  currentUser.workoutMeta = currentUser.workoutMeta || {};
+
+  Object.keys(currentUser.workouts).forEach(key => {
+    currentUser.workoutMeta[key] =
+      currentUser.workoutMeta[key] || {};
+
+    currentUser.workoutMeta[key].isSelected = false;
+  });
+
+  currentUser.workoutMeta[name] = {
+    isArchived: false,
+    isSelected: true
+  };
+
+  activeWorkoutKey = name;
+
+  saveDB();
+  renderWorkouts();
+}
       }
 
       function openAddExerciseModal() {
