@@ -2507,24 +2507,6 @@ function getFeijoHolidays(year) {
   return holidays;
 }
       
-function renderWorkoutStatistics(activities, startDate, endDate) {
-  // Organiza os treinos por data para abrir a janela de detalhes
-  workoutStatsRecordsByDate = {};
-
-  activities.forEach(function(activity) {
-    const date = activity.trainingDate;
-
-    if (!workoutStatsRecordsByDate[date]) {
-      workoutStatsRecordsByDate[date] = [];
-    }
-
-    workoutStatsRecordsByDate[date].push(activity.workoutName);
-  });
-  
-  const start = statsParseDate(startDate);
-  const end = statsParseDate(endDate);
-
-  const periodDays = Math.round((end - start) / 86400000) + 1;
 
  function renderWorkoutStatistics(activities, startDate, endDate) {
   // Organiza os treinos por data para abrir a janela de detalhes
