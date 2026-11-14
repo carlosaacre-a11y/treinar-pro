@@ -8067,17 +8067,29 @@ function renderWorkoutLibrary() {
     folderBox.className =
       "bg-dark-900 border border-dark-700 rounded-xl p-3 space-y-3";
 
-    const folderTitle = document.createElement("h4");
+    const folderTitle = document.createElement("button");
+folderTitle.className =
+  "w-full flex items-center justify-between text-xs font-bold text-blue-400";
 
-    folderTitle.className =
-      "text-xs font-bold text-blue-400";
+folderTitle.innerHTML = `
+  <span>
+    <i class="fa-solid fa-folder-open mr-2"></i>
+    ${folder}
+  </span>
+  <i class="fa-solid fa-chevron-down transition-transform"></i>
+`;
 
-    folderTitle.innerHTML =
-      '<i class="fa-solid fa-folder-open mr-2"></i>';
+const folderContent = document.createElement("div");
+folderContent.className = "hidden space-y-2";
 
-    folderTitle.appendChild(document.createTextNode(folder));
+const arrow = folderTitle.querySelector(".fa-chevron-down");
 
-    folderBox.appendChild(folderTitle);
+folderTitle.onclick = () => {
+  folderContent.classList.toggle("hidden");
+  arrow.classList.toggle("rotate-180");
+};
+
+folderBox.appendChild(folderTitle);
 
     folders[folder].forEach(workout => {
       const item = document.createElement("div");
@@ -8188,9 +8200,10 @@ function renderWorkoutLibrary() {
       item.appendChild(header);
       item.appendChild(details);
 
-      folderBox.appendChild(item);
+      folderContent.appendChild(item);
     });
-
+    
+    folderBox.appendChild(folderContent);
     container.appendChild(folderBox);
   });
 }
