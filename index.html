@@ -2536,6 +2536,15 @@ function getFeijoHolidays(year) {
   workoutKeys.forEach(key => {
     workoutCounts[key] = 0;
   });
+   // Inclui nomes antigos que ainda possuem registros
+  activities.forEach(activity => {
+    const name = activity.workoutName;
+
+    if (!workoutCounts.hasOwnProperty(name)) {
+      workoutCounts[name] = 0;
+      workoutKeys.push(name);
+    }
+  });
 
   activities.forEach(activity => {
     const name = activity.workoutName;
