@@ -8248,7 +8248,7 @@ function archiveCurrentWorkout() {
   openArchiveWorkoutModal();
 }
 
-function confirmArchiveWorkout() {
+async function confirmArchiveWorkout() {
   if (!currentUser || !activeWorkoutKey) return;
 
   const select = document.getElementById("archiveWorkoutFolder");
@@ -8266,48 +8266,70 @@ function confirmArchiveWorkout() {
   const key = activeWorkoutKey;
   const exercises = currentUser.workouts[key];
 
-  currentUser.archivedWorkouts =
-    currentUser.archivedWorkouts || [];
+  try {
+    const response = await fetch(API_URL + "/api/workout/archive", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email: currentUser.email,
+        workoutName: key,
+        archiveFolder: folder
+      })
+    });
 
-  currentUser.archivedWorkouts.push({
-    id: crypto.randomUUID(),
-    name: key,
-    archiveFolder: folder,
-    exercises: exercises
-  });
+    const result = await response.json();
 
-  delete currentUser.workouts[key];
+    if (!response.ok || !result.ok) {
+      throw new Error(result.error || "Não foi possível arquivar a ficha.");
+    }
 
-  if (currentUser.workoutMeta) {
-    delete currentUser.workoutMeta[key];
+    currentUser.archivedWorkouts =
+      currentUser.archivedWorkouts || [];
+
+    currentUser.archivedWorkouts.push({
+      id: result.id,
+      name: key,
+      archiveFolder: folder,
+      exercises: exercises
+    });
+
+    delete currentUser.workouts[key];
+
+    if (currentUser.workoutMeta) {
+      delete currentUser.workoutMeta[key];
+    }
+
+    const remainingKeys = Object.keys(currentUser.workouts || {})
+      .sort((a, b) =>
+        a.localeCompare(b, "pt-BR", { numeric: true })
+      );
+
+    remainingKeys.forEach(name => {
+      currentUser.workoutMeta[name] =
+        currentUser.workoutMeta[name] || {};
+
+      currentUser.workoutMeta[name].isSelected = false;
+    });
+
+    activeWorkoutKey = remainingKeys[0] || null;
+
+    if (activeWorkoutKey) {
+      currentUser.workoutMeta[activeWorkoutKey].isSelected = true;
+    }
+
+    closeArchiveWorkoutModal();
+
+    renderWorkouts();
+    renderWorkoutLibrary();
+
+  } catch (error) {
+    alert("Erro ao arquivar ficha: " + error.message);
   }
-
-  const remainingKeys = Object.keys(currentUser.workouts || {})
-    .sort((a, b) =>
-      a.localeCompare(b, "pt-BR", { numeric: true })
-    );
-
-  remainingKeys.forEach(name => {
-    currentUser.workoutMeta[name] =
-      currentUser.workoutMeta[name] || {};
-
-    currentUser.workoutMeta[name].isSelected = false;
-  });
-
-  activeWorkoutKey = remainingKeys[0] || null;
-
-  if (activeWorkoutKey) {
-    currentUser.workoutMeta[activeWorkoutKey].isSelected = true;
-  }
-
-  closeArchiveWorkoutModal();
-
-  saveDB();
-  renderWorkouts();
-  renderWorkoutLibrary();
 }
 
-function restoreWorkoutFromLibrary(archiveId) {
+async function restoreWorkoutFromLibrary(archiveId) {
   if (!currentUser) return;
 
   const archived = currentUser.archivedWorkouts || [];
@@ -8328,33 +8350,56 @@ function restoreWorkoutFromLibrary(archiveId) {
     return;
   }
 
-  currentUser.workouts = currentUser.workouts || {};
-  currentUser.workoutMeta = currentUser.workoutMeta || {};
+  try {
+    const response = await fetch(API_URL + "/api/workout/restore", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email: currentUser.email,
+        workoutId: archiveId
+      })
+    });
 
-  Object.keys(currentUser.workouts).forEach(key => {
-    currentUser.workoutMeta[key] =
-      currentUser.workoutMeta[key] || {};
+    const result = await response.json();
 
-    currentUser.workoutMeta[key].isSelected = false;
-  });
+    if (!response.ok || !result.ok) {
+      throw new Error(
+        result.error || "Não foi possível restaurar a ficha."
+      );
+    }
 
-  currentUser.workouts[name] = workout.exercises || [];
+    currentUser.workouts = currentUser.workouts || {};
+    currentUser.workoutMeta = currentUser.workoutMeta || {};
 
-  currentUser.workoutMeta[name] = {
-    isArchived: false,
-    isSelected: true,
-    archiveFolder: ""
-  };
+    Object.keys(currentUser.workouts).forEach(key => {
+      currentUser.workoutMeta[key] =
+        currentUser.workoutMeta[key] || {};
 
-  activeWorkoutKey = name;
+      currentUser.workoutMeta[key].isSelected = false;
+    });
 
-  archived.splice(index, 1);
+    currentUser.workouts[name] = workout.exercises || [];
 
-  currentUser.archivedWorkouts = archived;
+    currentUser.workoutMeta[name] = {
+      isArchived: false,
+      isSelected: true,
+      archiveFolder: ""
+    };
 
-  saveDB();
-  renderWorkouts();
-  renderWorkoutLibrary();
+    activeWorkoutKey = name;
+
+    archived.splice(index, 1);
+
+    currentUser.archivedWorkouts = archived;
+
+    renderWorkouts();
+    renderWorkoutLibrary();
+
+  } catch (error) {
+    alert("Erro ao restaurar ficha: " + error.message);
+  }
 }
       
       function updateExercise(idx, field, val) {
