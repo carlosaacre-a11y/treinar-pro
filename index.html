@@ -2851,9 +2851,38 @@ function renderWorkoutMarkers() {
 
   if (!panel || !buttonsContainer || !currentUser) return;
 
-  const keys = Object.keys(currentUser.workouts || {})
-  .filter(key => !currentUser.workoutMeta?.[key]?.isArchived)
-  .sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
+ const keys = Object.keys(currentUser.workouts || {})
+    .filter(key => !currentUser.workoutMeta?.[key]?.isArchived);
+
+  const ordemDias = [
+    "domingo",
+    "segunda",
+    "terca",
+    "quarta",
+    "quinta",
+    "sexta",
+    "sabado"
+  ];
+
+  const normalizarDia = nome =>
+    nome.normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim()
+      .replace(/-feira/g, "")
+      .replace(/\s+feira/g, "");
+
+  keys.sort((a, b) => {
+    const diaA = ordemDias.indexOf(normalizarDia(a));
+    const diaB = ordemDias.indexOf(normalizarDia(b));
+
+    const posA = diaA === -1 ? 99 : diaA;
+    const posB = diaB === -1 ? 99 : diaB;
+
+    if (posA !== posB) return posA - posB;
+
+    return a.localeCompare(b, "pt-BR", { numeric: true });
+  });
 
   if (keys.length === 0) {
     panel.classList.add("hidden");
