@@ -391,6 +391,75 @@ border-top-color: #e4e4e7 !important;
     <div id="workoutLibraryList" class="space-y-2"></div>
   </div>
 </div>
+
+<!-- MODAL: ESCOLHER PASTA PARA ARQUIVAR -->
+<div
+  id="archiveWorkoutModal"
+  class="hidden fixed inset-0 z-[100] bg-black/70 flex items-center justify-center p-4"
+>
+  <div class="w-full max-w-sm bg-dark-800 border border-dark-700 rounded-2xl p-4 space-y-4">
+
+    <div class="flex items-center justify-between">
+      <h3 class="text-sm font-bold text-white">
+        <i class="fa-solid fa-box-archive text-primary-400 mr-2"></i>
+        Onde deseja arquivar?
+      </h3>
+
+      <button
+        type="button"
+        onclick="closeArchiveWorkoutModal()"
+        class="text-zinc-400 hover:text-white"
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div>
+      <label class="text-xs text-zinc-400 font-semibold">
+        Escolha uma pasta
+      </label>
+
+      <select
+        id="archiveWorkoutFolder"
+        class="w-full mt-2 bg-dark-900 border border-dark-700 rounded-lg p-2.5 text-xs text-white"
+      >
+        <option value="">Selecione uma pasta</option>
+      </select>
+    </div>
+
+    <div class="border-t border-dark-700 pt-3 space-y-2">
+      <label class="text-xs text-zinc-400 font-semibold">
+        Ou crie uma nova pasta
+      </label>
+
+      <input
+        id="newArchiveFolderName"
+        type="text"
+        placeholder="Ex: Professor João"
+        class="w-full bg-dark-900 border border-dark-700 rounded-lg p-2.5 text-xs text-white"
+      />
+    </div>
+
+    <div class="flex gap-2 pt-2">
+      <button
+        type="button"
+        onclick="closeArchiveWorkoutModal()"
+        class="flex-1 bg-dark-700 text-zinc-300 rounded-lg py-2.5 text-xs font-bold"
+      >
+        Cancelar
+      </button>
+
+      <button
+        type="button"
+        onclick="confirmArchiveWorkout()"
+        class="flex-1 bg-primary-500 text-dark-950 rounded-lg py-2.5 text-xs font-bold"
+      >
+        Arquivar ficha
+      </button>
+    </div>
+
+  </div>
+</div>
           
           <div class="flex items-center justify-between mb-1">
 
@@ -3109,6 +3178,7 @@ async function saveDB() {
 
   return saveQueue;
 }
+      
       function openExerciseImportModal() {
   const modal = document.getElementById("exerciseImportModal");
   const textArea = document.getElementById("exerciseImportText");
@@ -7964,11 +8034,11 @@ function renderWorkoutLibrary() {
 
   if (!container || !currentUser) return;
 
-  const archivedKeys = Object.keys(currentUser.workouts || {})
-    .filter(key => currentUser.workoutMeta?.[key]?.isArchived)
-    .sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
+  const archived = currentUser.archivedWorkouts || [];
 
-  if (archivedKeys.length === 0) {
+  container.innerHTML = "";
+
+  if (archived.length === 0) {
     container.innerHTML = `
       <p class="text-xs text-zinc-500 text-center py-3">
         Nenhuma ficha arquivada.
@@ -7977,54 +8047,73 @@ function renderWorkoutLibrary() {
     return;
   }
 
-  container.innerHTML = "";
+  const folders = {};
 
-  archivedKeys.forEach(key => {
-    const item = document.createElement("div");
+  archived.forEach(workout => {
+    const folder = workout.archiveFolder || "Sem pasta";
 
-    item.className =
-      "bg-dark-900 border border-dark-700 rounded-lg p-3 space-y-3";
+    if (!folders[folder]) folders[folder] = [];
 
-    const header = document.createElement("div");
-    header.className =
-      "flex items-center justify-between gap-2";
+    folders[folder].push(workout);
+  });
 
-    const title = document.createElement("span");
-    title.className =
-      "text-xs font-bold text-zinc-300 truncate";
-    title.innerHTML =
-      '<i class="fa-solid fa-box-archive text-blue-400 mr-2"></i>';
-    title.appendChild(document.createTextNode(key));
+  Object.keys(folders).sort((a, b) =>
+    a.localeCompare(b, "pt-BR")
+  ).forEach(folder => {
+    const folderBox = document.createElement("div");
 
-    const actions = document.createElement("div");
-    actions.className = "flex items-center gap-2 shrink-0";
+    folderBox.className =
+      "bg-dark-900 border border-dark-700 rounded-xl p-3 space-y-3";
 
-    const viewBtn = document.createElement("button");
-    viewBtn.className =
-      "text-[10px] font-bold text-blue-400 border border-blue-500/30 rounded-lg px-2.5 py-1.5";
-    viewBtn.innerHTML =
-      '<i class="fa-solid fa-eye mr-1"></i> Ver exercícios';
+    const folderTitle = document.createElement("h4");
 
-    const restoreBtn = document.createElement("button");
-    restoreBtn.className =
-      "text-[10px] font-bold text-primary-400 border border-primary-500/30 rounded-lg px-2.5 py-1.5";
-    restoreBtn.innerHTML =
-      '<i class="fa-solid fa-rotate-left mr-1"></i> Restaurar';
+    folderTitle.className =
+      "text-xs font-bold text-blue-400";
 
-    const details = document.createElement("div");
-    details.className =
-      "hidden border-t border-dark-700 pt-3 space-y-2";
+    folderTitle.innerHTML =
+      '<i class="fa-solid fa-folder-open mr-2"></i>';
 
-    const exercises = currentUser.workouts[key] || [];
+    folderTitle.appendChild(document.createTextNode(folder));
 
-    if (exercises.length === 0) {
-      const empty = document.createElement("p");
-      empty.className = "text-xs text-zinc-500 text-center py-2";
-      empty.textContent = "Nenhum exercício nesta ficha.";
-      details.appendChild(empty);
-    } else {
+    folderBox.appendChild(folderTitle);
+
+    folders[folder].forEach(workout => {
+      const item = document.createElement("div");
+
+      item.className =
+        "border-t border-dark-700 pt-3 space-y-2";
+
+      const header = document.createElement("div");
+      header.className =
+        "flex items-center justify-between gap-2";
+
+      const title = document.createElement("span");
+      title.className =
+        "text-xs font-bold text-zinc-300";
+      title.textContent = workout.name;
+
+      const actions = document.createElement("div");
+      actions.className = "flex items-center gap-2 shrink-0";
+
+      const viewBtn = document.createElement("button");
+      viewBtn.className =
+        "text-[10px] font-bold text-blue-400 border border-blue-500/30 rounded-lg px-2.5 py-1.5";
+      viewBtn.textContent = "Ver exercícios";
+
+      const restoreBtn = document.createElement("button");
+      restoreBtn.className =
+        "text-[10px] font-bold text-primary-400 border border-primary-500/30 rounded-lg px-2.5 py-1.5";
+      restoreBtn.textContent = "Restaurar";
+
+      const details = document.createElement("div");
+      details.className =
+        "hidden border-t border-dark-700 pt-3 space-y-2";
+
+      const exercises = workout.exercises || [];
+
       exercises.forEach((ex, index) => {
         const card = document.createElement("div");
+
         card.className =
           "bg-dark-800 border border-dark-700 rounded-lg p-3 space-y-2";
 
@@ -8032,25 +8121,26 @@ function renderWorkoutLibrary() {
         number.className =
           "text-[10px] font-bold text-primary-400";
         number.textContent = `EXERCÍCIO ${index + 1}`;
-        card.appendChild(number);
-
-        if (ex.customLabel) {
-          const label = document.createElement("p");
-          label.className =
-            "text-[10px] font-bold text-primary-400";
-          label.textContent = ex.customLabel;
-          card.appendChild(label);
-        }
 
         const name = document.createElement("p");
         name.className = "text-xs font-bold text-white";
         name.textContent = ex.name || "Exercício sem nome";
-        card.appendChild(name);
 
         const info = document.createElement("p");
         info.className = "text-[10px] text-zinc-400";
         info.textContent =
           `Séries / Reps: ${ex.sets || "-"} | Carga: ${ex.load || "-"}`;
+
+        card.appendChild(number);
+
+        if (ex.customLabel) {
+          const label = document.createElement("p");
+          label.className = "text-[10px] font-bold text-primary-400";
+          label.textContent = ex.customLabel;
+          card.appendChild(label);
+        }
+
+        card.appendChild(name);
         card.appendChild(info);
 
         if (ex.obs) {
@@ -8064,62 +8154,123 @@ function renderWorkoutLibrary() {
           const videoBtn = document.createElement("button");
           videoBtn.className =
             "text-[10px] font-bold text-primary-400";
-          videoBtn.innerHTML =
-            '<i class="fa-solid fa-play mr-1"></i> Ver vídeo';
-          videoBtn.onclick = () => {
+          videoBtn.textContent = "Ver vídeo";
+          videoBtn.onclick = () =>
             openExerciseVideo(encodeURIComponent(ex.video));
-          };
+
           card.appendChild(videoBtn);
         }
 
         details.appendChild(card);
       });
-    }
 
-    viewBtn.onclick = () => {
-      const isHidden = details.classList.toggle("hidden");
+      if (exercises.length === 0) {
+        details.textContent = "Nenhum exercício nesta ficha.";
+      }
 
-      viewBtn.innerHTML = isHidden
-        ? '<i class="fa-solid fa-eye mr-1"></i> Ver exercícios'
-        : '<i class="fa-solid fa-eye-slash mr-1"></i> Fechar ficha';
-    };
+      viewBtn.onclick = () => {
+        const hidden = details.classList.toggle("hidden");
+        viewBtn.textContent = hidden ? "Ver exercícios" : "Fechar ficha";
+      };
 
-    restoreBtn.onclick = () => {
-      restoreWorkoutFromLibrary(key);
-    };
+      restoreBtn.onclick = () => {
+        restoreWorkoutFromLibrary(workout.id);
+      };
 
-    actions.appendChild(viewBtn);
-    actions.appendChild(restoreBtn);
+      actions.appendChild(viewBtn);
+      actions.appendChild(restoreBtn);
 
-    header.appendChild(title);
-    header.appendChild(actions);
+      header.appendChild(title);
+      header.appendChild(actions);
 
-    item.appendChild(header);
-    item.appendChild(details);
+      item.appendChild(header);
+      item.appendChild(details);
 
-    container.appendChild(item);
+      folderBox.appendChild(item);
+    });
+
+    container.appendChild(folderBox);
   });
 }
-      function archiveCurrentWorkout() {
+
+function openArchiveWorkoutModal() {
   if (!currentUser || !activeWorkoutKey) return;
 
-  const key = activeWorkoutKey;
+  const modal = document.getElementById("archiveWorkoutModal");
+  const select = document.getElementById("archiveWorkoutFolder");
+  const input = document.getElementById("newArchiveFolderName");
 
-  if (!confirm(`Deseja arquivar a ficha "${key}"?`)) {
+  if (!modal || !select || !input) return;
+
+const folders = new Set();
+
+(currentUser.archivedWorkouts || []).forEach(workout => {
+  if (workout.archiveFolder) {
+    folders.add(workout.archiveFolder);
+  }
+});
+
+  select.innerHTML = '<option value="">Selecione uma pasta</option>';
+
+  [...folders].sort((a, b) =>
+    a.localeCompare(b, "pt-BR")
+  ).forEach(folder => {
+    const option = document.createElement("option");
+    option.value = folder;
+    option.textContent = folder;
+    select.appendChild(option);
+  });
+
+  input.value = "";
+  modal.classList.remove("hidden");
+}
+
+function closeArchiveWorkoutModal() {
+  document.getElementById("archiveWorkoutModal")?.classList.add("hidden");
+}
+      
+function archiveCurrentWorkout() {
+  openArchiveWorkoutModal();
+}
+
+function confirmArchiveWorkout() {
+  if (!currentUser || !activeWorkoutKey) return;
+
+  const select = document.getElementById("archiveWorkoutFolder");
+  const input = document.getElementById("newArchiveFolderName");
+
+  const newFolder = input?.value.trim() || "";
+  const selectedFolder = select?.value || "";
+  const folder = newFolder || selectedFolder;
+
+  if (!folder) {
+    alert("Escolha uma pasta ou crie uma nova.");
     return;
   }
 
-  currentUser.workoutMeta = currentUser.workoutMeta || {};
+  const key = activeWorkoutKey;
+  const exercises = currentUser.workouts[key];
 
-  currentUser.workoutMeta[key] =
-    currentUser.workoutMeta[key] || {};
+  currentUser.archivedWorkouts =
+    currentUser.archivedWorkouts || [];
 
-  currentUser.workoutMeta[key].isArchived = true;
-  currentUser.workoutMeta[key].isSelected = false;
+  currentUser.archivedWorkouts.push({
+    id: crypto.randomUUID(),
+    name: key,
+    archiveFolder: folder,
+    exercises: exercises
+  });
+
+  delete currentUser.workouts[key];
+
+  if (currentUser.workoutMeta) {
+    delete currentUser.workoutMeta[key];
+  }
 
   const remainingKeys = Object.keys(currentUser.workouts || {})
-    .filter(name => !currentUser.workoutMeta[name]?.isArchived)
-    .sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
+    .sort((a, b) =>
+      a.localeCompare(b, "pt-BR", { numeric: true })
+    );
 
   remainingKeys.forEach(name => {
     currentUser.workoutMeta[name] =
@@ -8134,27 +8285,57 @@ function renderWorkoutLibrary() {
     currentUser.workoutMeta[activeWorkoutKey].isSelected = true;
   }
 
+  closeArchiveWorkoutModal();
+
   saveDB();
   renderWorkouts();
   renderWorkoutLibrary();
 }
 
-      function restoreWorkoutFromLibrary(key) {
-  if (!currentUser || !currentUser.workouts?.[key]) return;
+function restoreWorkoutFromLibrary(archiveId) {
+  if (!currentUser) return;
 
+  const archived = currentUser.archivedWorkouts || [];
+
+  const index = archived.findIndex(
+    workout => workout.id === archiveId
+  );
+
+  if (index === -1) return;
+
+  const workout = archived[index];
+  const name = workout.name;
+
+  if (currentUser.workouts?.[name]) {
+    alert(
+      `Já existe uma ficha chamada "${name}" na tela principal. Renomeie ou remova essa ficha antes de restaurar.`
+    );
+    return;
+  }
+
+  currentUser.workouts = currentUser.workouts || {};
   currentUser.workoutMeta = currentUser.workoutMeta || {};
 
-  Object.keys(currentUser.workouts).forEach(name => {
-    currentUser.workoutMeta[name] =
-      currentUser.workoutMeta[name] || {};
+  Object.keys(currentUser.workouts).forEach(key => {
+    currentUser.workoutMeta[key] =
+      currentUser.workoutMeta[key] || {};
 
-    currentUser.workoutMeta[name].isSelected = false;
+    currentUser.workoutMeta[key].isSelected = false;
   });
 
-  currentUser.workoutMeta[key].isArchived = false;
-  currentUser.workoutMeta[key].isSelected = true;
+  currentUser.workouts[name] = workout.exercises || [];
 
-  activeWorkoutKey = key;
+  currentUser.workoutMeta[name] = {
+    isArchived: false,
+    isSelected: true,
+    archiveFolder: ""
+  };
+
+  activeWorkoutKey = name;
+
+  archived.splice(index, 1);
+
+  currentUser.archivedWorkouts = archived;
 
   saveDB();
   renderWorkouts();
