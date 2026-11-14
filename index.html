@@ -5350,9 +5350,11 @@ document.getElementById("editMyPhone").value =
         
         if (!isTeacher) {
   renderWorkouts();
+  renderWorkoutLibrary();
   switchTab("workouts");
 }
-        showWorkoutPromptIfNeeded();
+
+showWorkoutPromptIfNeeded();
       }
 
       function logout() {
