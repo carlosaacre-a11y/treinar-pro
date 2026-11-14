@@ -2385,7 +2385,7 @@ endDate = statsLocalDate(statsAddDays(sunday, 6));
 
   } catch (error) {
     console.error("Erro nas estatísticas de treino:", error);
-    description.textContent = "Não foi possível carregar as estatísticas.";
+    description.textContent = "Erro: " + error.message;
   }
 }
 
