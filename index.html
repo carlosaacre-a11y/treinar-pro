@@ -6826,15 +6826,6 @@ function setupRunningFilters() {
     loadWorkoutStatistics();
   }
 
-  // Prepara o Plano Alimentar ao abrir a aba
-  if (tab === "mealPlan") {
-    const mealPlanContent = document.getElementById("mealPlanContent");
-
-    if (mealPlanContent) {
-      mealPlanContent.classList.remove("hidden");
-    }
-  }
-
 async function openAssessments() {
   const content = document.getElementById("assessmentsContent");
   const isAdmin =
