@@ -6821,11 +6821,19 @@ function setupRunningFilters() {
       "flex flex-col items-center text-primary-500 py-1 px-4 transition";
   }
 
-  // Carrega as estatísticas ao abrir a aba
+ // Carrega as estatísticas ao abrir a aba
   if (tab === "statistics") {
     loadWorkoutStatistics();
   }
-}
+
+  // Prepara o Plano Alimentar ao abrir a aba
+  if (tab === "mealPlan") {
+    const mealPlanContent = document.getElementById("mealPlanContent");
+
+    if (mealPlanContent) {
+      mealPlanContent.classList.remove("hidden");
+    }
+  }
 
 async function openAssessments() {
   const content = document.getElementById("assessmentsContent");
