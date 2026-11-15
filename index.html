@@ -3271,6 +3271,305 @@ async function toggleWorkoutLog(workoutName) {
       let editingAdminWorkoutKey = null;
       let editingTeacherId = null;
 
+// ==========================================
+// FUNÇÕES DO PLANO ALIMENTAR
+// ==========================================
+
+let mealPlanMeals = [];
+
+function isMealPlanAdmin() {
+  return currentUser &&
+    (
+      currentUser.role === "admin" ||
+      currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+    );
+}
+
+function canManageMealPlan() {
+  return currentUser &&
+    (isMealPlanAdmin() || currentUser.role === "teacher");
+}
+
+function getMealPlanStudentEmail() {
+  if (canManageMealPlan()) {
+    return document.getElementById("mealPlanStudent").value;
+  }
+
+  return currentUser?.email || "";
+}
+
+function initMealPlan() {
+  if (!currentUser) return;
+
+  const studentArea = document.getElementById("mealPlanStudentArea");
+  const form = document.getElementById("mealPlanForm");
+  const studentSelect = document.getElementById("mealPlanStudent");
+
+  const canManage = canManageMealPlan();
+
+  studentArea.classList.toggle("hidden", !canManage);
+  form.classList.toggle("hidden", !canManage);
+
+  if (!canManage) {
+    loadMealPlan();
+    return;
+  }
+
+  const students = (globalState.users || []).filter(user => {
+    if (!user.email) return false;
+
+    if (
+      user.role === "admin" ||
+      user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+    ) return false;
+
+    if (currentUser.role === "teacher") {
+      const assigned = (user.teacher || "").trim().toLowerCase();
+      const teacherName = (currentUser.name || "").trim().toLowerCase();
+      const teacherEmail = currentUser.email.toLowerCase();
+
+      return (
+        assigned === teacherName ||
+        assigned === teacherEmail
+      );
+    }
+
+    return true;
+  });
+
+  studentSelect.innerHTML = '<option value="">Selecione um aluno</option>';
+
+  students.forEach(student => {
+    const option = document.createElement("option");
+    option.value = student.email;
+    option.textContent = student.name + " — " + student.email;
+    studentSelect.appendChild(option);
+  });
+
+  studentSelect.onchange = loadMealPlan;
+
+  document.getElementById("mealPlanList").textContent =
+    "Selecione um aluno para visualizar as refeições.";
+}
+
+async function loadMealPlan() {
+  const studentEmail = getMealPlanStudentEmail();
+  const list = document.getElementById("mealPlanList");
+
+  mealPlanMeals = [];
+
+  if (!studentEmail) {
+    list.textContent = "Selecione um aluno para visualizar as refeições.";
+    return;
+  }
+
+  list.textContent = "Carregando refeições...";
+
+  try {
+    const actorEmail = currentUser.email;
+
+    const response = await fetch(
+      API_URL +
+      "/api/meal-plan?studentEmail=" +
+      encodeURIComponent(studentEmail) +
+      "&actorEmail=" +
+      encodeURIComponent(actorEmail)
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || "Erro ao carregar o plano.");
+    }
+
+    mealPlanMeals = data.meals || [];
+    renderMealPlan();
+
+  } catch (error) {
+    list.textContent = error.message;
+  }
+}
+
+function renderMealPlan() {
+  const list = document.getElementById("mealPlanList");
+  list.innerHTML = "";
+
+  if (!mealPlanMeals.length) {
+    list.textContent = "Nenhuma refeição cadastrada para este aluno.";
+    return;
+  }
+
+  const days = [
+    "Segunda-feira",
+    "Terça-feira",
+    "Quarta-feira",
+    "Quinta-feira",
+    "Sexta-feira",
+    "Sábado",
+    "Domingo"
+  ];
+
+  days.forEach(day => {
+    const meals = mealPlanMeals.filter(item => item.day_of_week === day);
+
+    if (!meals.length) return;
+
+    const section = document.createElement("div");
+    section.className =
+      "bg-dark-800 border border-dark-700 rounded-2xl p-4 space-y-3";
+
+    const heading = document.createElement("h5");
+    heading.className = "text-sm font-bold text-primary-400";
+    heading.textContent = day;
+    section.appendChild(heading);
+
+    meals.forEach(meal => {
+      const card = document.createElement("div");
+      card.className =
+        "bg-dark-900 border border-dark-700 rounded-xl p-3 space-y-2";
+
+      const title = document.createElement("div");
+      title.className = "flex justify-between items-center gap-2";
+
+      const name = document.createElement("strong");
+      name.className = "text-sm text-white";
+      name.textContent = meal.meal_name;
+
+      const time = document.createElement("span");
+      time.className = "text-xs text-primary-400";
+      time.textContent = meal.meal_time || "";
+
+      title.append(name, time);
+      card.appendChild(title);
+
+      const foods = document.createElement("p");
+      foods.className = "text-sm text-zinc-300 whitespace-pre-line";
+      foods.textContent = meal.foods || "";
+      card.appendChild(foods);
+
+      if (meal.substitutions) {
+        const substitutions = document.createElement("p");
+        substitutions.className = "text-xs text-zinc-400 whitespace-pre-line";
+        substitutions.textContent = "Substituições: " + meal.substitutions;
+        card.appendChild(substitutions);
+      }
+
+      if (meal.notes) {
+        const notes = document.createElement("p");
+        notes.className = "text-xs text-zinc-400 whitespace-pre-line";
+        notes.textContent = "Observações: " + meal.notes;
+        card.appendChild(notes);
+      }
+
+      if (canManageMealPlan()) {
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className =
+          "text-xs text-red-400 hover:text-red-300 mt-1";
+        remove.textContent = "Excluir refeição";
+        remove.onclick = () => deleteMealPlanItem(meal.id);
+        card.appendChild(remove);
+      }
+
+      section.appendChild(card);
+    });
+
+    list.appendChild(section);
+  });
+}
+
+async function saveMealPlanFromForm() {
+  const studentEmail = getMealPlanStudentEmail();
+  const message = document.getElementById("mealPlanMessage");
+  const button = document.getElementById("mealPlanSaveButton");
+
+  const dayOfWeek = document.getElementById("mealPlanDay").value;
+  const mealName = document.getElementById("mealPlanName").value.trim();
+
+  if (!studentEmail) {
+    message.textContent = "Selecione um aluno.";
+    return;
+  }
+
+  if (!mealName) {
+    message.textContent = "Informe o nome da refeição.";
+    return;
+  }
+
+  const data = {
+    actorEmail: currentUser.email,
+    studentEmail,
+    dayOfWeek,
+    mealName,
+    mealTime: document.getElementById("mealPlanTime").value,
+    foods: document.getElementById("mealPlanFoods").value.trim(),
+    substitutions: document.getElementById("mealPlanSubstitutions").value.trim(),
+    notes: document.getElementById("mealPlanNotes").value.trim()
+  };
+
+  button.disabled = true;
+  button.textContent = "Salvando...";
+  message.textContent = "";
+
+  try {
+    const response = await fetch(API_URL + "/api/meal-plan", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.ok) {
+      throw new Error(result.error || "Erro ao salvar refeição.");
+    }
+
+    document.getElementById("mealPlanName").value = "";
+    document.getElementById("mealPlanTime").value = "";
+    document.getElementById("mealPlanFoods").value = "";
+    document.getElementById("mealPlanSubstitutions").value = "";
+    document.getElementById("mealPlanNotes").value = "";
+
+    message.textContent = "Refeição salva com sucesso!";
+    await loadMealPlan();
+
+  } catch (error) {
+    message.textContent = error.message;
+  } finally {
+    button.disabled = false;
+    button.innerHTML = '<i class="fa-solid fa-plus mr-1"></i> Salvar refeição';
+  }
+}
+
+async function deleteMealPlanItem(id) {
+  if (!confirm("Deseja realmente excluir esta refeição?")) return;
+
+  const studentEmail = getMealPlanStudentEmail();
+
+  try {
+    const response = await fetch(
+      API_URL +
+      "/api/meal-plan?id=" + encodeURIComponent(id) +
+      "&studentEmail=" + encodeURIComponent(studentEmail) +
+      "&actorEmail=" + encodeURIComponent(currentUser.email),
+      { method: "DELETE" }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.ok) {
+      throw new Error(result.error || "Erro ao excluir refeição.");
+    }
+
+    await loadMealPlan();
+
+  } catch (error) {
+    alert(error.message);
+  }
+}
+      
       async function initSystem() {
         try {
           const response = await fetch(API_URL + "/api/state");
@@ -6908,7 +7207,13 @@ function setupRunningFilters() {
   if (tab === "statistics") {
     loadWorkoutStatistics();
   }
+      // Carrega o plano alimentar ao abrir a aba
+if (tab === "mealPlan") {
+  initMealPlan();
+}
     }
+
+      
 async function openAssessments() {
   const content = document.getElementById("assessmentsContent");
   const isAdmin =
