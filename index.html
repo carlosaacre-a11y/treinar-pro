@@ -3319,9 +3319,8 @@ function initMealPlan() {
     if (!user.email) return false;
 
     if (
-      user.role === "admin" ||
-      user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()
-    ) return false;
+  user.email.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase()
+) return false;
 
     if (!isMealPlanAdmin() && currentUser.role === "teacher") {
       const assigned = (user.teacher || "").trim().toLowerCase();
