@@ -1261,17 +1261,17 @@ border-top-color: #e4e4e7 !important;
     </h4>
 
     <div>
-      <label class="block text-xs text-zinc-400 mb-1">Dia da semana</label>
-      <select id="mealPlanDay" class="w-full bg-dark-900 border border-dark-600 rounded-xl p-3 text-sm text-white">
-        <option value="Segunda-feira">Segunda-feira</option>
-        <option value="Terça-feira">Terça-feira</option>
-        <option value="Quarta-feira">Quarta-feira</option>
-        <option value="Quinta-feira">Quinta-feira</option>
-        <option value="Sexta-feira">Sexta-feira</option>
-        <option value="Sábado">Sábado</option>
-        <option value="Domingo">Domingo</option>
-      </select>
-    </div>
+  <label class="block text-xs text-zinc-400 mb-1">
+    Dia ou categoria
+  </label>
+
+  <input
+    id="mealPlanDay"
+    type="text"
+    placeholder="Ex.: Segunda-feira, Café da manhã, Pré-treino..."
+    class="w-full bg-dark-900 border border-dark-600 rounded-xl p-3 text-sm text-white"
+  >
+</div>
 
     <div class="grid grid-cols-2 gap-3">
       <div>
@@ -3396,17 +3396,15 @@ function renderMealPlan() {
     return;
   }
 
-  const days = [
-    "Segunda-feira",
-    "Terça-feira",
-    "Quarta-feira",
-    "Quinta-feira",
-    "Sexta-feira",
-    "Sábado",
-    "Domingo"
-  ];
+  const categories = [
+  ...new Set(
+    mealPlanMeals
+      .map(item => item.day_of_week)
+      .filter(Boolean)
+  )
+];
 
-  days.forEach(day => {
+categories.forEach(day => {
     const meals = mealPlanMeals.filter(item => item.day_of_week === day);
 
     if (!meals.length) return;
@@ -3480,7 +3478,7 @@ async function saveMealPlanFromForm() {
   const message = document.getElementById("mealPlanMessage");
   const button = document.getElementById("mealPlanSaveButton");
 
-  const dayOfWeek = document.getElementById("mealPlanDay").value;
+  const dayOfWeek = document.getElementById("mealPlanDay").value.trim();
   const mealName = document.getElementById("mealPlanName").value.trim();
 
   if (!studentEmail) {
@@ -3492,6 +3490,12 @@ async function saveMealPlanFromForm() {
     message.textContent = "Informe o nome da refeição.";
     return;
   }
+
+  
+if (!dayOfWeek) {
+  message.textContent = "Informe o dia ou a categoria.";
+  return;
+}
 
   const data = {
     actorEmail: currentUser.email,
