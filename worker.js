@@ -1842,6 +1842,7 @@ async function sendPushToStudent(env, studentEmail, notification) {
   const result = await getPushSubscriptions(env, studentEmail);
   const subscriptions = result.results || [];
   let sentCount = 0;
+  const failures = [];
 
   for (const row of subscriptions) {
     try {
@@ -1875,14 +1876,28 @@ async function sendPushToStudent(env, studentEmail, notification) {
 
       if (response.ok) {
         sentCount++;
-      } else if (response.status === 404 || response.status === 410) {
-        await env.DB.prepare(
-          "DELETE FROM push_subscriptions WHERE id = ?"
-        ).bind(row.id).run();
+      } else {
+        const details = await response.text();
+
+        failures.push(
+          `HTTP ${response.status}: ${details.slice(0, 250)}`
+        );
+
+        if (response.status === 404 || response.status === 410) {
+          await env.DB.prepare(
+            "DELETE FROM push_subscriptions WHERE id = ?"
+          ).bind(row.id).run();
+        }
       }
     } catch (error) {
-      console.error("Erro ao enviar push:", error);
+      failures.push(error.message || String(error));
     }
+  }
+
+  if (sentCount === 0) {
+    throw new Error(
+      `Nenhum envio concluído. Inscrições: ${subscriptions.length}. Erros: ${failures.join(" | ")}`
+    );
   }
 
   return sentCount;
