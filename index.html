@@ -9335,7 +9335,31 @@ function renderWorkoutLibrary() {
     return;
   }
 
-  const folders = {};
+const folders = {};
+
+  const workoutOrder = (a, b) => {
+    const normalize = value => String(value)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase()
+      .trim();
+
+    const nameA = normalize(a.name);
+    const nameB = normalize(b.name);
+
+    const order = ["A", "B", "C", "D", "E"];
+
+    const indexA = order.indexOf(nameA);
+    const indexB = order.indexOf(nameB);
+
+    if (indexA !== -1 || indexB !== -1) {
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      return indexA - indexB;
+    }
+
+    return nameA.localeCompare(nameB, "pt-BR", { numeric: true });
+  };
 
   archived.forEach(workout => {
     const folder = workout.archiveFolder || "Sem pasta";
@@ -9377,7 +9401,7 @@ folderTitle.onclick = () => {
 
 folderBox.appendChild(folderTitle);
 
-    folders[folder].forEach(workout => {
+    folders[folder].sort(workoutOrder).forEach(workout => {
       const item = document.createElement("div");
 
       item.className =
