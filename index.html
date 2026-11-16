@@ -3990,6 +3990,12 @@ if (savedEmail) {
       foundUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase())
   ) {
     currentUser = foundUser;
+    if (
+  foundUser.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase() &&
+  foundUser.role !== "teacher"
+) {
+  currentUser.role = "student";
+}
 
 // Carrega o histórico de corridas salvo
 runningActivities = Array.isArray(currentUser.runningActivities)
