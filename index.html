@@ -3549,12 +3549,12 @@ function renderMealPlan() {
     if (value.includes("almoço") || value.includes("almoco")) {
       return {
         icon: "fa-utensils",
-        border: "border-emerald-400",
-        background: "bg-emerald-500/10",
-        iconBg: "bg-emerald-500/15",
-        iconColor: "text-emerald-400",
-        title: "text-emerald-400",
-        divider: "border-emerald-400/30"
+        border: "border-rose-400",
+background: "bg-rose-500/10",
+iconBg: "bg-rose-500/15",
+iconColor: "text-rose-400",
+title: "text-rose-400",
+divider: "border-rose-400/30"
       };
     }
 
@@ -3761,7 +3761,7 @@ function renderMealPlan() {
         if (item.calories) {
           const calories = document.createElement("span");
           calories.className =
-            "text-xs font-bold text-zinc-200 whitespace-nowrap";
+            "text-xs font-bold text-gray-700 dark:text-zinc-200 whitespace-nowrap"
           calories.textContent = item.calories + " kcal";
           row.appendChild(calories);
         }
@@ -3779,7 +3779,8 @@ function renderMealPlan() {
       const substitutionsTitle = document.createElement("p");
       substitutionsTitle.className =
         "text-xs font-bold text-blue-400";
-      substitutionsTitle.textContent = "↔ Substituições";
+      substitutionsTitle.innerHTML =
+  '<i class="fa-solid fa-shuffle mr-2"></i> Substituições';
 
       substitutionsBox.appendChild(substitutionsTitle);
 
@@ -3824,7 +3825,7 @@ function renderMealPlan() {
         if (item.calories) {
           const calories = document.createElement("span");
           calories.className =
-            "text-xs font-bold text-zinc-200 whitespace-nowrap";
+            "text-xs font-bold text-gray-700 dark:text-zinc-200 whitespace-nowrap"
           calories.textContent = item.calories + " kcal";
           row.appendChild(calories);
         }
@@ -3846,7 +3847,7 @@ function renderMealPlan() {
 
       const notesText = document.createElement("p");
       notesText.className =
-        "text-sm text-zinc-200 whitespace-pre-wrap break-words leading-relaxed";
+        "text-sm text-gray-700 dark:text-zinc-200 whitespace-pre-wrap break-words leading-relaxed"
       notesText.textContent =
         meal.notes || "Nenhuma observação informada.";
 
