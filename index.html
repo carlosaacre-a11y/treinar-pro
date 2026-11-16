@@ -8893,11 +8893,44 @@ alert("Não foi possível excluir a avaliação. Tente novamente.");
         if (currentUser.notice && currentUser.notice.trim() !== "") {
           noticeText.textContent = currentUser.notice;
           noticeCard.classList.remove("hidden");
+          restoreTeacherNoticePreference();
         } else {
           noticeCard.classList.add("hidden");
         }
       }
 
+function toggleTeacherNotice() {
+  const content = document.getElementById("teacherNoticeContent");
+  const arrow = document.getElementById("teacherNoticeArrow");
+
+  const isOpen = content.classList.toggle("hidden");
+  arrow.classList.toggle("rotate-180", !isOpen);
+
+  const email = (currentUser.email || "").toLowerCase();
+  if (email) {
+    localStorage.setItem(
+      "teacherNoticeExpanded_" + email,
+      String(!isOpen)
+    );
+  }
+}
+
+function restoreTeacherNoticePreference() {
+  const content = document.getElementById("teacherNoticeContent");
+  const arrow = document.getElementById("teacherNoticeArrow");
+
+  const email = (currentUser.email || "").toLowerCase();
+  const savedPreference = email
+    ? localStorage.getItem("teacherNoticeExpanded_" + email)
+    : null;
+
+  // Na primeira entrada, o mural começa aberto.
+  const shouldOpen = savedPreference === null || savedPreference === "true";
+
+  content.classList.toggle("hidden", !shouldOpen);
+  arrow.classList.toggle("rotate-180", shouldOpen);
+}
+      
       async function dismissDueDateAlert() {
   currentUser.dismissedDueDate = true;
 
