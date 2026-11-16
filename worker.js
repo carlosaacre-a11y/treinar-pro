@@ -1838,6 +1838,56 @@ async function getPushSubscriptions(env, studentEmail) {
   ).bind(studentEmail.toLowerCase()).all();
 }
 
+async function sendPushToStudent(env, studentEmail, notification) {
+  const result = await getPushSubscriptions(env, studentEmail);
+  const subscriptions = result.results || [];
+  let sentCount = 0;
+
+  for (const row of subscriptions) {
+    try {
+      const subscription = {
+        endpoint: row.endpoint,
+        expirationTime: null,
+        keys: {
+          p256dh: row.p256dh,
+          auth: row.auth
+        }
+      };
+
+      const payload = await buildPushPayload(
+        {
+          data: {
+            title: notification.title || "Treinar Pro",
+            body: notification.body || "Está na hora da sua refeição!",
+            url: "./",
+            tag: notification.tag || "treinar-pro-refeicao"
+          }
+        },
+        subscription,
+        {
+          subject: env.VAPID_SUBJECT,
+          publicKey: env.VAPID_PUBLIC_KEY,
+          privateKey: env.VAPID_PRIVATE_KEY
+        }
+      );
+
+      const response = await fetch(row.endpoint, payload);
+
+      if (response.ok) {
+        sentCount++;
+      } else if (response.status === 404 || response.status === 410) {
+        await env.DB.prepare(
+          "DELETE FROM push_subscriptions WHERE id = ?"
+        ).bind(row.id).run();
+      }
+    } catch (error) {
+      console.error("Erro ao enviar push:", error);
+    }
+  }
+
+  return sentCount;
+}
+
   export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") {
