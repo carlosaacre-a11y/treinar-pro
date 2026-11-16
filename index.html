@@ -3318,9 +3318,7 @@ function initMealPlan() {
   const students = (globalState.users || []).filter(user => {
     if (!user.email) return false;
 
-    if (
-  user.email.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase()
-) return false;
+  
 
     if (!isMealPlanAdmin() && currentUser.role === "teacher") {
       const assigned = (user.teacher || "").trim().toLowerCase();
