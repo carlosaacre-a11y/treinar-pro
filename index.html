@@ -3519,6 +3519,7 @@ async function loadMealPlan() {
   }
 }
 
+      
 function renderMealPlan() {
   const list = document.getElementById("mealPlanList");
   list.innerHTML = "";
@@ -3528,208 +3529,361 @@ function renderMealPlan() {
     return;
   }
 
-  const categories = [
-  ...new Set(
-    mealPlanMeals.map(item => item.day_of_week || "")
-  )
-];
+  // Identidade visual de cada refeição
+  function getMealStyle(name) {
+    const value = (name || "").toLowerCase();
 
-categories.forEach(day => {
-    const meals = mealPlanMeals.filter(item => item.day_of_week === day);
+    if (value.includes("café") || value.includes("cafe") ||
+        value.includes("manhã") || value.includes("manha")) {
+      return {
+        icon: "fa-mug-hot",
+        border: "border-blue-400",
+        background: "bg-blue-500/10",
+        iconBg: "bg-blue-500/15",
+        iconColor: "text-blue-400",
+        title: "text-blue-400",
+        divider: "border-blue-400/30"
+      };
+    }
+
+    if (value.includes("almoço") || value.includes("almoco")) {
+      return {
+        icon: "fa-utensils",
+        border: "border-emerald-400",
+        background: "bg-emerald-500/10",
+        iconBg: "bg-emerald-500/15",
+        iconColor: "text-emerald-400",
+        title: "text-emerald-400",
+        divider: "border-emerald-400/30"
+      };
+    }
+
+    if (value.includes("lanche") || value.includes("pré-treino") ||
+        value.includes("pre-treino")) {
+      return {
+        icon: "fa-apple-whole",
+        border: "border-orange-400",
+        background: "bg-orange-500/10",
+        iconBg: "bg-orange-500/15",
+        iconColor: "text-orange-400",
+        title: "text-orange-400",
+        divider: "border-orange-400/30"
+      };
+    }
+
+    if (value.includes("jantar") || value.includes("ceia")) {
+      return {
+        icon: "fa-moon",
+        border: "border-violet-400",
+        background: "bg-violet-500/10",
+        iconBg: "bg-violet-500/15",
+        iconColor: "text-violet-400",
+        title: "text-violet-400",
+        divider: "border-violet-400/30"
+      };
+    }
+
+    return {
+      icon: "fa-utensils",
+      border: "border-primary-400",
+      background: "bg-primary-500/10",
+      iconBg: "bg-primary-500/15",
+      iconColor: "text-primary-400",
+      title: "text-primary-400",
+      divider: "border-primary-400/30"
+    };
+  }
+
+  // Organiza os nomes com iniciais maiúsculas
+  function formatMealName(name) {
+    return (name || "").trim().toLowerCase().replace(
+      /(^|[\s-])([a-záàâãéèêíïóôõöúç])/gi,
+      (match, separator, letter) =>
+        separator + letter.toUpperCase()
+    );
+  }
+
+  // Interpreta alimentos sem perder informações
+  function parseMealLine(line) {
+    let content = line.trim();
+    let calories = "";
+
+    const calorieMatch = content.match(
+      /\s*-\s*Kcal\s*([\d.,]+)\s*$/i
+    );
+
+    if (calorieMatch) {
+      calories = calorieMatch[1];
+      content = content.slice(0, calorieMatch.index).trim();
+    }
+
+    let name = content;
+    let quantity = "";
+
+    const detailMatch = content.match(
+      /^(.*?)\s*\(([^()]*)\)$/
+    );
+
+    if (detailMatch) {
+      name = detailMatch[1].trim();
+      quantity = detailMatch[2].trim();
+    }
+
+    return { name, quantity, calories };
+  }
+
+  const categories = [
+    ...new Set(
+      mealPlanMeals.map(item => item.day_of_week || "")
+    )
+  ];
+
+  categories.forEach(day => {
+    const meals = mealPlanMeals.filter(
+      item => (item.day_of_week || "") === day
+    );
 
     if (!meals.length) return;
 
     const section = document.createElement("div");
-    section.className =
-      "bg-dark-800 border border-dark-700 rounded-2xl p-4 space-y-3";
+    section.className = "space-y-3";
 
     if (
-  day &&
-  !meals.every(
-    meal => (meal.meal_name || "").trim().toLowerCase() ===
-            day.trim().toLowerCase()
-  )
-) {
-  const heading = document.createElement("h5");
-  heading.className = "text-sm font-bold text-primary-400";
-  heading.textContent = day;
-  section.appendChild(heading);
-}
+      day &&
+      !meals.every(
+        meal => (meal.meal_name || "").trim().toLowerCase() ===
+                day.trim().toLowerCase()
+      )
+    ) {
+      const heading = document.createElement("h5");
+      heading.className =
+        "text-sm font-bold text-primary-400 px-1";
+      heading.textContent = day;
+      section.appendChild(heading);
+    }
 
     meals.forEach(meal => {
+      const style = getMealStyle(meal.meal_name);
+
+      // BLOCO PRINCIPAL DA REFEIÇÃO
       const card = document.createElement("div");
       card.className =
-        "bg-dark-900 border border-dark-700 rounded-xl p-3 space-y-2";
+        `rounded-2xl border ${style.border} ${style.background} p-4 space-y-3 shadow-sm`;
 
+      // CABEÇALHO
       const title = document.createElement("div");
-      title.className = "flex justify-between items-center gap-2";
+      title.className = "flex items-center gap-3";
 
-      const name = document.createElement("strong");
-      name.className = "text-sm text-white";
-      name.textContent = meal.meal_name;
+      const iconBox = document.createElement("div");
+      iconBox.className =
+        `w-11 h-11 shrink-0 rounded-xl ${style.iconBg} flex items-center justify-center`;
 
-      const time = document.createElement("span");
-      time.className = "text-xs text-primary-400";
-      time.textContent = meal.meal_time || "";
+      const icon = document.createElement("i");
+      icon.className =
+        `fa-solid ${style.icon} ${style.iconColor} text-lg`;
 
-      title.append(name, time);
+      iconBox.appendChild(icon);
+
+      const headingInfo = document.createElement("div");
+      headingInfo.className = "min-w-0 flex-1";
+
+      const name = document.createElement("h4");
+      name.className =
+        `text-base font-bold ${style.title} leading-snug`;
+      name.textContent = formatMealName(meal.meal_name);
+
+      headingInfo.appendChild(name);
+
+      if (meal.meal_time) {
+        const time = document.createElement("p");
+        time.className = "text-xs text-zinc-400 mt-1";
+        time.textContent = meal.meal_time;
+        headingInfo.appendChild(time);
+      }
+
+      title.append(iconBox, headingInfo);
       card.appendChild(title);
 
-// ALIMENTOS E INFORMAÇÕES NUTRICIONAIS
+      // SEPARADOR
+      const divider = document.createElement("div");
+      divider.className =
+        `border-t ${style.divider}`;
+      card.appendChild(divider);
+
+      // ALIMENTOS
       const foodsSection = document.createElement("div");
       foodsSection.className = "space-y-2";
 
-      
+      const foodsTitle = document.createElement("p");
+      foodsTitle.className =
+        "text-xs font-bold text-zinc-300 mb-2";
+      foodsTitle.textContent = "Alimentos";
+      foodsSection.appendChild(foodsTitle);
 
-      const foodLines = (meal.foods || "").split("\n").filter(line => line.trim());
+      const foodLines = (meal.foods || "")
+        .split("\n")
+        .filter(line => line.trim());
+
+      if (!foodLines.length) {
+        const empty = document.createElement("p");
+        empty.className = "text-xs text-zinc-400";
+        empty.textContent = "Nenhum alimento informado.";
+        foodsSection.appendChild(empty);
+      }
 
       foodLines.forEach(line => {
-        const foodRow = document.createElement("div");
-        foodRow.className =
-  "flex items-center justify-between gap-3 bg-gray-200 border border-gray-300 rounded-lg p-3";
+        const item = parseMealLine(line);
 
-        const match = line.match(/^(.*?)\s*\(([^()]*)\)\s*-\s*Kcal\s*([\d.,]+)\s*$/i);
+        const row = document.createElement("div");
+        row.className =
+          "flex flex-wrap items-center justify-between gap-x-3 gap-y-1 bg-black/10 border border-white/10 rounded-lg p-3";
 
-        const foodInfo = document.createElement("div");
-        foodInfo.className = "min-w-0 flex-1";
+        const info = document.createElement("div");
+        info.className = "min-w-0 flex-1";
 
         const foodName = document.createElement("p");
-        foodName.className = "text-sm font-bold text-gray-900";
+        foodName.className =
+          "text-sm font-semibold text-white whitespace-normal break-words";
+        foodName.textContent = item.name;
 
-        const quantity = document.createElement("p");
-        quantity.className = "text-xs text-gray-700 mt-1";
+        info.appendChild(foodName);
 
-        const calories = document.createElement("span");
-        calories.className = "text-xs font-bold text-gray-800 whitespace-nowrap";
-
-        if (match) {
-          foodName.textContent = match[1].trim();
-          quantity.textContent = match[2].trim();
-          calories.textContent = match[3].trim() + " kcal";
-        } else {
-          foodName.textContent = line.trim();
+        if (item.quantity) {
+          const quantity = document.createElement("p");
+          quantity.className =
+            "text-xs text-zinc-300 mt-1 whitespace-normal break-words";
+          quantity.textContent = item.quantity;
+          info.appendChild(quantity);
         }
 
-        foodInfo.append(foodName, quantity);
-        foodRow.append(foodInfo, calories);
-        foodsSection.appendChild(foodRow);
+        row.appendChild(info);
+
+        if (item.calories) {
+          const calories = document.createElement("span");
+          calories.className =
+            "text-xs font-bold text-zinc-200 whitespace-nowrap";
+          calories.textContent = item.calories + " kcal";
+          row.appendChild(calories);
+        }
+
+        foodsSection.appendChild(row);
       });
 
       card.appendChild(foodsSection);
 
-    // SUBSTITUIÇÕES — VISUAL INDIVIDUAL EM AZUL
-const substitutionsBox = document.createElement("div");
-substitutionsBox.className =
-  "bg-blue-100 dark:bg-blue-950 border border-blue-400 dark:border-blue-700 rounded-xl p-3 space-y-3";
+      // SUBSTITUIÇÕES
+      const substitutionsBox = document.createElement("div");
+      substitutionsBox.className =
+        "bg-blue-500/10 border border-blue-400/30 rounded-xl p-3 space-y-2";
 
-const substitutionsTitle = document.createElement("p");
-substitutionsTitle.className =
-  "text-xs font-bold text-blue-800 dark:text-blue-300";
-substitutionsTitle.textContent = "↔ Substituições";
+      const substitutionsTitle = document.createElement("p");
+      substitutionsTitle.className =
+        "text-xs font-bold text-blue-400";
+      substitutionsTitle.textContent = "↔ Substituições";
 
-substitutionsBox.appendChild(substitutionsTitle);
+      substitutionsBox.appendChild(substitutionsTitle);
 
-const substitutionLines = (meal.substitutions || "")
-  .split("\n")
-  .filter(line => line.trim());
+      const substitutionLines = (meal.substitutions || "")
+        .split("\n")
+        .filter(line => line.trim());
 
-if (substitutionLines.length === 0) {
-  const emptyText = document.createElement("p");
-  emptyText.className =
-    "text-xs text-blue-800 dark:text-blue-200";
-  emptyText.textContent = "Nenhuma substituição informada.";
-  substitutionsBox.appendChild(emptyText);
-}
+      if (!substitutionLines.length) {
+        const empty = document.createElement("p");
+        empty.className = "text-xs text-zinc-400";
+        empty.textContent = "Nenhuma substituição informada.";
+        substitutionsBox.appendChild(empty);
+      }
 
-substitutionLines.forEach(line => {
-  const row = document.createElement("div");
+      substitutionLines.forEach(line => {
+        const item = parseMealLine(line);
 
-  row.className =
-    "flex items-center justify-between gap-3 bg-blue-200 dark:bg-blue-900 border border-blue-300 dark:border-blue-700 rounded-lg p-3";
+        const row = document.createElement("div");
+        row.className =
+          "flex flex-wrap items-center justify-between gap-x-3 gap-y-1 bg-black/10 border border-blue-400/20 rounded-lg p-3";
 
-  const match = line.match(
-    /^(.*?)\s*\(([^()]*)\)\s*-\s*Kcal\s*([\d.,]+)\s*$/i
-  );
+        const info = document.createElement("div");
+        info.className = "min-w-0 flex-1";
 
-  const info = document.createElement("div");
-  info.className = "min-w-0 flex-1";
+        const foodName = document.createElement("p");
+        foodName.className =
+          "text-sm font-semibold text-white whitespace-normal break-words";
+        foodName.textContent = item.name;
 
-  const foodName = document.createElement("p");
-  foodName.className =
-    "text-sm font-bold text-blue-950 dark:text-white";
+        info.appendChild(foodName);
 
-  const quantity = document.createElement("p");
-  quantity.className =
-    "text-xs text-blue-800 dark:text-blue-200 mt-1";
+        if (item.quantity) {
+          const quantity = document.createElement("p");
+          quantity.className =
+            "text-xs text-zinc-300 mt-1 whitespace-normal break-words";
+          quantity.textContent = item.quantity;
+          info.appendChild(quantity);
+        }
 
-  const calories = document.createElement("span");
-  calories.className =
-    "text-xs font-bold text-blue-900 dark:text-blue-200 whitespace-nowrap";
+        row.appendChild(info);
 
-  if (match) {
-    foodName.textContent = match[1].trim();
-    quantity.textContent = match[2].trim();
-    calories.textContent = match[3].trim() + " kcal";
-  } else {
-    foodName.textContent = line.trim();
-  }
+        if (item.calories) {
+          const calories = document.createElement("span");
+          calories.className =
+            "text-xs font-bold text-zinc-200 whitespace-nowrap";
+          calories.textContent = item.calories + " kcal";
+          row.appendChild(calories);
+        }
 
-  info.append(foodName, quantity);
-  row.append(info, calories);
+        substitutionsBox.appendChild(row);
+      });
 
-  substitutionsBox.appendChild(row);
-});
+      card.appendChild(substitutionsBox);
 
-card.appendChild(substitutionsBox);
-
-      
-      // OBSERVAÇÕES — SEMPRE VISÍVEIS
+      // OBSERVAÇÕES
       const notesBox = document.createElement("div");
       notesBox.className =
-        "bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 space-y-2";
+        "bg-amber-500/10 border border-amber-400/30 rounded-xl p-3 space-y-2";
 
       const notesTitle = document.createElement("p");
-      notesTitle.className = "text-xs font-bold text-amber-400";
+      notesTitle.className =
+        "text-xs font-bold text-amber-400";
       notesTitle.textContent = "📝 Observações";
 
       const notesText = document.createElement("p");
       notesText.className =
-        "text-xs text-zinc-300 whitespace-pre-line leading-relaxed";
+        "text-sm text-zinc-200 whitespace-pre-wrap break-words leading-relaxed";
       notesText.textContent =
         meal.notes || "Nenhuma observação informada.";
 
       notesBox.append(notesTitle, notesText);
       card.appendChild(notesBox);
 
+      // AÇÕES DO ADMINISTRADOR E PROFESSOR
       if (canManageMealPlan()) {
-  const actions = document.createElement("div");
-  actions.className = "flex items-center gap-4 mt-2";
+        const actions = document.createElement("div");
+        actions.className =
+          "flex items-center gap-4 pt-2 border-t border-white/10";
 
-  const edit = document.createElement("button");
-  edit.type = "button";
-  edit.className =
-    "text-xs text-blue-400 hover:text-blue-300";
-  edit.innerHTML = '<i class="fa-solid fa-pen mr-1"></i> Editar';
-  edit.onclick = () => editMealPlanItem(meal.id);
+        const edit = document.createElement("button");
+        edit.type = "button";
+        edit.className =
+          "text-xs font-semibold text-blue-400 hover:text-blue-300";
+        edit.innerHTML =
+          '<i class="fa-solid fa-pen mr-1"></i> Editar';
+        edit.onclick = () => editMealPlanItem(meal.id);
 
-  const remove = document.createElement("button");
-  remove.type = "button";
-  remove.className =
-    "text-xs text-red-400 hover:text-red-300";
-  remove.textContent = "Excluir refeição";
-  remove.onclick = () => deleteMealPlanItem(meal.id);
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className =
+          "text-xs font-semibold text-red-400 hover:text-red-300";
+        remove.textContent = "Excluir refeição";
+        remove.onclick = () => deleteMealPlanItem(meal.id);
 
-  actions.append(edit, remove);
-  card.appendChild(actions);
-}
+        actions.append(edit, remove);
+        card.appendChild(actions);
+      }
 
-section.appendChild(card);
+      section.appendChild(card);
     });
 
     list.appendChild(section);
   });
 }
-
 function editMealPlanItem(id) {
   const meal = mealPlanMeals.find(item => item.id === id);
 
