@@ -2003,6 +2003,36 @@ border-top-color: #e4e4e7 !important;
             ></textarea>
           </div>
         </div>
+        <!-- NOTIFICAÇÃO MANUAL AO ALUNO -->
+<div class="border border-emerald-500/30 rounded-xl overflow-hidden">
+  <button
+    type="button"
+    onclick="document.getElementById('adminPushPanel').classList.toggle('hidden'); document.getElementById('adminPushArrow').classList.toggle('fa-chevron-down'); document.getElementById('adminPushArrow').classList.toggle('fa-chevron-up');"
+    class="w-full flex items-center justify-between p-3 text-sm font-bold text-emerald-400"
+  >
+    <span>🔔 Enviar mensagem ao aluno</span>
+    <i id="adminPushArrow" class="fa-solid fa-chevron-down"></i>
+  </button>
+
+  <div id="adminPushPanel" class="hidden p-3 pt-0 space-y-3">
+    <textarea
+      id="adminPushMessage"
+      rows="3"
+      maxlength="500"
+      placeholder="Digite a mensagem que deseja enviar..."
+      class="w-full bg-dark-800 border border-dark-700 rounded-xl px-3 py-2 text-xs text-white resize-none"
+    ></textarea>
+
+    <button
+      type="button"
+      onclick="sendAdminPushNotification()"
+      class="w-full bg-emerald-500 hover:bg-emerald-600 text-dark-950 font-bold py-2.5 rounded-xl text-xs"
+    >
+      <i class="fa-solid fa-paper-plane mr-1"></i>
+      Enviar notificação
+    </button>
+  </div>
+</div>
         <div class="space-y-3 border-t border-dark-800 pt-4">
           <div class="flex items-center justify-between">
             <h4
@@ -6539,6 +6569,59 @@ async function enableMealNotifications() {
     status.textContent = error.message || "Erro ao ativar notificações.";
     button.textContent = "Tentar novamente";
     button.disabled = false;
+  }
+}
+
+async function sendAdminPushNotification() {
+  const student = globalState.users[editingStudentIndex];
+  const messageEl = document.getElementById("adminPushMessage");
+  const button = document.querySelector('#adminPushPanel button[onclick="sendAdminPushNotification()"]');
+  const message = (messageEl?.value || "").trim();
+
+  if (!currentUser || currentUser.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    alert("Apenas o administrador pode enviar notificações.");
+    return;
+  }
+
+  if (!student?.email) {
+    alert("Não foi possível identificar o aluno.");
+    return;
+  }
+
+  if (!message) {
+    alert("Digite uma mensagem antes de enviar.");
+    return;
+  }
+
+  if (!confirm("Enviar esta notificação para " + student.name + "?")) return;
+
+  button.disabled = true;
+  button.textContent = "Enviando...";
+
+  try {
+    const response = await fetch(API_URL + "/api/push/test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        adminEmail: currentUser.email,
+        studentEmail: student.email,
+        message: message
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || "Não foi possível enviar.");
+    }
+
+    alert("Notificação enviada com sucesso!");
+    messageEl.value = "";
+  } catch (error) {
+    alert("Erro: " + error.message);
+  } finally {
+    button.disabled = false;
+    button.innerHTML = '<i class="fa-solid fa-paper-plane mr-1"></i> Enviar notificação';
   }
 }
       
