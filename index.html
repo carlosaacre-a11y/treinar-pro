@@ -3276,6 +3276,7 @@ async function toggleWorkoutLog(workoutName) {
 // ==========================================
 
 let mealPlanMeals = [];
+let editingMealPlanId = null;
 
 function isMealPlanAdmin() {
   return currentUser &&
@@ -3519,22 +3520,63 @@ categories.forEach(day => {
       card.appendChild(notesBox);
 
       if (canManageMealPlan()) {
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.className =
-          "text-xs text-red-400 hover:text-red-300 mt-1";
-        remove.textContent = "Excluir refeição";
-        remove.onclick = () => deleteMealPlanItem(meal.id);
-        card.appendChild(remove);
-      }
+  const actions = document.createElement("div");
+  actions.className = "flex items-center gap-4 mt-2";
 
-      section.appendChild(card);
+  const edit = document.createElement("button");
+  edit.type = "button";
+  edit.className =
+    "text-xs text-blue-400 hover:text-blue-300";
+  edit.innerHTML = '<i class="fa-solid fa-pen mr-1"></i> Editar';
+  edit.onclick = () => editMealPlanItem(meal.id);
+
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.className =
+    "text-xs text-red-400 hover:text-red-300";
+  remove.textContent = "Excluir refeição";
+  remove.onclick = () => deleteMealPlanItem(meal.id);
+
+  actions.append(edit, remove);
+  card.appendChild(actions);
+}
+
+section.appendChild(card);
     });
 
     list.appendChild(section);
   });
 }
 
+function editMealPlanItem(id) {
+  const meal = mealPlanMeals.find(item => item.id === id);
+
+  if (!meal) {
+    alert("Não foi possível localizar essa refeição.");
+    return;
+  }
+
+  editingMealPlanId = id;
+
+  document.getElementById("mealPlanDay").value = meal.day_of_week || "";
+  document.getElementById("mealPlanName").value = meal.meal_name || "";
+  document.getElementById("mealPlanTime").value = meal.meal_time || "";
+  document.getElementById("mealPlanFoods").value = meal.foods || "";
+  document.getElementById("mealPlanSubstitutions").value = meal.substitutions || "";
+  document.getElementById("mealPlanNotes").value = meal.notes || "";
+
+  const button = document.getElementById("mealPlanSaveButton");
+  button.innerHTML = '<i class="fa-solid fa-pen mr-1"></i> Salvar alterações';
+
+  document.getElementById("mealPlanMessage").textContent =
+    "Editando refeição. Altere os campos e salve.";
+
+  document.getElementById("mealPlanForm").scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+}
+      
 async function saveMealPlanFromForm() {
   const studentEmail = getMealPlanStudentEmail();
   const message = document.getElementById("mealPlanMessage");
@@ -3553,13 +3595,15 @@ async function saveMealPlanFromForm() {
     return;
   }
 
-  
-if (!dayOfWeek) {
-  message.textContent = "Informe o dia ou a categoria.";
-  return;
-}
+  if (!dayOfWeek) {
+    message.textContent = "Informe o dia ou a categoria.";
+    return;
+  }
+
+  const isEditing = editingMealPlanId !== null;
 
   const data = {
+    id: editingMealPlanId,
     actorEmail: currentUser.email,
     studentEmail,
     dayOfWeek,
@@ -3576,7 +3620,7 @@ if (!dayOfWeek) {
 
   try {
     const response = await fetch(API_URL + "/api/meal-plan", {
-      method: "POST",
+      method: isEditing ? "PUT" : "POST",
       headers: {
         "Content-Type": "application/json"
       },
@@ -3589,13 +3633,19 @@ if (!dayOfWeek) {
       throw new Error(result.error || "Erro ao salvar refeição.");
     }
 
+    editingMealPlanId = null;
+
+    document.getElementById("mealPlanDay").value = "";
     document.getElementById("mealPlanName").value = "";
     document.getElementById("mealPlanTime").value = "";
     document.getElementById("mealPlanFoods").value = "";
     document.getElementById("mealPlanSubstitutions").value = "";
     document.getElementById("mealPlanNotes").value = "";
 
-    message.textContent = "Refeição salva com sucesso!";
+    message.textContent = isEditing
+      ? "Refeição atualizada com sucesso!"
+      : "Refeição salva com sucesso!";
+
     await loadMealPlan();
 
   } catch (error) {
