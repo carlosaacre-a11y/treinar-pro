@@ -1287,19 +1287,43 @@ border-top-color: #e4e4e7 !important;
       </div>
     </div>
 
-    <div>
-      <label class="block text-xs text-zinc-400 mb-1">Alimentos e quantidades</label>
-      <textarea id="mealPlanFoods" rows="4"
-        placeholder="Ex.: 2 ovos (100 g)&#10;Pão integral (2 fatias)&#10;Banana (1 unidade)"
-        class="w-full bg-dark-900 border border-dark-600 rounded-xl p-3 text-sm text-white"></textarea>
-    </div>
+    <div class="space-y-2">
+  <label class="block text-xs text-zinc-400 mb-1">
+    Alimentos e quantidades
+  </label>
 
-    <div>
-      <label class="block text-xs text-zinc-400 mb-1">Substituições</label>
-      <textarea id="mealPlanSubstitutions" rows="2"
-        placeholder="Ex.: Pode substituir a banana por maçã."
-        class="w-full bg-dark-900 border border-dark-600 rounded-xl p-3 text-sm text-white"></textarea>
-    </div>
+  <div id="mealPlanFoodsEditor" class="space-y-3"></div>
+
+  <button
+    type="button"
+    onclick="addMealFoodRow()"
+    class="text-sm text-primary-400 font-bold"
+  >
+    <i class="fa-solid fa-plus mr-1"></i>
+    Adicionar alimento
+  </button>
+
+  <textarea id="mealPlanFoods" class="hidden"></textarea>
+</div>
+
+    <div class="space-y-2">
+  <label class="block text-xs text-zinc-400 mb-1">
+    Substituições
+  </label>
+
+  <div id="mealPlanSubstitutionsEditor" class="space-y-3"></div>
+
+  <button
+    type="button"
+    onclick="addMealSubstitutionRow()"
+    class="text-sm text-blue-400 font-bold"
+  >
+    <i class="fa-solid fa-plus mr-1"></i>
+    Adicionar substituição
+  </button>
+
+  <textarea id="mealPlanSubstitutions" class="hidden"></textarea>
+</div>
 
     <div>
       <label class="block text-xs text-zinc-400 mb-1">Observações</label>
@@ -3278,6 +3302,113 @@ async function toggleWorkoutLog(workoutName) {
 let mealPlanMeals = [];
 let editingMealPlanId = null;
 
+   function addMealEntryRow(type, values = {}) {
+  const isFood = type === "food";
+
+  const editor = document.getElementById(
+    isFood ? "mealPlanFoodsEditor" : "mealPlanSubstitutionsEditor"
+  );
+
+  const row = document.createElement("div");
+  row.className = "bg-dark-900 border border-dark-600 rounded-xl p-3 space-y-2";
+  row.dataset.mealEntry = "true";
+
+  const name = document.createElement("input");
+  name.type = "text";
+  name.placeholder = "Nome do alimento";
+  name.value = values.name || "";
+  name.className = "w-full bg-dark-800 border border-dark-600 rounded-lg p-2 text-sm text-white";
+
+  const fields = document.createElement("div");
+  fields.className = "grid grid-cols-3 gap-2";
+
+  const quantity = document.createElement("input");
+  quantity.type = "text";
+  quantity.placeholder = "Quantidade";
+  quantity.value = values.quantity || "";
+  quantity.className = "min-w-0 w-full bg-dark-800 border border-dark-600 rounded-lg p-2 text-sm text-white";
+
+  const unit = document.createElement("input");
+  unit.type = "text";
+  unit.placeholder = "Unidade";
+  unit.value = values.unit || "";
+  unit.className = "min-w-0 w-full bg-dark-800 border border-dark-600 rounded-lg p-2 text-sm text-white";
+
+  const calories = document.createElement("input");
+  calories.type = "text";
+  calories.placeholder = "Kcal";
+  calories.value = values.calories || "";
+  calories.className = "min-w-0 w-full bg-dark-800 border border-dark-600 rounded-lg p-2 text-sm text-white";
+
+  fields.append(quantity, unit, calories);
+
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.className = "text-xs text-red-400";
+  remove.textContent = "Remover alimento";
+  remove.onclick = () => {
+    row.remove();
+    updateMealPlanEditors();
+  };
+
+  [name, quantity, unit, calories].forEach(input => {
+    input.addEventListener("input", updateMealPlanEditors);
+  });
+
+  row.append(name, fields, remove);
+  editor.appendChild(row);
+
+  updateMealPlanEditors();
+}
+
+function addMealFoodRow(values = {}) {
+  addMealEntryRow("food", values);
+}
+
+function addMealSubstitutionRow(values = {}) {
+  addMealEntryRow("substitution", values);
+}
+
+function updateMealPlanEditors() {
+  const readRows = editorId => {
+    const editor = document.getElementById(editorId);
+    if (!editor) return [];
+
+    return Array.from(
+      editor.querySelectorAll("[data-meal-entry]")
+    ).map(row => {
+      const inputs = row.querySelectorAll("input");
+
+      return {
+        name: inputs[0].value.trim(),
+        quantity: inputs[1].value.trim(),
+        unit: inputs[2].value.trim(),
+        calories: inputs[3].value.trim()
+      };
+    }).filter(item => item.name);
+  };
+
+  const formatRows = rows => rows.map(item => {
+    const quantity = item.quantity
+      ? `${item.unit || "Quantidade"}: ${item.quantity}`
+      : "";
+
+    const details = quantity ? ` (${quantity})` : "";
+
+    const calories = item.calories
+      ? ` - Kcal ${item.calories}`
+      : "";
+
+    return `${item.name}${details}${calories}`;
+  }).join("\n");
+
+  document.getElementById("mealPlanFoods").value =
+    formatRows(readRows("mealPlanFoodsEditor"));
+
+  document.getElementById("mealPlanSubstitutions").value =
+    formatRows(readRows("mealPlanSubstitutionsEditor"));
+}   
+
 function isMealPlanAdmin() {
   return currentUser &&
     (
@@ -3561,9 +3692,44 @@ function editMealPlanItem(id) {
   document.getElementById("mealPlanDay").value = meal.day_of_week || "";
   document.getElementById("mealPlanName").value = meal.meal_name || "";
   document.getElementById("mealPlanTime").value = meal.meal_time || "";
-  document.getElementById("mealPlanFoods").value = meal.foods || "";
-  document.getElementById("mealPlanSubstitutions").value = meal.substitutions || "";
   document.getElementById("mealPlanNotes").value = meal.notes || "";
+
+  function loadEntries(text, type) {
+    const editorId = type === "food"
+      ? "mealPlanFoodsEditor"
+      : "mealPlanSubstitutionsEditor";
+
+    const editor = document.getElementById(editorId);
+    editor.innerHTML = "";
+
+    const lines = (text || "").split("\n").filter(line => line.trim());
+
+    lines.forEach(line => {
+      const match = line.trim().match(
+        /^(.*?)\s*(?:\(([^:()]+):\s*([^)]+)\))?\s*(?:-\s*(?:kcal\s*)?([\d.,]+)\s*kcal?)?$/i
+      );
+
+      if (match) {
+        addMealEntryRow(type, {
+          name: match[1].trim(),
+          unit: match[2] || "",
+          quantity: match[3] || "",
+          calories: match[4] || ""
+        });
+      } else {
+        addMealEntryRow(type, {
+          name: line.trim()
+        });
+      }
+    });
+
+    if (lines.length === 0) {
+      addMealEntryRow(type);
+    }
+  }
+
+  loadEntries(meal.foods, "food");
+  loadEntries(meal.substitutions, "substitution");
 
   const button = document.getElementById("mealPlanSaveButton");
   button.innerHTML = '<i class="fa-solid fa-pen mr-1"></i> Salvar alterações';
@@ -3576,6 +3742,7 @@ function editMealPlanItem(id) {
     block: "center"
   });
 }
+
       
 async function saveMealPlanFromForm() {
   const studentEmail = getMealPlanStudentEmail();
@@ -3599,7 +3766,8 @@ async function saveMealPlanFromForm() {
     message.textContent = "Informe o dia ou a categoria.";
     return;
   }
-
+  
+updateMealPlanEditors();
   const isEditing = editingMealPlanId !== null;
 
   const data = {
@@ -3638,8 +3806,11 @@ async function saveMealPlanFromForm() {
     document.getElementById("mealPlanDay").value = "";
     document.getElementById("mealPlanName").value = "";
     document.getElementById("mealPlanTime").value = "";
-    document.getElementById("mealPlanFoods").value = "";
-    document.getElementById("mealPlanSubstitutions").value = "";
+   document.getElementById("mealPlanFoods").value = "";
+document.getElementById("mealPlanSubstitutions").value = "";
+
+document.getElementById("mealPlanFoodsEditor").innerHTML = "";
+document.getElementById("mealPlanSubstitutionsEditor").innerHTML = "";
     document.getElementById("mealPlanNotes").value = "";
 
     message.textContent = isEditing
