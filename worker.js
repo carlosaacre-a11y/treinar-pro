@@ -1897,6 +1897,69 @@ async function sendPushToStudent(env, studentEmail, notification) {
     try {
       const url = new URL(request.url);
 
+      // Chave pública para ativar notificações
+if (url.pathname === "/api/push/public-key" && request.method === "GET") {
+  return json({ publicKey: env.VAPID_PUBLIC_KEY });
+}
+
+// Cadastrar dispositivo para receber notificações
+if (url.pathname === "/api/push/subscribe" && request.method === "POST") {
+  const body = await request.json();
+  const email = String(body.email || "").trim().toLowerCase();
+  const sub = body.subscription;
+
+  if (!email || !sub?.endpoint || !sub?.keys?.p256dh || !sub?.keys?.auth) {
+    return json({ error: "Dados da inscrição incompletos." }, 400);
+  }
+
+  await env.DB.prepare(`
+    INSERT INTO push_subscriptions
+      (id, student_email, endpoint, p256dh, auth)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(endpoint) DO UPDATE SET
+      student_email = excluded.student_email,
+      p256dh = excluded.p256dh,
+      auth = excluded.auth,
+      updated_at = CURRENT_TIMESTAMP
+  `).bind(
+    crypto.randomUUID(),
+    email,
+    sub.endpoint,
+    sub.keys.p256dh,
+    sub.keys.auth
+  ).run();
+
+  return json({ ok: true });
+}
+
+// Enviar mensagem de teste pelo administrador
+if (url.pathname === "/api/push/test" && request.method === "POST") {
+  const body = await request.json();
+
+  if (String(body.adminEmail || "").toLowerCase() !== "carlosaacre@gmail.com") {
+    return json({ error: "Acesso não autorizado." }, 403);
+  }
+
+  const studentEmail = String(body.studentEmail || "").trim().toLowerCase();
+  const message = String(body.message || "").trim();
+
+  if (!studentEmail || !message) {
+    return json({ error: "Informe o aluno e a mensagem." }, 400);
+  }
+
+  const sentCount = await sendPushToStudent(env, studentEmail, {
+    title: "Treinar Pro",
+    body: message,
+    tag: "treinar-pro-teste"
+  });
+
+  if (!sentCount) {
+    return json({ error: "Nenhum dispositivo cadastrado recebeu a notificação." }, 404);
+  }
+
+  return json({ ok: true, sentCount });
+}
+
       if (url.pathname === "/api/health") {
         return json({
           ok: true,
