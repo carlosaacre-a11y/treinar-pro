@@ -3530,9 +3530,7 @@ function renderMealPlan() {
 
   const categories = [
   ...new Set(
-    mealPlanMeals
-      .map(item => item.day_of_week)
-      .filter(Boolean)
+    mealPlanMeals.map(item => item.day_of_week || "")
   )
 ];
 
@@ -3545,10 +3543,18 @@ categories.forEach(day => {
     section.className =
       "bg-dark-800 border border-dark-700 rounded-2xl p-4 space-y-3";
 
-    const heading = document.createElement("h5");
-    heading.className = "text-sm font-bold text-primary-400";
-    heading.textContent = day;
-    section.appendChild(heading);
+    if (
+  day &&
+  !meals.every(
+    meal => (meal.meal_name || "").trim().toLowerCase() ===
+            day.trim().toLowerCase()
+  )
+) {
+  const heading = document.createElement("h5");
+  heading.className = "text-sm font-bold text-primary-400";
+  heading.textContent = day;
+  section.appendChild(heading);
+}
 
     meals.forEach(meal => {
       const card = document.createElement("div");
@@ -3573,10 +3579,7 @@ categories.forEach(day => {
       const foodsSection = document.createElement("div");
       foodsSection.className = "space-y-2";
 
-      const foodsTitle = document.createElement("p");
-      foodsTitle.className = "text-xs font-bold text-primary-400 uppercase tracking-wide";
-      foodsTitle.textContent = "Alimentos";
-      foodsSection.appendChild(foodsTitle);
+      
 
       const foodLines = (meal.foods || "").split("\n").filter(line => line.trim());
 
