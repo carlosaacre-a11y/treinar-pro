@@ -4504,6 +4504,10 @@ let user = globalState.users.find(
 );
         
         if (user) {
+            if (email !== ADMIN_EMAIL.toLowerCase() &&
+      user.role !== "teacher") {
+    user.role = "student";
+  }
   if (user.status === "inactive") {
     msgEl.textContent = "Perfil temporariamente indisponível.";
     msgEl.classList.remove("hidden");
