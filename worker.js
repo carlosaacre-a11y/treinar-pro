@@ -2635,6 +2635,73 @@ if (
         },
         500
       );
+   }
+  },
+
+  async scheduled(controller, env, ctx) {
+    const timeZone = "America/Rio_Branco";
+
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23"
+    }).formatToParts(new Date());
+
+    const getPart = type =>
+      parts.find(p => p.type === type)?.value || "";
+
+    const today = `${getPart("year")}-${getPart("month")}-${getPart("day")}`;
+    const currentTime = `${getPart("hour")}:${getPart("minute")}`;
+
+    const result = await env.DB.prepare(`
+      SELECT * FROM meal_plans
+      WHERE meal_time IS NOT NULL
+      AND trim(meal_time) <> ''
+    `).all();
+
+    for (const meal of (result.results || [])) {
+      const mealTime = String(meal.meal_time).trim().slice(0, 5);
+      if (mealTime !== currentTime) continue;
+
+      const log = await env.DB.prepare(`
+        INSERT OR IGNORE INTO meal_notification_logs
+          (id, student_email, meal_plan_id, notification_date)
+        VALUES (?, ?, ?, ?)
+      `).bind(
+        crypto.randomUUID(),
+        meal.student_email.toLowerCase(),
+        meal.id,
+        today
+      ).run();
+
+      if (!log.meta || log.meta.changes !== 1) continue;
+
+      const sentCount = await sendPushToStudent(
+        env,
+        meal.student_email,
+        {
+          title: "Treinar Pro",
+          body: `Está na hora de: ${meal.meal_name}`,
+          tag: `refeicao-${meal.id}`
+        }
+      );
+
+      if (sentCount === 0) {
+        await env.DB.prepare(`
+          DELETE FROM meal_notification_logs
+          WHERE student_email = ?
+          AND meal_plan_id = ?
+          AND notification_date = ?
+        `).bind(
+          meal.student_email.toLowerCase(),
+          meal.id,
+          today
+        ).run();
+      }
     }
   }
 };
