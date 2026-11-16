@@ -338,16 +338,27 @@ border-top-color: #e4e4e7 !important;
           </div>
 
           <!-- MURAL DE AVISOS DO PROFESSOR -->
-          <div id="teacherNoticeCard" class="hidden bg-dark-800 border border-primary-500/30 rounded-2xl p-4 space-y-2 relative shadow-md">
-            <div class="flex items-center justify-between border-b border-dark-700/60 pb-2">
-              <h4 class="text-xs font-bold text-primary-400 flex items-center gap-2">
-                <i class="fa-solid fa-bullhorn text-primary-500"></i> Mural do Professor
-              </h4>
-              <span id="teacherNoticeDate" class="text-[10px] text-zinc-500">Recado recente</span>
-            </div>
-            <p id="teacherNoticeText" class="text-xs text-zinc-200 whitespace-pre-wrap leading-relaxed"></p>
-          </div>
+<div id="teacherNoticeCard" class="hidden bg-dark-800 border border-primary-500/30 rounded-2xl p-4 space-y-2 relative shadow-md">
 
+  <button
+    type="button"
+    onclick="toggleTeacherNotice()"
+    class="w-full flex items-center justify-between border-b border-dark-700/60 pb-2 text-left"
+  >
+    <h4 class="text-xs font-bold text-primary-400 flex items-center gap-2">
+      <i class="fa-solid fa-bullhorn text-primary-500"></i>
+      Mural do Professor
+    </h4>
+
+    <i id="teacherNoticeArrow" class="fa-solid fa-chevron-down transition-transform"></i>
+  </button>
+
+  <div id="teacherNoticeContent" class="space-y-2">
+    <span id="teacherNoticeDate" class="block text-[10px] text-zinc-500">Recado recente</span>
+    <p id="teacherNoticeText" class="text-xs text-zinc-200 whitespace-pre-wrap leading-relaxed"></p>
+  </div>
+
+</div>
             <!-- MARCADOR DE TREINOS REALIZADOS -->
 <div id="workoutLogPanel" class="hidden bg-dark-800 border border-dark-700 rounded-xl px-3 py-3 space-y-2">
 
