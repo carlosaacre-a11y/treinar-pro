@@ -3614,24 +3614,72 @@ categories.forEach(day => {
 
       card.appendChild(foodsSection);
 
-      // SUBSTITUIÇÕES — SEMPRE VISÍVEIS
-      const substitutionsBox = document.createElement("div");
-      substitutionsBox.className =
-        "bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 space-y-2";
+    // SUBSTITUIÇÕES — VISUAL INDIVIDUAL EM AZUL
+const substitutionsBox = document.createElement("div");
+substitutionsBox.className =
+  "bg-blue-100 dark:bg-blue-950 border border-blue-400 dark:border-blue-700 rounded-xl p-3 space-y-3";
 
-      const substitutionsTitle = document.createElement("p");
-      substitutionsTitle.className = "text-xs font-bold text-blue-400";
-      substitutionsTitle.textContent = "↔ Substituições";
+const substitutionsTitle = document.createElement("p");
+substitutionsTitle.className =
+  "text-xs font-bold text-blue-800 dark:text-blue-300";
+substitutionsTitle.textContent = "↔ Substituições";
 
-      const substitutionsText = document.createElement("p");
-      substitutionsText.className =
-        "text-xs text-zinc-300 whitespace-pre-line leading-relaxed";
-      substitutionsText.textContent =
-        meal.substitutions || "Nenhuma substituição informada.";
+substitutionsBox.appendChild(substitutionsTitle);
 
-      substitutionsBox.append(substitutionsTitle, substitutionsText);
-      card.appendChild(substitutionsBox);
+const substitutionLines = (meal.substitutions || "")
+  .split("\n")
+  .filter(line => line.trim());
 
+if (substitutionLines.length === 0) {
+  const emptyText = document.createElement("p");
+  emptyText.className =
+    "text-xs text-blue-800 dark:text-blue-200";
+  emptyText.textContent = "Nenhuma substituição informada.";
+  substitutionsBox.appendChild(emptyText);
+}
+
+substitutionLines.forEach(line => {
+  const row = document.createElement("div");
+
+  row.className =
+    "flex items-center justify-between gap-3 bg-blue-200 dark:bg-blue-900 border border-blue-300 dark:border-blue-700 rounded-lg p-3";
+
+  const match = line.match(
+    /^(.*?)\s*\(([^()]*)\)\s*-\s*Kcal\s*([\d.,]+)\s*$/i
+  );
+
+  const info = document.createElement("div");
+  info.className = "min-w-0 flex-1";
+
+  const foodName = document.createElement("p");
+  foodName.className =
+    "text-sm font-bold text-blue-950 dark:text-white";
+
+  const quantity = document.createElement("p");
+  quantity.className =
+    "text-xs text-blue-800 dark:text-blue-200 mt-1";
+
+  const calories = document.createElement("span");
+  calories.className =
+    "text-xs font-bold text-blue-900 dark:text-blue-200 whitespace-nowrap";
+
+  if (match) {
+    foodName.textContent = match[1].trim();
+    quantity.textContent = match[2].trim();
+    calories.textContent = match[3].trim() + " kcal";
+  } else {
+    foodName.textContent = line.trim();
+  }
+
+  info.append(foodName, quantity);
+  row.append(info, calories);
+
+  substitutionsBox.appendChild(row);
+});
+
+card.appendChild(substitutionsBox);
+
+      
       // OBSERVAÇÕES — SEMPRE VISÍVEIS
       const notesBox = document.createElement("div");
       notesBox.className =
