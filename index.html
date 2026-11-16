@@ -833,6 +833,40 @@ border-top-color: #e4e4e7 !important;
               email@exemplo.com
             </p>
           </div>
+
+         <!-- NOTIFICAÇÕES DE REFEIÇÕES -->
+          <div
+            id="mealNotificationPanel"
+            class="bg-dark-800 border border-emerald-500/30 rounded-2xl p-4 space-y-3 hidden"
+          >
+            <div class="flex items-center gap-2">
+              <span class="text-xl">🔔</span>
+              <div>
+                <h4 class="text-sm font-bold text-white">
+                  Notificações de refeições
+                </h4>
+                <p class="text-xs text-zinc-400">
+                  Receba avisos nos horários do seu plano alimentar.
+                </p>
+              </div>
+            </div>
+
+            <button
+              id="enableMealNotifications"
+              onclick="enableMealNotifications()"
+              class="w-full bg-emerald-500 hover:bg-emerald-600 text-dark-950 font-bold py-3 rounded-xl text-xs transition"
+            >
+              Ativar notificações
+            </button>
+
+            <p
+              id="mealNotificationStatus"
+              class="text-xs text-zinc-400 text-center"
+            >
+              Ative para receber lembretes das refeições.
+            </p>
+          </div>
+          
           <div
             class="bg-dark-800 border border-dark-700 rounded-2xl p-4 space-y-4"
           >
@@ -6355,6 +6389,14 @@ if (sharePreviewBtn) {
         document.getElementById("profileAvatar").src = currentUser.avatar;
         document.getElementById("profileName").textContent = currentUser.name;
         document.getElementById("profileEmail").textContent = currentUser.email;
+        const mealPanel = document.getElementById("mealNotificationPanel");
+
+if (mealPanel) {
+  mealPanel.classList.toggle(
+    "hidden",
+    isAdmin || isTeacher
+  );
+}
         document.getElementById("editMyName").value = currentUser.name;
         document.getElementById("editMyAvatarFile").value = "";
         document.getElementById("editMyBirthDate").value =
@@ -6406,6 +6448,100 @@ if (assessmentsContent) {
         document.getElementById("loginMessage").classList.add("hidden");
         applyAppSettings();
       }
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
+
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+
+  return outputArray;
+}
+
+async function enableMealNotifications() {
+  const button = document.getElementById("enableMealNotifications");
+  const status = document.getElementById("mealNotificationStatus");
+
+  try {
+    if (!currentUser || currentUser.role === "teacher" ||
+        currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+      throw new Error("Somente alunos podem ativar as notificações.");
+    }
+
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      throw new Error("Seu navegador não oferece suporte a notificações.");
+    }
+
+    button.disabled = true;
+    button.textContent = "Ativando...";
+    status.textContent = "Aguarde, estamos configurando...";
+
+    const permission = await Notification.requestPermission();
+
+    if (permission !== "granted") {
+      throw new Error("Permissão de notificação não concedida.");
+    }
+
+    const keyResponse = await fetch(API_URL + "/api/push/public-key");
+
+    if (!keyResponse.ok) {
+      throw new Error("Não foi possível obter a chave de notificações.");
+    }
+
+    const keyData = await keyResponse.json();
+
+    if (!keyData.publicKey) {
+      throw new Error("Chave pública não configurada no servidor.");
+    }
+
+    const registration = await navigator.serviceWorker.ready;
+
+    let subscription = await registration.pushManager.getSubscription();
+
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(keyData.publicKey)
+      });
+    }
+
+    const saveResponse = await fetch(API_URL + "/api/push/subscribe", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email: currentUser.email,
+        subscription: subscription.toJSON()
+      })
+    });
+
+    const result = await saveResponse.json();
+
+    if (!saveResponse.ok || !result.ok) {
+      throw new Error(result.error || "Não foi possível salvar a inscrição.");
+    }
+
+    button.textContent = "Notificações ativadas";
+    status.textContent = "Você receberá avisos nos horários das refeições.";
+    button.classList.remove("bg-emerald-500");
+    button.classList.add("bg-emerald-700");
+
+  } catch (error) {
+    console.error("Erro ao ativar notificações:", error);
+    status.textContent = error.message || "Erro ao ativar notificações.";
+    button.textContent = "Tentar novamente";
+    button.disabled = false;
+  }
+}
+      
 function updateThemeButton() {
   const button = document.getElementById("themeToggleBtn");
   const icon = document.getElementById("themeToggleIcon");
