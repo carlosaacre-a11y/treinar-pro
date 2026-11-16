@@ -3742,39 +3742,64 @@ function editMealPlanItem(id) {
   document.getElementById("mealPlanTime").value = meal.meal_time || "";
   document.getElementById("mealPlanNotes").value = meal.notes || "";
 
-  function loadEntries(text, type) {
-    const editorId = type === "food"
-      ? "mealPlanFoodsEditor"
-      : "mealPlanSubstitutionsEditor";
+ function loadEntries(text, type) {
+  const editorId = type === "food"
+    ? "mealPlanFoodsEditor"
+    : "mealPlanSubstitutionsEditor";
 
-    const editor = document.getElementById(editorId);
-    editor.innerHTML = "";
+  const editor = document.getElementById(editorId);
+  editor.innerHTML = "";
 
-    const lines = (text || "").split("\n").filter(line => line.trim());
+  const lines = (text || "").split("\n").filter(line => line.trim());
 
-    lines.forEach(line => {
-      const match = line.trim().match(
-        /^(.*?)\s*(?:\(([^:()]+):\s*([^)]+)\))?\s*(?:-\s*(?:kcal\s*)?([\d.,]+)\s*kcal?)?$/i
+  lines.forEach(line => {
+    let content = line.trim();
+    let calories = "";
+
+    // Separa as calorias do restante do texto
+    const calorieMatch = content.match(
+      /\s-\s*kcal\s*([\d.,]+)\s*$/i
+    );
+
+    if (calorieMatch) {
+      calories = calorieMatch[1].trim();
+      content = content.slice(0, calorieMatch.index).trim();
+    }
+
+    let name = content;
+    let unit = "";
+    let quantity = "";
+
+    // Separa o nome dos detalhes entre parênteses
+    const detailMatch = content.match(
+      /^(.*?)\s*\(([^()]*)\)$/
+    );
+
+    if (detailMatch) {
+      name = detailMatch[1].trim();
+
+      const quantityMatch = detailMatch[2].match(
+        /^([^:]+):\s*(.+)$/
       );
 
-      if (match) {
-        addMealEntryRow(type, {
-          name: match[1].trim(),
-          unit: match[2] || "",
-          quantity: match[3] || "",
-          calories: match[4] || ""
-        });
-      } else {
-        addMealEntryRow(type, {
-          name: line.trim()
-        });
+      if (quantityMatch) {
+        unit = quantityMatch[1].trim();
+        quantity = quantityMatch[2].trim();
       }
-    });
-
-    if (lines.length === 0) {
-      addMealEntryRow(type);
     }
+
+    addMealEntryRow(type, {
+      name,
+      unit,
+      quantity,
+      calories
+    });
+  });
+
+  if (lines.length === 0) {
+    addMealEntryRow(type);
   }
+}
 
   loadEntries(meal.foods, "food");
   loadEntries(meal.substitutions, "substitution");
