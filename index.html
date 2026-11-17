@@ -3294,10 +3294,7 @@ async function registerWorkoutFromPrompt(workoutName) {
   }
 }
 
-// VERIFICAR SE PRECISA MOSTRAR A JANELA
-      
-const keys = Object.keys(currentUser.workouts || {})
-  .sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
+
 
 async function changeWorkoutLogDate(date) {
   if (!date) return;
