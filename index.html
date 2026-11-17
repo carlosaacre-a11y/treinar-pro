@@ -4189,11 +4189,6 @@ const professorTeste = (globalState.teachers || []).find(
   t => t.email.toLowerCase() === emailTeste
 );
 
-alert(
-  "E-mail salvo: " + (savedEmail || "NÃO") +
-  "\nConta encontrada: " + (alunoTeste || professorTeste ? "SIM" : "NÃO") +
-  "\nStatus: " + (alunoTeste?.status || professorTeste?.status || "Não localizado")
-);
 
 if (savedEmail) {
   const savedEmailLower = savedEmail.toLowerCase();
