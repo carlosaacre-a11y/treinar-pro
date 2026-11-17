@@ -3248,79 +3248,8 @@ async function registerWorkoutFromPrompt(workoutName) {
 
 // VERIFICAR SE PRECISA MOSTRAR A JANELA
       
-async function showWorkoutPromptIfNeeded() {
-  if (!currentUser || !currentUser.email) return;
-
-  const modal = document.getElementById("workoutPromptModal");
-  const container = document.getElementById("workoutPromptButtons");
-
-  if (!modal || !container) return;
-
-  const email = currentUser.email.toLowerCase();
-
-  if (modal.dataset.checkedEmail === email) return;
-
-  modal.dataset.checkedEmail = email;
-
-  const weekOrder = [
-  "segunda",
-  "terça",
-  "terca",
-  "quarta",
-  "quinta",
-  "sexta",
-  "sábado",
-  "sabado"
-  "domingo"
-];
-
 const keys = Object.keys(currentUser.workouts || {})
-  .sort((a, b) => {
-    const normalize = name => name
-      .replace(/^Treino\s*/i, "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .trim();
-
-    const indexA = weekOrder.indexOf(normalize(a));
-    const indexB = weekOrder.indexOf(normalize(b));
-
-    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-    if (indexA !== -1) return -1;
-    if (indexB !== -1) return 1;
-
-    return a.localeCompare(b, "pt-BR", { numeric: true });
-  });
-
-  if (keys.length === 0) return;
-
-  workoutLogDate = getWorkoutLocalDate();
-  workoutLogsForDate.clear();
-
-  const loaded = await loadWorkoutLogsForDate();
-
-  if (!loaded || workoutLogsForDate.size > 0) return;
-
-  container.innerHTML = "";
-
-  keys.forEach(key => {
-    const button = document.createElement("button");
-
-    button.type = "button";
-    button.textContent = key.replace(/^Treino\s*/i, "");
-    button.title = key;
-
-    button.className =
-  "w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold bg-primary-500/15 text-zinc-300 border-2 border-primary-500 shadow-md shadow-primary-500/20 hover:bg-primary-500 hover:text-white transition";
-    button.onclick = () => registerWorkoutFromPrompt(key);
-
-    container.appendChild(button);
-  });
-
-  modal.classList.remove("hidden");
-  modal.classList.add("flex");
-}
+  .sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
 
 async function changeWorkoutLogDate(date) {
   if (!date) return;
