@@ -4182,6 +4182,9 @@ async function deleteMealPlanItem(id) {
           renderAdminTeachersList();
 
           const savedEmail = localStorage.getItem("treinarPro_loggedEmail");
+          console.log("E-mail salvo:", savedEmail);
+console.log("Usuários carregados:", globalState.users?.length);
+console.log("Professores carregados:", globalState.teachers?.length);
 
 if (savedEmail) {
   const savedEmailLower = savedEmail.toLowerCase();
