@@ -4182,9 +4182,21 @@ async function deleteMealPlanItem(id) {
           renderAdminTeachersList();
 
           const savedEmail = localStorage.getItem("treinarPro_loggedEmail");
-          console.log("E-mail salvo:", savedEmail);
-console.log("Usuários carregados:", globalState.users?.length);
-console.log("Professores carregados:", globalState.teachers?.length);
+          const emailTeste = (savedEmail || "").toLowerCase();
+
+const alunoTeste = (globalState.users || []).find(
+  u => u.email.toLowerCase() === emailTeste
+);
+
+const professorTeste = (globalState.teachers || []).find(
+  t => t.email.toLowerCase() === emailTeste
+);
+
+alert(
+  "E-mail salvo: " + (savedEmail || "NÃO") +
+  "\nConta encontrada: " + (alunoTeste || professorTeste ? "SIM" : "NÃO") +
+  "\nStatus: " + (alunoTeste?.status || professorTeste?.status || "Não localizado")
+);
 
 if (savedEmail) {
   const savedEmailLower = savedEmail.toLowerCase();
