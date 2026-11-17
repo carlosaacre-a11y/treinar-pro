@@ -3262,8 +3262,36 @@ async function showWorkoutPromptIfNeeded() {
 
   modal.dataset.checkedEmail = email;
 
-  const keys = Object.keys(currentUser.workouts || {})
-    .sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
+  const weekOrder = [
+  "segunda",
+  "terça",
+  "terca",
+  "quarta",
+  "quinta",
+  "sexta",
+  "sábado",
+  "sabado"
+  "domingo"
+];
+
+const keys = Object.keys(currentUser.workouts || {})
+  .sort((a, b) => {
+    const normalize = name => name
+      .replace(/^Treino\s*/i, "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+
+    const indexA = weekOrder.indexOf(normalize(a));
+    const indexB = weekOrder.indexOf(normalize(b));
+
+    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+    if (indexA !== -1) return -1;
+    if (indexB !== -1) return 1;
+
+    return a.localeCompare(b, "pt-BR", { numeric: true });
+  });
 
   if (keys.length === 0) return;
 
