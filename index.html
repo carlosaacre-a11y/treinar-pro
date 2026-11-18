@@ -3241,9 +3241,30 @@ if (modal.dataset.checkedEmail === email) return;
 
 modal.dataset.checkedEmail = email;
 
-const keys = Object.keys(currentUser.workouts || {})
-.sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
+const keys = Object.keys(currentUser.workouts || {});
 
+const promptOrdemDias = [
+  "segunda", "terca", "quarta", "quinta",
+  "sexta", "sabado", "domingo"
+];
+
+const promptNormalizarDia = nome =>
+  nome.replace(/^Treino\s*/i, "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/-feira/g, "")
+    .replace(/\s+feira/g, "")
+    .trim();
+
+keys.sort((a, b) => {
+  const diaA = promptOrdemDias.indexOf(promptNormalizarDia(a));
+  const diaB = promptOrdemDias.indexOf(promptNormalizarDia(b));
+
+  return (diaA === -1 ? 99 : diaA) -
+         (diaB === -1 ? 99 : diaB) ||
+         a.localeCompare(b, "pt-BR", { numeric: true });
+});
 if (keys.length === 0) return;
 
 workoutLogDate = getWorkoutLocalDate();
