@@ -10930,7 +10930,29 @@ teacherSelect.value = user.teacher || "";
         container.innerHTML = "";
         
         let wKeys = Object.keys(user.workouts || {});
-        wKeys.sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
+
+const adminOrdemDias = [
+  "segunda", "terca", "quarta", "quinta",
+  "sexta", "sabado", "domingo"
+];
+
+const adminNormalizarDia = nome =>
+  nome.replace(/^Treino\s*/i, "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/-feira/g, "")
+    .replace(/\s+feira/g, "")
+    .trim();
+
+wKeys.sort((a, b) => {
+  const diaA = adminOrdemDias.indexOf(adminNormalizarDia(a));
+  const diaB = adminOrdemDias.indexOf(adminNormalizarDia(b));
+
+  return (diaA === -1 ? 99 : diaA) -
+         (diaB === -1 ? 99 : diaB) ||
+         a.localeCompare(b, "pt-BR", { numeric: true });
+});
 
         wKeys.forEach((wKey) => {
   const box = document.createElement("div");
